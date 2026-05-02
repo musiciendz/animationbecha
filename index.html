@@ -201,23 +201,32 @@
 
         document.getElementById('todayDateDisplay').innerText = getTodayIso();
 
-        // 2. قراءة عروض اليوم من Firebase
+        // 2. قراءة العروض القادمة من Firebase (اليوم وفي المستقبل للتحضير)
         db.ref('BechaEventsData/events').on('value', snap => {
             const events = snap.val() || [];
             let todayIso = getTodayIso();
-            let todayEvents = events.filter(e => e.date === todayIso);
+            
+            // 💡 التعديل هنا: جلب كل العروض من اليوم فصاعداً وترتيبها حسب التاريخ
+            let upcomingEvents = events.filter(e => e.date >= todayIso).sort((a, b) => a.date.localeCompare(b.date));
             
             let listDiv = document.getElementById('todayEventsList');
             listDiv.innerHTML = '';
 
-            if (todayEvents.length === 0) {
-                listDiv.innerHTML = '<p style="color: #E10600; font-weight:bold;">لا توجد عروض مبرمجة لهذا اليوم في المنظومة.</p>';
+            // تغيير العنوان ليتناسب مع التحديث
+            document.querySelector('#eventSelectionScreen h2').innerHTML = `📅 العروض المبرمجة للتحضير`;
+
+            if (upcomingEvents.length === 0) {
+                listDiv.innerHTML = '<p style="color: #E10600; font-weight:bold;">لا توجد عروض قادمة مسجلة في المنظومة حالياً.</p>';
             } else {
-                todayEvents.forEach((ev, index) => {
-                    // إنشاء زر لكل حفلة
+                upcomingEvents.forEach((ev, index) => {
+                    // إنشاء زر لكل حفلة قادمة مع إظهار التاريخ
                     let btn = document.createElement('button');
                     btn.className = 'event-btn';
-                    btn.innerHTML = `🎭 ${ev.showName || 'عرض'} <br> 🏫 ${ev.name} <br> <span style="font-size: 14px; color: #555;">🕒 ${ev.time || '--'}</span>`;
+                    btn.innerHTML = `
+                        <div style="font-size: 14px; color: #555; margin-bottom: 5px;">📅 ${ev.date} | 🕒 ${ev.time || '--'}</div>
+                        🎭 ${ev.showName || 'عرض'} <br> 
+                        🏫 ${ev.name}
+                    `;
                     
                     // عند الضغط على الحفلة
                     btn.onclick = () => selectEvent(ev);
