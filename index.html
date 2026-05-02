@@ -69,8 +69,8 @@
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
         /* شاشة الدخول */
-        #loginScreen input {
-            width: 100%; padding: 15px; margin-bottom: 15px; border-radius: 10px;
+        #loginScreen input[type="text"], #loginScreen input[type="password"] {
+            width: 100%; padding: 15px; border-radius: 10px;
             border: 2px solid #ddd; font-family: 'Cairo'; font-size: 16px; text-align: center; box-sizing: border-box;
         }
         #loginScreen input:focus { border-color: var(--primary-red); outline: none; }
@@ -83,12 +83,6 @@
         }
         .event-card:hover { box-shadow: 0 5px 15px rgba(0,0,0,0.1); border-color: var(--primary-red); }
         .event-card h3 { margin: 0 0 5px 0; color: #333; font-size: 18px; }
-
-        /* شاشة المنع (الجدار الأمني) */
-        .denied-box {
-            background: #fff4f4; border: 2px dashed var(--primary-red); padding: 30px;
-            border-radius: 15px; margin-top: 50px;
-        }
 
         /* لوحة التنشيط */
         .dashboard-grid {
@@ -116,49 +110,51 @@
         <button id="logoutBtn" class="btn btn-dark" style="display:none; position:absolute; left:15px; top:15px; padding:5px 10px; font-size:12px;" onclick="logout()">خروج</button>
     </header>
 
-    <!-- 1. شاشة الدخول -->
+    <!-- 1. شاشة الدخول المعدلة -->
     <div id="loginScreen" class="screen active-screen">
-        <h2 style="color: #333; font-size: 20px;">تسجيل الدخول للميدان</h2>
-        
-        <input type="text" id="loginUser" placeholder="اسم المستخدم">
-        
-        <!-- خانة كلمة السر مع زر الإخفاء/الإظهار الاحترافي -->
-<div style="position: relative; width: 100%; margin-bottom: 15px;">
-    <input type="password" id="loginPass" placeholder="كلمة السر" style="width: 100%; margin-bottom: 0;">
-    <button onclick="togglePassword()" type="button" id="eyeBtn" style="position: absolute; left: 15px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; padding: 0;">
-        <!-- رسمة العين المسكرة الأولية -->
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#666" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
-            <line x1="1" y1="1" x2="23" y2="23"></line>
-        </svg>
-    </button>
-</div>
+        <div style="background: white; padding: 30px; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.1);">
+            <h2 style="color: #333; font-size: 20px; margin-top: 0;">تسجيل الدخول للميدان</h2>
+            
+            <div style="margin-bottom: 15px;">
+                <input type="text" id="loginUser" placeholder="اسم المستخدم">
+            </div>
 
-        <!-- خانة تذكرني -->
-        <div style="display: flex; align-items: center; justify-content: center; gap: 8px; margin-bottom: 20px;">
-            <input type="checkbox" id="rememberMe" checked style="width: 18px; height: 18px; cursor: pointer;">
-            <label for="rememberMe" style="font-size: 14px; color: #555; font-weight: bold; cursor: pointer;">تذكر بيانات الدخول (تذكرني)</label>
+            <!-- خانة كلمة السر مع زر الإخفاء/الإظهار الاحترافي -->
+            <div style="position: relative; width: 100%; margin-bottom: 15px;">
+                <input type="password" id="loginPass" placeholder="كلمة السر" style="width: 100%; margin-bottom: 0;">
+                <button onclick="togglePassword()" type="button" id="eyeBtn" style="position: absolute; left: 15px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; padding: 0;">
+                    <!-- رسمة العين المسكرة الأولية -->
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#666" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
+                        <line x1="1" y1="1" x2="23" y2="23"></line>
+                    </svg>
+                </button>
+            </div>
+
+            <!-- خانة تذكرني -->
+            <div style="display: flex; align-items: center; justify-content: center; gap: 8px; margin-bottom: 20px;">
+                <input type="checkbox" id="rememberMe" checked style="width: 18px; height: 18px; cursor: pointer;">
+                <label for="rememberMe" style="font-size: 14px; color: #555; font-weight: bold; cursor: pointer;">تذكر بيانات الدخول (تذكرني)</label>
+            </div>
+
+            <button class="btn btn-red" style="width: 100%;" onclick="login()">دخول للمنظومة</button>
         </div>
-
-        <button class="btn btn-red" style="width: 100%;" onclick="login()">دخول للمنظومة</button>
     </div>
 
-    <!-- 2. شاشة اختيار العرض -->
+    <!-- 2. شاشة المنع (التي ستظهر للسائق أو من ليس له مهام) -->
+    <div id="deniedMessageScreen" class="screen" style="position: fixed; top: 30%; left: 5%; right: 5%; z-index: 1000; background: white; padding: 30px; border-radius: 15px; box-shadow: 0 15px 30px rgba(0,0,0,0.2); border: 3px solid var(--primary-red); text-align: center; display: none;">
+        <h2 style="color: var(--primary-red); margin-top:0;">⚠️ عذراً <span id="deniedEmpName"></span></h2>
+        <p style="font-size: 16px; font-weight: bold; color: #333;">ليس لديك مهام تنشيطية مبرمجة على التطبيقة حالياً.</p>
+        <p style="font-size: 12px; color: #777;">(سيتم تسجيل الخروج آلياً...)</p>
+    </div>
+
+    <!-- 3. شاشة اختيار العرض -->
     <div id="eventsScreen" class="screen">
-        <h2 style="color: #333; border-bottom: 2px solid var(--primary-red); padding-bottom: 10px;">📅 العروض المبرمجة</h2>
+        <h2 style="color: #333; border-bottom: 2px solid var(--primary-red); padding-bottom: 10px;">📅 عروضي المبرمجة</h2>
         <div id="eventsListContainer"><p style="color: #777;">جاري التحميل...</p></div>
     </div>
 
-    <!-- 3. شاشة المنع (للسائق / غير المعنيين) -->
-    <div id="deniedScreen" class="screen">
-        <div class="denied-box">
-            <h2 style="color: var(--primary-red); margin-top:0;">⚠️ عذراً</h2>
-            <p id="deniedMessage" style="font-size: 16px; font-weight: bold;"></p>
-            <button class="btn btn-dark" style="margin-top: 15px;" onclick="showScreen('eventsScreen')">العودة لقائمة العروض</button>
-        </div>
-    </div>
-
-    <!-- 4. شاشة الإدارة: توزيع المهام -->
+    <!-- 4. شاشة الإدارة: توزيع المهام (تظهر لعمو حمادي فقط) -->
     <div id="adminRoleScreen" class="screen">
         <h2 style="color: #007bff;">⚙️ توزيع مهام التنشيط</h2>
         <p style="font-size: 13px; color: #666; margin-bottom: 20px;">حدد دور كل موظف مسجل في هذا العرض:</p>
@@ -198,7 +194,7 @@
     </div>
 
     <script>
-        // إعدادات Firebase (من منظومتك الأم)
+        // إعدادات Firebase (نفس إعدادات منظومتك الأم)
         const firebaseConfig = {
             apiKey: "AIzaSyCTTjp34QhF6MPNemwKhoq7385xnJKK_Hg",
             authDomain: "becha-events-kids.firebaseapp.com",
@@ -226,22 +222,51 @@
             document.getElementById(screenId).classList.add('active-screen');
         }
 
+        // إظهار وإخفاء كلمة السر مع رسمات SVG
+        function togglePassword() {
+            let passInput = document.getElementById('loginPass');
+            let eyeBtn = document.getElementById('eyeBtn');
+            
+            let eyeOpenSVG = `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#666" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>`;
+            let eyeClosedSVG = `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#666" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>`;
+
+            if (passInput.type === "password") {
+                passInput.type = "text";
+                eyeBtn.innerHTML = eyeOpenSVG;
+            } else {
+                passInput.type = "password";
+                eyeBtn.innerHTML = eyeClosedSVG;
+            }
+        }
+
+        // قراءة البيانات المسجلة (تذكرني) عند فتح التطبيقة
+        window.addEventListener('DOMContentLoaded', () => {
+            let savedUser = localStorage.getItem('animSavedUser');
+            let savedPass = localStorage.getItem('animSavedPass');
+            if(savedUser && savedPass) {
+                document.getElementById('loginUser').value = savedUser;
+                document.getElementById('loginPass').value = savedPass;
+                document.getElementById('rememberMe').checked = true;
+            }
+        });
+
         // 1. تسجيل الدخول
         function login() {
             let u = document.getElementById('loginUser').value.trim();
             let p = document.getElementById('loginPass').value.trim();
             if(!u || !p) return alert("الرجاء إدخال البيانات!");
 
+            // حفظ أو مسح البيانات حسب اختيار "تذكرني"
+            if (document.getElementById('rememberMe').checked) {
+                localStorage.setItem('animSavedUser', u);
+                localStorage.setItem('animSavedPass', p);
+            } else {
+                localStorage.removeItem('animSavedUser');
+                localStorage.removeItem('animSavedPass');
+            }
+
             if (u === "حمادي" && p === "amouhfy2025") {
                 currentUser = { pseudo: "حمادي", role: "admin", linkedEmpName: "المدير حمادي" };
-                // حفظ أو مسح البيانات حسب اختيار "تذكرني"
-        if (document.getElementById('rememberMe').checked) {
-            localStorage.setItem('animSavedUser', u);
-            localStorage.setItem('animSavedPass', p);
-        } else {
-            localStorage.removeItem('animSavedUser');
-            localStorage.removeItem('animSavedPass');
-        }
                 finishLogin();
                 return;
             }
@@ -259,128 +284,108 @@
             });
         }
 
+        // 2. الفلترة الذكية (جدار الحماية الاستباقي)
         function finishLogin() {
-            document.getElementById('logoutBtn').style.display = 'block';
-            loadUpcomingEvents();
-            showScreen('eventsScreen');
+            db.ref('BechaEventsData/events').once('value', snap => {
+                eventsData = snap.val() || [];
+                let todayIso = getTodayIso();
+                
+                // جلب كل العروض المستقبلية (من اليوم فصاعدا)
+                let allUpcoming = eventsData.map((e, i) => ({...e, originalIndex: i}))
+                                         .filter(e => e.date >= todayIso)
+                                         .sort((a, b) => a.date.localeCompare(b.date));
+
+                let filteredEvents = [];
+
+                if (currentUser.role === 'admin') {
+                    // المدير يرى كل العروض
+                    filteredEvents = allUpcoming;
+                } else {
+                    let empName = currentUser.linkedEmpName;
+                    
+                    // فرز العروض للموظف العادي
+                    filteredEvents = allUpcoming.filter(ev => {
+                        let team = ev.assignedTeam || [];
+                        let rolesMap = ev.animationRoles || {};
+                        
+                        // شرط 1: موجود في القائمة 
+                        let isAssigned = team.includes(empName);
+                        // شرط 2: الإدارة أعطته مهمة تنشيطية، ولم تمنعه (none)
+                        let isAllowed = rolesMap[empName] && rolesMap[empName] !== 'none';
+                        
+                        return isAssigned && isAllowed;
+                    });
+                }
+
+                // المنع الآلي إذا لم تكن له عروض
+                if (filteredEvents.length === 0 && currentUser.role !== 'admin') {
+                    // إظهار رسالة المنع
+                    document.getElementById('loginScreen').style.display = 'none';
+                    document.getElementById('deniedEmpName').innerText = currentUser.linkedEmpName;
+                    document.getElementById('deniedMessageScreen').style.display = 'block';
+                    
+                    // الخروج الآلي بعد 3.5 ثواني
+                    setTimeout(() => {
+                        document.getElementById('deniedMessageScreen').style.display = 'none';
+                        logout();
+                    }, 3500);
+                    return;
+                }
+
+                // السماح بالدخول وبناء القائمة
+                document.getElementById('logoutBtn').style.display = 'block';
+                buildEventsList(filteredEvents);
+                showScreen('eventsScreen');
+            });
         }
 
         function logout() {
             currentUser = null;
-            document.getElementById('loginUser').value = '';
-            document.getElementById('loginPass').value = '';
+            document.getElementById('loginPass').value = ''; // نمسح كلمة السر فقط لزيادة الأمان
             document.getElementById('logoutBtn').style.display = 'none';
             showScreen('loginScreen');
         }
 
-        // دالة إظهار وإخفاء كلمة السر
-function togglePassword() {
-    let passInput = document.getElementById('loginPass');
-    let eyeBtn = document.getElementById('eyeBtn');
-    
-    // رسمة العين المحلولة
-    let eyeOpenSVG = `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#666" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>`;
-    
-    // رسمة العين المسكرة (مضروبة بخط)
-    let eyeClosedSVG = `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#666" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>`;
+        // 3. بناء قائمة العروض المسموح بها فقط
+        function buildEventsList(allowedEventsList) {
+            let listDiv = document.getElementById('eventsListContainer');
+            listDiv.innerHTML = '';
 
-    if (passInput.type === "password") {
-        passInput.type = "text";
-        eyeBtn.innerHTML = eyeOpenSVG; // تولي عين محلولة
-    } else {
-        passInput.type = "password";
-        eyeBtn.innerHTML = eyeClosedSVG; // ترجع عين مسكرة
-    }
-}
-
-        // قراءة البيانات المسجلة آلياً أول ما تتحل التطبيقة
-        window.addEventListener('DOMContentLoaded', () => {
-            let savedUser = localStorage.getItem('animSavedUser');
-            let savedPass = localStorage.getItem('animSavedPass');
-            if(savedUser && savedPass) {
-                document.getElementById('loginUser').value = savedUser;
-                document.getElementById('loginPass').value = savedPass;
-                document.getElementById('rememberMe').checked = true;
+            if (allowedEventsList.length === 0 && currentUser.role === 'admin') {
+                listDiv.innerHTML = '<p style="color: #E10600; font-weight:bold;">لا توجد عروض مبرمجة حالياً.</p>';
+                return;
             }
-        });
 
-        // 2. جلب العروض القادمة
-        function loadUpcomingEvents() {
-            db.ref('BechaEventsData/events').on('value', snap => {
-                eventsData = snap.val() || [];
-                let todayIso = getTodayIso();
-                
-                // فلترة: عروض اليوم والمستقبل فقط
-                let upcoming = eventsData.map((e, i) => ({...e, originalIndex: i}))
-                                         .filter(e => e.date >= todayIso)
-                                         .sort((a, b) => a.date.localeCompare(b.date));
-                
-                let listDiv = document.getElementById('eventsListContainer');
-                listDiv.innerHTML = '';
-
-                if (upcoming.length === 0) {
-                    listDiv.innerHTML = '<p style="color: #E10600; font-weight:bold;">لا توجد عروض مبرمجة حالياً.</p>';
-                    return;
-                }
-
-                upcoming.forEach(ev => {
-                    let dateBadge = ev.date === todayIso ? `<span style="color:#198754; font-weight:bold;">(عرض اليوم)</span>` : ``;
-                    listDiv.innerHTML += `
-                        <div class="event-card" onclick="selectEvent(${ev.originalIndex})">
-                            <div style="font-size: 13px; color: #666; margin-bottom: 5px;">📅 ${ev.date} | 🕒 ${ev.time || '--'} ${dateBadge}</div>
-                            <h3>🎬 ${ev.showName || 'عرض'}</h3>
-                            <div style="color: var(--primary-red); font-weight: bold;">🏫 ${ev.name}</div>
-                        </div>
-                    `;
-                });
+            let todayIso = getTodayIso();
+            allowedEventsList.forEach(ev => {
+                let dateBadge = ev.date === todayIso ? `<span style="color:#198754; font-weight:bold;">(عرض اليوم)</span>` : ``;
+                listDiv.innerHTML += `
+                    <div class="event-card" onclick="selectEvent(${ev.originalIndex})">
+                        <div style="font-size: 13px; color: #666; margin-bottom: 5px;">📅 ${ev.date} | 🕒 ${ev.time || '--'} ${dateBadge}</div>
+                        <h3>🎬 ${ev.showName || 'عرض'}</h3>
+                        <div style="color: var(--primary-red); font-weight: bold;">🏫 ${ev.name}</div>
+                    </div>
+                `;
             });
         }
 
-        // 3. الجدار الأمني واختيار العرض
+        // 4. اختيار العرض
         function selectEvent(idx) {
             currentEventIndex = idx;
             currentEventData = eventsData[idx];
 
-            // إذا كان المدير (حمادي)
             if (currentUser.role === 'admin') {
                 renderAdminRoleScreen();
                 showScreen('adminRoleScreen');
-                return;
+            } else {
+                let empName = currentUser.linkedEmpName;
+                let rolesMap = currentEventData.animationRoles || {};
+                let myRole = rolesMap[empName];
+                openDashboard(myRole);
             }
-
-            // إذا كان موظف عادي
-            let empName = currentUser.linkedEmpName;
-            let team = currentEventData.assignedTeam || [];
-
-            // المنع 1: الموظف غير مسجل في الحفلة
-            if (!team.includes(empName)) {
-                document.getElementById('deniedMessage').innerText = `مرحباً ${empName}، لست مسجلاً للعمل في هذا العرض!`;
-                showScreen('deniedScreen');
-                return;
-            }
-
-            let rolesMap = currentEventData.animationRoles || {};
-            let myRole = rolesMap[empName];
-
-            // المنع 2: الإدارة لم تحدد دوره بعد
-            if (!myRole) {
-                document.getElementById('deniedMessage').innerText = `مرحباً ${empName}، أنت مسجل في الحفل ولكن الإدارة لم تحدد مهامك على التطبيقة بعد. الرجاء مراجعة المدير.`;
-                showScreen('deniedScreen');
-                return;
-            }
-
-            // المنع 3: سائق أو مكلف باللوجستيك (غير معني بالتطبيقة)
-            if (myRole === 'none') {
-                document.getElementById('deniedMessage').innerText = `مرحباً ${empName}، صفتك في هذا العرض (سائق/لوجستيك). ليس لديك مهام تنشيطية على الشاشة. بالتوفيق!`;
-                showScreen('deniedScreen');
-                return;
-            }
-
-            // السماح بالدخول وتجهيز الواجهة حسب دوره (DJ, Animateur...)
-            openDashboard(myRole);
         }
 
-        // 4. شاشة توزيع المهام (للمدير)
+        // 5. شاشة توزيع المهام (للمدير)
         function renderAdminRoleScreen() {
             let container = document.getElementById('teamRolesContainer');
             container.innerHTML = '';
@@ -403,7 +408,7 @@ function togglePassword() {
                             <option value="animateur" ${currentRole === 'animateur' ? 'selected' : ''}>🎤 منشط</option>
                             <option value="dj" ${currentRole === 'dj' ? 'selected' : ''}>🎧 دي جي (DJ)</option>
                             <option value="assistant" ${currentRole === 'assistant' ? 'selected' : ''}>🎁 مساعد تنشيط</option>
-                            <option value="none" ${currentRole === 'none' ? 'selected' : ''}>🚫 سائق/لوجستيك (منع من التطبيقة)</option>
+                            <option value="none" ${currentRole === 'none' ? 'selected' : ''}>🚫 سائق/لوجستيك (منع)</option>
                         </select>
                     </div>
                 `;
@@ -421,12 +426,12 @@ function togglePassword() {
 
             db.ref('BechaEventsData/events/' + currentEventIndex + '/animationRoles').set(newRolesMap)
             .then(() => {
-                alert("✅ تم حفظ المهام! يمكن للفريق الدخول الآن.");
+                alert("✅ تم حفظ المهام! يمكن للفريق المعني الدخول الآن.");
                 openDashboard('admin');
             });
         }
 
-        // 5. بناء لوحة التنشيط حسب الدور
+        // 6. بناء لوحة التنشيط حسب الدور
         function openDashboard(role) {
             document.getElementById('dashInstName').innerText = currentEventData.name;
             document.getElementById('displayInstName').innerText = currentEventData.name;
@@ -435,20 +440,16 @@ function togglePassword() {
             let menu = document.getElementById('dashboardMenu');
             menu.innerHTML = '';
 
-            // كروت المنشط
             let schoolCard = `<div class="dash-card" style="border-color:#007bff;" onclick="openInnerSection('schoolSection')"><h3 style="color:#007bff; margin:0;">🏫 المؤسسة</h3></div>`;
             let gamesCard = `<div class="dash-card" style="border-color:#ff9800;" onclick="openInnerSection('gamesSection')"><h3 style="color:#ff9800; margin:0;">🧩 الألغاز</h3></div>`;
-            
-            // كروت الـ DJ
             let musicCard = `<div class="dash-card" style="border-color:#9b59b6;" onclick="openInnerSection('musicSection')"><h3 style="color:#9b59b6; margin:0;">🎧 الموسيقى</h3></div>`;
             
-            // ترتيب الواجهة
             if (role === 'animateur' || role === 'assistant') {
                 menu.innerHTML = schoolCard + gamesCard;
             } else if (role === 'dj') {
                 menu.innerHTML = musicCard;
             } else if (role === 'admin') {
-                menu.innerHTML = schoolCard + gamesCard + musicCard; // المدير يرى كل شيء
+                menu.innerHTML = schoolCard + gamesCard + musicCard;
             }
 
             showScreen('dashboardScreen');
