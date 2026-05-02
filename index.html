@@ -2,8 +2,8 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>تطبيقة التنشيط - Becha Events</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Becha Events - Animation Stage</title>
     
     <!-- خطوط عربية -->
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@600;800;900&display=swap" rel="stylesheet">
@@ -13,171 +13,173 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
 
     <style>
+        :root {
+            --primary-red: #E10600;
+            --dark-text: #2b2b2b;
+            --light-bg: #f8f9fa;
+        }
+
         body {
             font-family: 'Cairo', sans-serif;
-            background-color: #f8f9fa;
+            background-color: var(--light-bg);
             margin: 0;
             padding: 0;
+            color: var(--dark-text);
             display: flex;
             flex-direction: column;
             align-items: center;
         }
 
         header {
-            background-color: #E10600;
+            background-color: var(--primary-red);
             color: white;
             width: 100%;
             text-align: center;
-            padding: 20px 0;
+            padding: 15px 0;
             box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
         }
 
-        header h1 { margin: 0; font-size: 2rem; font-weight: 900; }
+        header h1 { margin: 0; font-size: 24px; font-weight: 900; letter-spacing: 1px; }
+        header p { margin: 5px 0 0 0; font-size: 14px; font-weight: bold; }
 
-        /* شاشة اختيار عرض اليوم */
-        #eventSelectionScreen {
-            width: 90%;
-            max-width: 600px;
-            margin-top: 50px;
-            text-align: center;
-        }
-
-        .event-btn {
-            background: white;
-            border: 3px solid #E10600;
-            color: #E10600;
-            padding: 15px;
-            margin: 10px 0;
-            width: 100%;
-            border-radius: 15px;
-            font-size: 1.2rem;
-            font-weight: 800;
-            font-family: inherit;
-            cursor: pointer;
-            transition: 0.3s;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
-        }
-
-        .event-btn:hover { background: #E10600; color: white; transform: translateY(-3px); }
-
-        /* لوحة التحكم الرئيسية */
-        #dashboardScreen { display: none; width: 100%; }
-
-        .container {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 20px;
-            width: 90%;
-            max-width: 1000px;
-            margin: 40px auto;
-        }
-
-        .card {
-            background-color: white;
-            border-radius: 20px;
-            padding: 30px;
-            text-align: center;
-            box-shadow: 0 8px 15px rgba(0,0,0,0.05);
-            cursor: pointer;
-            transition: 0.3s;
-            border: 3px solid #eee;
-        }
-
-        .card:hover { transform: translateY(-5px); border-color: #E10600; }
-        .card h2 { color: #333; margin-top: 0; }
-
-        /* الأقسام المخفية */
-        .section-content {
-            display: none;
-            width: 90%;
-            max-width: 800px;
-            background: white;
-            padding: 30px;
-            border-radius: 20px;
-            margin: 30px auto;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
-            text-align: center;
-        }
-
-        .back-btn {
-            background-color: #333;
-            color: white;
+        /* الأزرار العامة */
+        .btn {
             border: none;
-            padding: 10px 20px;
             border-radius: 10px;
+            padding: 12px 20px;
+            font-family: 'Cairo', sans-serif;
+            font-size: 16px;
+            font-weight: bold;
             cursor: pointer;
-            font-size: 1.1rem;
-            font-family: inherit;
-            margin-bottom: 20px;
+            transition: all 0.3s;
         }
+        .btn-red { background: var(--primary-red); color: white; }
+        .btn-green { background: #198754; color: white; }
+        .btn-dark { background: #333; color: white; }
+        .btn-outline { background: white; border: 2px solid var(--primary-red); color: var(--primary-red); }
+        .btn:active { transform: scale(0.95); }
+
+        /* الشاشات */
+        .screen { display: none; width: 90%; max-width: 600px; margin-top: 30px; text-align: center; }
+        .active-screen { display: block; animation: fadeIn 0.4s ease; }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* شاشة الدخول */
+        #loginScreen input {
+            width: 100%; padding: 15px; margin-bottom: 15px; border-radius: 10px;
+            border: 2px solid #ddd; font-family: 'Cairo'; font-size: 16px; text-align: center; box-sizing: border-box;
+        }
+        #loginScreen input:focus { border-color: var(--primary-red); outline: none; }
+
+        /* قائمة العروض */
+        .event-card {
+            background: white; border: 2px solid #ddd; padding: 15px; margin-bottom: 15px;
+            border-radius: 12px; cursor: pointer; transition: 0.3s; border-right: 5px solid var(--primary-red);
+            text-align: right;
+        }
+        .event-card:hover { box-shadow: 0 5px 15px rgba(0,0,0,0.1); border-color: var(--primary-red); }
+        .event-card h3 { margin: 0 0 5px 0; color: #333; font-size: 18px; }
+
+        /* شاشة المنع (الجدار الأمني) */
+        .denied-box {
+            background: #fff4f4; border: 2px dashed var(--primary-red); padding: 30px;
+            border-radius: 15px; margin-top: 50px;
+        }
+
+        /* لوحة التنشيط */
+        .dashboard-grid {
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-top: 20px;
+        }
+        .dash-card {
+            background: white; padding: 20px; border-radius: 15px; border: 2px solid #eee;
+            cursor: pointer; transition: 0.3s; box-shadow: 0 4px 8px rgba(0,0,0,0.05); text-align: center;
+        }
+        .dash-card:hover { transform: translateY(-5px); }
         
-        .inst-info {
-            background: #fff4f4;
-            padding: 20px;
-            border-radius: 15px;
-            border: 2px dashed #E10600;
-            margin-top: 20px;
+        .role-row {
+            display: flex; justify-content: space-between; align-items: center;
+            background: #f8f9fa; padding: 12px; border-radius: 8px; border: 1px solid #ddd; margin-bottom: 10px;
         }
-        .inst-info h3 { color: #E10600; font-size: 2rem; margin: 10px 0; }
-        .inst-info p { font-size: 1.2rem; font-weight: 800; color: #555; }
+        .role-row select { padding: 8px; border-radius: 6px; font-family: 'Cairo'; font-weight: bold; }
 
     </style>
 </head>
 <body>
 
     <header>
-        <h1>🌟 فضاء التنشيط - Becha Events 🌟</h1>
-        <p id="headerSubtitle" style="font-weight: 600;">الرجاء اختيار حفلة اليوم</p>
+        <h1>BECHA EVENTS</h1>
+        <p id="headerSubtitle">تطبيقة التنشيط وإدارة الركح 🎭</p>
+        <button id="logoutBtn" class="btn btn-dark" style="display:none; position:absolute; left:15px; top:15px; padding:5px 10px; font-size:12px;" onclick="logout()">خروج</button>
     </header>
 
-    <!-- شاشة اختيار الحفلة (تظهر أولاً) -->
-    <div id="eventSelectionScreen">
-        <h2 style="color: #333;">📅 حفلات اليوم: <span id="todayDateDisplay"></span></h2>
-        <div id="todayEventsList">
-            <p style="color: #777;">جاري الاتصال بالمنظومة المركزية...</p>
+    <!-- 1. شاشة الدخول -->
+    <div id="loginScreen" class="screen active-screen">
+        <h2 style="color: #333; font-size: 20px;">تسجيل الدخول للميدان</h2>
+        <input type="text" id="loginUser" placeholder="اسم المستخدم">
+        <input type="password" id="loginPass" placeholder="كلمة السر">
+        <button class="btn btn-red" style="width: 100%;" onclick="login()">دخول للمنظومة</button>
+    </div>
+
+    <!-- 2. شاشة اختيار العرض -->
+    <div id="eventsScreen" class="screen">
+        <h2 style="color: #333; border-bottom: 2px solid var(--primary-red); padding-bottom: 10px;">📅 العروض المبرمجة</h2>
+        <div id="eventsListContainer"><p style="color: #777;">جاري التحميل...</p></div>
+    </div>
+
+    <!-- 3. شاشة المنع (للسائق / غير المعنيين) -->
+    <div id="deniedScreen" class="screen">
+        <div class="denied-box">
+            <h2 style="color: var(--primary-red); margin-top:0;">⚠️ عذراً</h2>
+            <p id="deniedMessage" style="font-size: 16px; font-weight: bold;"></p>
+            <button class="btn btn-dark" style="margin-top: 15px;" onclick="showScreen('eventsScreen')">العودة لقائمة العروض</button>
         </div>
     </div>
 
-    <!-- لوحة التنشيط (تظهر بعد اختيار الحفلة) -->
-    <div id="dashboardScreen">
-        <div class="container" id="mainMenu">
-            <div class="card" onclick="showSection('schoolSection')">
-                <h2 style="color: #007bff;">🏫 تقديم المؤسسة</h2>
-                <p>المدير(ة) والإطار التربوي</p>
-            </div>
-            <div class="card" onclick="showSection('programSection')">
-                <h2 style="color: #198754;">📅 برنامج الحفل</h2>
-                <p>متابعة فقرات الحفل بالترتيب</p>
-            </div>
-            <div class="card" onclick="showSection('gamesSection')">
-                <h2 style="color: #ff9800;">🧩 ألعاب وألغاز</h2>
-                <p>مسابقات الأطفال والأولياء</p>
-            </div>
-            <div class="card" onclick="showSection('musicSection')">
-                <h2 style="color: #9b59b6;">🎤 كاريوكي وأغاني</h2>
-                <p>أغاني الحفلة مع الكلمات</p>
-            </div>
+    <!-- 4. شاشة الإدارة: توزيع المهام -->
+    <div id="adminRoleScreen" class="screen">
+        <h2 style="color: #007bff;">⚙️ توزيع مهام التنشيط</h2>
+        <p style="font-size: 13px; color: #666; margin-bottom: 20px;">حدد دور كل موظف مسجل في هذا العرض:</p>
+        <div id="teamRolesContainer"></div>
+        <div style="display: flex; gap: 10px; margin-top: 20px;">
+            <button class="btn btn-green" style="flex: 2;" onclick="saveRoles()">💾 حفظ التوزيع وبدء الحفل</button>
+            <button class="btn btn-outline" style="flex: 1;" onclick="openDashboard('admin')">تخطي</button>
+        </div>
+    </div>
+
+    <!-- 5. لوحة القيادة والتنشيط (تتغير حسب الدور) -->
+    <div id="dashboardScreen" class="screen" style="max-width: 800px;">
+        <h2 id="dashInstName" style="color: var(--primary-red); margin-top:0;">اسم المؤسسة</h2>
+        <div class="dashboard-grid" id="dashboardMenu">
+            <!-- سيتم تعميرها آلياً حسب الدور -->
         </div>
 
-        <!-- قسم تقديم المؤسسة (مربوط آلياً بالبيانات) -->
-        <div class="section-content" id="schoolSection">
-            <button class="back-btn" onclick="showMainMenu()">رجوع للقائمة ⬅️</button>
-            <h2 style="color: #007bff;">🏫 تقديم المؤسسة</h2>
-            <div class="inst-info">
-                <p>نرحب ترحيباً حاراً بأطفال وإدارة:</p>
-                <h3 id="displayInstName">اسم الروضة</h3>
-                <p>تحت إشراف السيدة الفاضلة: <span id="displayManagerName" style="color: #333;">--</span></p>
-                <p>وكل الإطار التربوي والعمالي الساهر على راحتكم!</p>
-            </div>
+        <!-- الأقسام الداخلية -->
+        <div id="schoolSection" style="display:none; background:white; padding:20px; border-radius:15px; border:2px dashed #007bff; margin-top:20px;">
+            <h3 style="color:#007bff;">🏫 تقديم المؤسسة</h3>
+            <h2 id="displayInstName" style="color:var(--dark-text);">--</h2>
+            <p style="font-weight:bold;">المدير(ة): <span id="displayManagerName" style="color:var(--primary-red);">--</span></p>
+            <button class="btn btn-dark" onclick="closeSection()">رجوع</button>
         </div>
 
-        <div class="section-content" id="programSection"><button class="back-btn" onclick="showMainMenu()">رجوع</button><h2>📅 برنامج الحفل</h2><p>قريباً...</p></div>
-        <div class="section-content" id="gamesSection"><button class="back-btn" onclick="showMainMenu()">رجوع</button><h2>🧩 ألعاب وألغاز</h2><p>قريباً...</p></div>
-        <div class="section-content" id="musicSection"><button class="back-btn" onclick="showMainMenu()">رجوع</button><h2>🎤 كاريوكي وأغاني</h2><p>قريباً...</p></div>
+        <div id="gamesSection" style="display:none; background:white; padding:20px; border-radius:15px; border:2px dashed #ff9800; margin-top:20px;">
+            <h3 style="color:#ff9800;">🧩 بنك الألغاز والألعاب</h3>
+            <p>سيتم برمجة الألغاز هنا...</p>
+            <button class="btn btn-dark" onclick="closeSection()">رجوع</button>
+        </div>
+
+        <div id="musicSection" style="display:none; background:white; padding:20px; border-radius:15px; border:2px dashed #9b59b6; margin-top:20px;">
+            <h3 style="color:#9b59b6;">🎧 لوحة التحكم (DJ)</h3>
+            <p>أزرار الموسيقى والمؤثرات (تصفيق، ضحك...)</p>
+            <button class="btn btn-dark" onclick="closeSection()">رجوع</button>
+        </div>
     </div>
 
     <script>
-        // 1. الاتصال بقاعدة بياناتك (نفس كود منظومتك بالضبط)
+        // إعدادات Firebase (من منظومتك الأم)
         const firebaseConfig = {
             apiKey: "AIzaSyCTTjp34QhF6MPNemwKhoq7385xnJKK_Hg",
             authDomain: "becha-events-kids.firebaseapp.com",
@@ -190,80 +192,222 @@
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
-        let currentEventData = null; // متغير لحفظ بيانات الحفلة المختارة
+        let currentUser = null;
+        let eventsData = [];
+        let currentEventIndex = -1;
+        let currentEventData = null;
 
-        // دالة لجلب تاريخ اليوم بصيغة YYYY-MM-DD
         function getTodayIso() {
-            let d = new Date();
-            d.setMinutes(d.getMinutes() - d.getTimezoneOffset());
+            let d = new Date(); d.setMinutes(d.getMinutes() - d.getTimezoneOffset());
             return d.toISOString().slice(0, 10);
         }
 
-        document.getElementById('todayDateDisplay').innerText = getTodayIso();
+        function showScreen(screenId) {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active-screen'));
+            document.getElementById(screenId).classList.add('active-screen');
+        }
 
-        // 2. قراءة العروض القادمة من Firebase (اليوم وفي المستقبل للتحضير)
-        db.ref('BechaEventsData/events').on('value', snap => {
-            const events = snap.val() || [];
-            let todayIso = getTodayIso();
-            
-            // 💡 التعديل هنا: جلب كل العروض من اليوم فصاعداً وترتيبها حسب التاريخ
-            let upcomingEvents = events.filter(e => e.date >= todayIso).sort((a, b) => a.date.localeCompare(b.date));
-            
-            let listDiv = document.getElementById('todayEventsList');
-            listDiv.innerHTML = '';
+        // 1. تسجيل الدخول
+        function login() {
+            let u = document.getElementById('loginUser').value.trim();
+            let p = document.getElementById('loginPass').value.trim();
+            if(!u || !p) return alert("الرجاء إدخال البيانات!");
 
-            // تغيير العنوان ليتناسب مع التحديث
-            document.querySelector('#eventSelectionScreen h2').innerHTML = `📅 العروض المبرمجة للتحضير`;
-
-            if (upcomingEvents.length === 0) {
-                listDiv.innerHTML = '<p style="color: #E10600; font-weight:bold;">لا توجد عروض قادمة مسجلة في المنظومة حالياً.</p>';
-            } else {
-                upcomingEvents.forEach((ev, index) => {
-                    // إنشاء زر لكل حفلة قادمة مع إظهار التاريخ
-                    let btn = document.createElement('button');
-                    btn.className = 'event-btn';
-                    btn.innerHTML = `
-                        <div style="font-size: 14px; color: #555; margin-bottom: 5px;">📅 ${ev.date} | 🕒 ${ev.time || '--'}</div>
-                        🎭 ${ev.showName || 'عرض'} <br> 
-                        🏫 ${ev.name}
-                    `;
-                    
-                    // عند الضغط على الحفلة
-                    btn.onclick = () => selectEvent(ev);
-                    listDiv.appendChild(btn);
-                });
+            if (u === "حمادي" && p === "amouhfy2025") {
+                currentUser = { pseudo: "حمادي", role: "admin", linkedEmpName: "المدير حمادي" };
+                finishLogin();
+                return;
             }
-        });
 
-        // 3. تفعيل الحفلة وتجهيز واجهة التنشيط
-        function selectEvent(eventObj) {
-            currentEventData = eventObj;
-            
-            // تعمير واجهة تقديم المؤسسة بالبيانات
-            document.getElementById('displayInstName').innerText = eventObj.name || 'مؤسسة غير مسماة';
-            document.getElementById('displayManagerName').innerText = eventObj.managerName || 'المدير(ة)';
-            
-            document.getElementById('headerSubtitle').innerText = `🔴 تنشيط مباشر: ${eventObj.name}`;
-            
-            // إخفاء شاشة الاختيار وإظهار لوحة التحكم
-            document.getElementById('eventSelectionScreen').style.display = 'none';
-            document.getElementById('dashboardScreen').style.display = 'block';
+            db.ref('BechaEventsData/users').once('value', snap => {
+                let allUsers = snap.val() || {};
+                let foundKey = Object.keys(allUsers).find(k => allUsers[k].pseudo === u && allUsers[k].pass === p);
+                
+                if(foundKey) {
+                    currentUser = allUsers[foundKey];
+                    finishLogin();
+                } else {
+                    alert("❌ بيانات الدخول خاطئة!");
+                }
+            });
         }
 
-        // دوال التنقل العادية
-        function showSection(sectionId) {
-            document.getElementById('mainMenu').style.display = 'none';
-            let sections = document.getElementsByClassName('section-content');
-            for(let i = 0; i < sections.length; i++) sections[i].style.display = 'none';
-            document.getElementById(sectionId).style.display = 'block';
+        function finishLogin() {
+            document.getElementById('logoutBtn').style.display = 'block';
+            loadUpcomingEvents();
+            showScreen('eventsScreen');
         }
 
-        function showMainMenu() {
-            let sections = document.getElementsByClassName('section-content');
-            for(let i = 0; i < sections.length; i++) sections[i].style.display = 'none';
-            document.getElementById('mainMenu').style.display = 'grid';
+        function logout() {
+            currentUser = null;
+            document.getElementById('loginUser').value = '';
+            document.getElementById('loginPass').value = '';
+            document.getElementById('logoutBtn').style.display = 'none';
+            showScreen('loginScreen');
         }
+
+        // 2. جلب العروض القادمة
+        function loadUpcomingEvents() {
+            db.ref('BechaEventsData/events').on('value', snap => {
+                eventsData = snap.val() || [];
+                let todayIso = getTodayIso();
+                
+                // فلترة: عروض اليوم والمستقبل فقط
+                let upcoming = eventsData.map((e, i) => ({...e, originalIndex: i}))
+                                         .filter(e => e.date >= todayIso)
+                                         .sort((a, b) => a.date.localeCompare(b.date));
+                
+                let listDiv = document.getElementById('eventsListContainer');
+                listDiv.innerHTML = '';
+
+                if (upcoming.length === 0) {
+                    listDiv.innerHTML = '<p style="color: #E10600; font-weight:bold;">لا توجد عروض مبرمجة حالياً.</p>';
+                    return;
+                }
+
+                upcoming.forEach(ev => {
+                    let dateBadge = ev.date === todayIso ? `<span style="color:#198754; font-weight:bold;">(عرض اليوم)</span>` : ``;
+                    listDiv.innerHTML += `
+                        <div class="event-card" onclick="selectEvent(${ev.originalIndex})">
+                            <div style="font-size: 13px; color: #666; margin-bottom: 5px;">📅 ${ev.date} | 🕒 ${ev.time || '--'} ${dateBadge}</div>
+                            <h3>🎬 ${ev.showName || 'عرض'}</h3>
+                            <div style="color: var(--primary-red); font-weight: bold;">🏫 ${ev.name}</div>
+                        </div>
+                    `;
+                });
+            });
+        }
+
+        // 3. الجدار الأمني واختيار العرض
+        function selectEvent(idx) {
+            currentEventIndex = idx;
+            currentEventData = eventsData[idx];
+
+            // إذا كان المدير (حمادي)
+            if (currentUser.role === 'admin') {
+                renderAdminRoleScreen();
+                showScreen('adminRoleScreen');
+                return;
+            }
+
+            // إذا كان موظف عادي
+            let empName = currentUser.linkedEmpName;
+            let team = currentEventData.assignedTeam || [];
+
+            // المنع 1: الموظف غير مسجل في الحفلة
+            if (!team.includes(empName)) {
+                document.getElementById('deniedMessage').innerText = `مرحباً ${empName}، لست مسجلاً للعمل في هذا العرض!`;
+                showScreen('deniedScreen');
+                return;
+            }
+
+            let rolesMap = currentEventData.animationRoles || {};
+            let myRole = rolesMap[empName];
+
+            // المنع 2: الإدارة لم تحدد دوره بعد
+            if (!myRole) {
+                document.getElementById('deniedMessage').innerText = `مرحباً ${empName}، أنت مسجل في الحفل ولكن الإدارة لم تحدد مهامك على التطبيقة بعد. الرجاء مراجعة المدير.`;
+                showScreen('deniedScreen');
+                return;
+            }
+
+            // المنع 3: سائق أو مكلف باللوجستيك (غير معني بالتطبيقة)
+            if (myRole === 'none') {
+                document.getElementById('deniedMessage').innerText = `مرحباً ${empName}، صفتك في هذا العرض (سائق/لوجستيك). ليس لديك مهام تنشيطية على الشاشة. بالتوفيق!`;
+                showScreen('deniedScreen');
+                return;
+            }
+
+            // السماح بالدخول وتجهيز الواجهة حسب دوره (DJ, Animateur...)
+            openDashboard(myRole);
+        }
+
+        // 4. شاشة توزيع المهام (للمدير)
+        function renderAdminRoleScreen() {
+            let container = document.getElementById('teamRolesContainer');
+            container.innerHTML = '';
+            let team = currentEventData.assignedTeam || [];
+
+            if (team.length === 0) {
+                container.innerHTML = '<p style="color: #E10600; font-weight: bold;">لم تعين أي فريق لهذا العرض من المنظومة الأم!</p>';
+                return;
+            }
+
+            let rolesMap = currentEventData.animationRoles || {};
+
+            team.forEach(empName => {
+                let currentRole = rolesMap[empName] || '';
+                container.innerHTML += `
+                    <div class="role-row">
+                        <strong style="color:#333; font-size:14px;">👤 ${empName}</strong>
+                        <select id="role_${empName}">
+                            <option value="" disabled ${!currentRole ? 'selected' : ''}>-- اختر المهمة --</option>
+                            <option value="animateur" ${currentRole === 'animateur' ? 'selected' : ''}>🎤 منشط</option>
+                            <option value="dj" ${currentRole === 'dj' ? 'selected' : ''}>🎧 دي جي (DJ)</option>
+                            <option value="assistant" ${currentRole === 'assistant' ? 'selected' : ''}>🎁 مساعد تنشيط</option>
+                            <option value="none" ${currentRole === 'none' ? 'selected' : ''}>🚫 سائق/لوجستيك (منع من التطبيقة)</option>
+                        </select>
+                    </div>
+                `;
+            });
+        }
+
+        function saveRoles() {
+            let team = currentEventData.assignedTeam || [];
+            let newRolesMap = {};
+            
+            team.forEach(empName => {
+                let sel = document.getElementById('role_' + empName).value;
+                if(sel) newRolesMap[empName] = sel;
+            });
+
+            db.ref('BechaEventsData/events/' + currentEventIndex + '/animationRoles').set(newRolesMap)
+            .then(() => {
+                alert("✅ تم حفظ المهام! يمكن للفريق الدخول الآن.");
+                openDashboard('admin');
+            });
+        }
+
+        // 5. بناء لوحة التنشيط حسب الدور
+        function openDashboard(role) {
+            document.getElementById('dashInstName').innerText = currentEventData.name;
+            document.getElementById('displayInstName').innerText = currentEventData.name;
+            document.getElementById('displayManagerName').innerText = currentEventData.managerName || 'غير مسجل';
+
+            let menu = document.getElementById('dashboardMenu');
+            menu.innerHTML = '';
+
+            // كروت المنشط
+            let schoolCard = `<div class="dash-card" style="border-color:#007bff;" onclick="openInnerSection('schoolSection')"><h3 style="color:#007bff; margin:0;">🏫 المؤسسة</h3></div>`;
+            let gamesCard = `<div class="dash-card" style="border-color:#ff9800;" onclick="openInnerSection('gamesSection')"><h3 style="color:#ff9800; margin:0;">🧩 الألغاز</h3></div>`;
+            
+            // كروت الـ DJ
+            let musicCard = `<div class="dash-card" style="border-color:#9b59b6;" onclick="openInnerSection('musicSection')"><h3 style="color:#9b59b6; margin:0;">🎧 الموسيقى</h3></div>`;
+            
+            // ترتيب الواجهة
+            if (role === 'animateur' || role === 'assistant') {
+                menu.innerHTML = schoolCard + gamesCard;
+            } else if (role === 'dj') {
+                menu.innerHTML = musicCard;
+            } else if (role === 'admin') {
+                menu.innerHTML = schoolCard + gamesCard + musicCard; // المدير يرى كل شيء
+            }
+
+            showScreen('dashboardScreen');
+        }
+
+        function openInnerSection(id) {
+            document.getElementById('dashboardMenu').style.display = 'none';
+            document.getElementById(id).style.display = 'block';
+        }
+
+        function closeSection() {
+            document.getElementById('schoolSection').style.display = 'none';
+            document.getElementById('gamesSection').style.display = 'none';
+            document.getElementById('musicSection').style.display = 'none';
+            document.getElementById('dashboardMenu').style.display = 'grid';
+        }
+
     </script>
-
 </body>
 </html>
