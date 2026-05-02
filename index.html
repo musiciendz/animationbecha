@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>تطبيقة التنشيط - عمو حمادي</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@500;700;900&display=swap');
+
+        body {
+            font-family: 'Tajawal', sans-serif;
+            background-color: #f0f8ff;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        header {
+            background-color: #ff6b6b;
+            color: white;
+            width: 100%;
+            text-align: center;
+            padding: 20px 0;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        header h1 {
+            margin: 0;
+            font-size: 2.5rem;
+        }
+
+        .container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            width: 90%;
+            max-width: 1000px;
+            margin-top: 40px;
+        }
+
+        .card {
+            background-color: white;
+            border-radius: 20px;
+            padding: 30px;
+            text-align: center;
+            box-shadow: 0 8px 15px rgba(0,0,0,0.1);
+            cursor: pointer;
+            transition: transform 0.3s, box-shadow 0.3s;
+            border: 3px solid transparent;
+        }
+
+        .card:hover {
+            transform: translateY(-10px);
+        }
+
+        /* ألوان الأزرار */
+        .card-program { border-color: #4ecdc4; }
+        .card-program h2 { color: #4ecdc4; }
+
+        .card-school { border-color: #ffe66d; }
+        .card-school h2 { color: #f4d03f; }
+
+        .card-games { border-color: #ff9f43; }
+        .card-games h2 { color: #ff9f43; }
+
+        .card-music { border-color: #9b59b6; }
+        .card-music h2 { color: #9b59b6; }
+
+        /* الأقسام المخفية في البداية */
+        .section-content {
+            display: none;
+            width: 90%;
+            max-width: 800px;
+            background: white;
+            padding: 30px;
+            border-radius: 20px;
+            margin-top: 30px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .back-btn {
+            background-color: #333;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 1.2rem;
+            font-family: inherit;
+            margin-bottom: 20px;
+        }
+
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>🌟 فضاء عمو حمادي للتنشيط 🌟</h1>
+        <p>لوحة تحكم الحفلات</p>
+    </header>
+
+    <!-- القائمة الرئيسية -->
+    <div class="container" id="mainMenu">
+        <div class="card card-program" onclick="showSection('programSection')">
+            <h2>📅 برنامج الحفل</h2>
+            <p>متابعة فقرات الحفل بالترتيب</p>
+        </div>
+        <div class="card card-school" onclick="showSection('schoolSection')">
+            <h2>🏫 تقديم المؤسسة</h2>
+            <p>المدير(ة) والإطار التربوي</p>
+        </div>
+        <div class="card card-games" onclick="showSection('gamesSection')">
+            <h2>🧩 ألعاب وألغاز</h2>
+            <p>مسابقات الأطفال والأولياء</p>
+        </div>
+        <div class="card card-music" onclick="showSection('musicSection')">
+            <h2>🎤 كاريوكي وأغاني</h2>
+            <p>أغاني الحفلة مع الكلمات</p>
+        </div>
+    </div>
+
+    <!-- قسم برنامج الحفل (مثال مبدئي) -->
+    <div class="section-content" id="programSection">
+        <button class="back-btn" onclick="showMainMenu()">رجوع للقائمة ⬅️</button>
+        <h2 style="color: #4ecdc4;">📅 برنامج الحفل</h2>
+        <p>هنا سنضع جدول الفقرات...</p>
+    </div>
+
+    <!-- قسم تقديم المؤسسة (مثال مبدئي) -->
+    <div class="section-content" id="schoolSection">
+        <button class="back-btn" onclick="showMainMenu()">رجوع للقائمة ⬅️</button>
+        <h2 style="color: #f4d03f;">🏫 تقديم المؤسسة</h2>
+        <p>هنا سنضع واجهة إدخال أسماء الإطار التربوي...</p>
+    </div>
+
+    <!-- قسم الألعاب (مثال مبدئي) -->
+    <div class="section-content" id="gamesSection">
+        <button class="back-btn" onclick="showMainMenu()">رجوع للقائمة ⬅️</button>
+        <h2 style="color: #ff9f43;">🧩 ألعاب وألغاز</h2>
+        <p>هنا سنضع بنك الألغاز...</p>
+    </div>
+
+    <!-- قسم الموسيقى (مثال مبدئي) -->
+    <div class="section-content" id="musicSection">
+        <button class="back-btn" onclick="showMainMenu()">رجوع للقائمة ⬅️</button>
+        <h2 style="color: #9b59b6;">🎤 كاريوكي وأغاني</h2>
+        <p>هنا سنضع مشغل الموسيقى (مثلا أغنية كرنفال الخضر وغيرها)...</p>
+    </div>
+
+    <script>
+        // دالة لإخفاء كل الأقسام وإظهار القسم المطلوب فقط
+        function showSection(sectionId) {
+            document.getElementById('mainMenu').style.display = 'none';
+            
+            // إخفاء كل الأقسام
+            let sections = document.getElementsByClassName('section-content');
+            for(let i = 0; i < sections.length; i++) {
+                sections[i].style.display = 'none';
+            }
+            
+            // إظهار القسم المحدد
+            document.getElementById(sectionId).style.display = 'block';
+        }
+
+        // دالة للعودة للقائمة الرئيسية
+        function showMainMenu() {
+            let sections = document.getElementsByClassName('section-content');
+            for(let i = 0; i < sections.length; i++) {
+                sections[i].style.display = 'none';
+            }
+            document.getElementById('mainMenu').style.display = 'grid';
+        }
+    </script>
+
+</body>
+</html>
