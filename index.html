@@ -119,8 +119,27 @@
     <!-- 1. شاشة الدخول -->
     <div id="loginScreen" class="screen active-screen">
         <h2 style="color: #333; font-size: 20px;">تسجيل الدخول للميدان</h2>
+        
         <input type="text" id="loginUser" placeholder="اسم المستخدم">
-        <input type="password" id="loginPass" placeholder="كلمة السر">
+        
+        <!-- خانة كلمة السر مع زر الإخفاء/الإظهار الاحترافي -->
+<div style="position: relative; width: 100%; margin-bottom: 15px;">
+    <input type="password" id="loginPass" placeholder="كلمة السر" style="width: 100%; margin-bottom: 0;">
+    <button onclick="togglePassword()" type="button" id="eyeBtn" style="position: absolute; left: 15px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; padding: 0;">
+        <!-- رسمة العين المسكرة الأولية -->
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#666" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
+            <line x1="1" y1="1" x2="23" y2="23"></line>
+        </svg>
+    </button>
+</div>
+
+        <!-- خانة تذكرني -->
+        <div style="display: flex; align-items: center; justify-content: center; gap: 8px; margin-bottom: 20px;">
+            <input type="checkbox" id="rememberMe" checked style="width: 18px; height: 18px; cursor: pointer;">
+            <label for="rememberMe" style="font-size: 14px; color: #555; font-weight: bold; cursor: pointer;">تذكر بيانات الدخول (تذكرني)</label>
+        </div>
+
         <button class="btn btn-red" style="width: 100%;" onclick="login()">دخول للمنظومة</button>
     </div>
 
@@ -215,6 +234,14 @@
 
             if (u === "حمادي" && p === "amouhfy2025") {
                 currentUser = { pseudo: "حمادي", role: "admin", linkedEmpName: "المدير حمادي" };
+                // حفظ أو مسح البيانات حسب اختيار "تذكرني"
+        if (document.getElementById('rememberMe').checked) {
+            localStorage.setItem('animSavedUser', u);
+            localStorage.setItem('animSavedPass', p);
+        } else {
+            localStorage.removeItem('animSavedUser');
+            localStorage.removeItem('animSavedPass');
+        }
                 finishLogin();
                 return;
             }
@@ -245,6 +272,30 @@
             document.getElementById('logoutBtn').style.display = 'none';
             showScreen('loginScreen');
         }
+
+        // دالة إظهار وإخفاء كلمة السر
+        function togglePassword() {
+            let passInput = document.getElementById('loginPass');
+            let eyeBtn = document.getElementById('eyeBtn');
+            if (passInput.type === "password") {
+                passInput.type = "text";
+                eyeBtn.innerText = "🙈"; // تولي عين مغمضة
+            } else {
+                passInput.type = "password";
+                eyeBtn.innerText = "👁️"; // ترجع عين محلولة
+            }
+        }
+
+        // قراءة البيانات المسجلة آلياً أول ما تتحل التطبيقة
+        window.addEventListener('DOMContentLoaded', () => {
+            let savedUser = localStorage.getItem('animSavedUser');
+            let savedPass = localStorage.getItem('animSavedPass');
+            if(savedUser && savedPass) {
+                document.getElementById('loginUser').value = savedUser;
+                document.getElementById('loginPass').value = savedPass;
+                document.getElementById('rememberMe').checked = true;
+            }
+        });
 
         // 2. جلب العروض القادمة
         function loadUpcomingEvents() {
