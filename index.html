@@ -50,7 +50,7 @@
         .chk-box { width: 30px; height: 30px; border-radius: 8px; border: 2px solid #ccc; display: flex; align-items: center; justify-content: center; color: white; font-size: 18px;}
         .completed .chk-box { background: #198754; border-color: #198754; }
 
-        /* أزرار عائمة (نجدة + راديو) */
+        /* الأزرار العائمة (نجدة + راديو) */
         .floating-btn-container { position: fixed; bottom: 20px; left: 20px; display: flex; flex-direction: column; gap: 15px; z-index: 999; }
         .float-btn { width: 60px; height: 60px; border-radius: 50%; color: white; font-size: 26px; border: none; box-shadow: 0 4px 10px rgba(0,0,0,0.3); cursor: pointer; display: flex; align-items: center; justify-content: center; transition: 0.2s; }
         #cheatBtn { background: #17a2b8; display: none; }
@@ -64,7 +64,7 @@
 </head>
 <body>
 
-    <!-- خدعة الصوت الصامت للآيفون (Play silent track) -->
+    <!-- خدعة الصوت الصامت للآيفون (Play silent track in background) -->
     <audio id="silentAudio" loop playsinline>
         <source src="data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAAABkYXRhAgAAAAEA" type="audio/wav">
     </audio>
@@ -166,7 +166,7 @@
     <!-- الأزرار العائمة -->
     <div class="floating-btn-container">
         <button id="cheatBtn" class="float-btn" onclick="showCheatSheet()">ℹ️</button>
-        <button id="radioBtn" class="float-btn" onmousedown="startPTT()" onmouseup="stopPTT()" ontouchstart="startPTT()" ontouchend="stopPTT()">🎙️</button>
+        <button id="radioBtn" class="float-btn" onmousedown="startPTT()" onmouseup="stopPTT()" ontouchstart="startPTT(event)" ontouchend="stopPTT(event)">🎙️</button>
     </div>
 
     <!-- نافذة ورقة الغشة -->
@@ -450,7 +450,6 @@
                 radioEnabled = true; document.getElementById('enableRadioBtn').innerText = '✅ الراديو متصل';
                 document.getElementById('enableRadioBtn').style.background = '#198754'; document.getElementById('enableRadioBtn').style.color = 'white';
                 
-                // الاستماع للرسائل (وحذفها بعد 10 ثواني من وصولها باش السيرفر ما يتعمرش)
                 radioRef = db.ref('BechaEventsData/events/' + currentEventIndex + '/intercom');
                 let nowTs = Date.now();
                 radioRef.on('child_added', snap => {
@@ -465,31 +464,30 @@
                     }
                 });
 
-                // تفعيل خدعة البلوتوث (MediaSession)
                 if ('mediaSession' in navigator) {
                     navigator.mediaSession.metadata = new MediaMetadata({ title: 'راديو الكواليس', artist: 'Becha Events' });
                     navigator.mediaSession.setActionHandler('play', () => { toggleBluetoothPTT(); });
                     navigator.mediaSession.setActionHandler('pause', () => { toggleBluetoothPTT(); });
                 }
-
             } catch(e) { alert("الرجاء السماح باستخدام الميكروفون لتفعيل الراديو."); }
         }
 
         function toggleBluetoothPTT() { if(!isRecording) { startPTT(); } else { stopPTT(); } }
 
-        function startPTT() {
+        function startPTT(e) {
+            if(e) e.preventDefault(); // يمنع التداخل في أجهزة اللمس
             if(!radioEnabled || isRecording) return;
             isRecording = true; document.getElementById('radioBtn').classList.add('recording');
             playBeep('start'); audioChunks = []; mediaRecorder.start();
         }
 
-        function stopPTT() {
+        function stopPTT(e) {
+            if(e) e.preventDefault();
             if(!radioEnabled || !isRecording) return;
             isRecording = false; document.getElementById('radioBtn').classList.remove('recording');
             mediaRecorder.stop(); playBeep('end');
         }
 
-        // اختصار الـ Spacebar للـ PC
         window.addEventListener('keydown', (e) => { if(e.code === 'Space' && e.target.tagName !== 'INPUT' && e.target.tagName !== 'SELECT') { e.preventDefault(); startPTT(); } });
         window.addEventListener('keyup', (e) => { if(e.code === 'Space' && e.target.tagName !== 'INPUT' && e.target.tagName !== 'SELECT') { e.preventDefault(); stopPTT(); } });
 
