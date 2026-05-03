@@ -50,24 +50,20 @@
         .chk-box { width: 30px; height: 30px; border-radius: 8px; border: 2px solid #ccc; display: flex; align-items: center; justify-content: center; color: white; font-size: 18px;}
         .completed .chk-box { background: #198754; border-color: #198754; }
 
-        /* الأزرار العائمة */
         .floating-btn-container { position: fixed; bottom: 20px; left: 20px; display: flex; flex-direction: column; gap: 15px; z-index: 900; }
         .float-btn { width: 60px; height: 60px; border-radius: 50%; color: white; font-size: 26px; border: none; box-shadow: 0 4px 10px rgba(0,0,0,0.3); cursor: pointer; display: flex; align-items: center; justify-content: center; transition: 0.2s; }
         #radioBtn { background: #E10600; display: none; z-index: 10000; }
         #radioBtn.recording { background: #198754; animation: pulse 1s infinite; box-shadow: 0 0 20px #198754; }
         @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.1); } 100% { transform: scale(1); } }
         
-        /* الاستوديو المصغر */
         #miniVisualizerContainer { position: fixed; bottom: 90px; left: 20px; width: 140px; height: 40px; background: rgba(0,0,0,0.85); border-radius: 10px; z-index: 899; display: none; align-items: center; justify-content: center; overflow: hidden; box-shadow: 0 4px 10px rgba(0,0,0,0.3); animation: popUp 0.3s ease; border: 1px solid #333;}
         @keyframes popUp { from { transform: translateY(10px) scale(0.9); opacity: 0; } to { transform: translateY(0) scale(1); opacity: 1; } }
 
-        /* شريط آخر متحدث وإعادة الاستماع */
         #lastMessageBanner { position: fixed; bottom: 90px; left: 50%; transform: translateX(-50%); width: 90%; max-width: 400px; background: rgba(255,255,255,0.95); border: 2px solid #ccc; border-radius: 12px; z-index: 898; display: none; align-items: center; justify-content: space-between; padding: 8px 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.15); box-sizing: border-box; }
         .last-msg-text { font-size: 13px; font-weight: bold; color: #333; text-align: right; flex: 1; margin-left: 10px; }
         .replay-btn { background: #17a2b8; color: white; border: none; border-radius: 8px; padding: 6px 12px; font-size: 14px; font-weight: bold; cursor: pointer; display: flex; align-items: center; gap: 5px; box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
         .replay-btn:active { transform: scale(0.95); }
 
-        /* الإشعارات */
         #radioStatus { position: fixed; top: 65px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.8); color: #fff; padding: 5px 15px; border-radius: 20px; font-size: 12px; z-index: 10000; display: none; font-weight: bold; }
         #sendSuccessBanner { position: fixed; top: 65px; left: 50%; transform: translateX(-50%); background: #198754; color: #fff; padding: 10px 20px; border-radius: 12px; font-size: 14px; z-index: 10001; display: none; font-weight: bold; box-shadow: 0 4px 10px rgba(0,0,0,0.2); animation: slideDown 0.3s ease; }
         #globalRecordingBanner { position: fixed; top: 15px; left: 50%; transform: translateX(-50%); background: #ff9800; color: #fff; padding: 4px 12px; border-radius: 20px; font-size: 13px; z-index: 10002; display: none; font-weight: bold; box-shadow: 0 4px 10px rgba(0,0,0,0.3); animation: pulseOrange 1.5s infinite; border: 2px solid white;}
@@ -75,24 +71,19 @@
         @keyframes slideDown { from { top: 0; opacity: 0; } to { top: 65px; opacity: 1; } }
         @keyframes pulseOrange { 0% { box-shadow: 0 0 0 0 rgba(255, 152, 0, 0.7); } 70% { box-shadow: 0 0 0 10px rgba(255, 152, 0, 0); } 100% { box-shadow: 0 0 0 0 rgba(255, 152, 0, 0); } }
 
-        /* وضع الجيب */
         #pocketModeOverlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; z-index: 9998; display: none; flex-direction: column; justify-content: center; align-items: center; }
         #pocketExitBtn { position: absolute; top: 40px; background: rgba(255,255,255,0.1); color: white; border: 1px solid #555; padding: 10px 20px; border-radius: 20px; font-family: 'Cairo'; font-weight: bold; cursor: pointer; }
         #visualizerCanvas { width: 90%; max-width: 400px; height: 150px; background: #000; border-radius: 15px; margin-bottom: 20px; }
         .pocket-text { color: #555; font-size: 14px; text-align: center; margin-top: 20px; font-weight: bold; }
 
-        /* الفلاش البصري للمكالمات */
         .flash-screen { animation: flashDanger 0.8s 3; }
         @keyframes flashDanger { 0% { box-shadow: inset 0 0 0px transparent; } 50% { box-shadow: inset 0 0 50px red; } 100% { box-shadow: inset 0 0 0px transparent; } }
 
-        /* مساحة التنفس في آخر الركح */
         #stageContent { padding-bottom: 180px; }
         #backstageContent { padding-bottom: 180px; }
 
-        /* التثبيت (Sticky Header) */
         .sticky-container { position: sticky; top: 54px; background-color: var(--light-bg); z-index: 95; padding: 10px 0; border-bottom: 2px solid #ddd; margin-bottom: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
 
-        /* غرفة الفحص (Test Room) */
         #testRoomScreen { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: white; z-index: 10005; flex-direction: column; align-items: center; justify-content: center; padding: 20px; box-sizing: border-box; text-align: center; }
         .test-mic-btn { width: 80px; height: 80px; border-radius: 50%; background: var(--primary-red); color: white; font-size: 30px; border: none; box-shadow: 0 4px 15px rgba(225,6,0,0.4); margin: 20px 0; transition: 0.2s; }
         .test-mic-btn:active { transform: scale(0.9); background: #198754; box-shadow: 0 4px 15px rgba(25,135,84,0.4); }
@@ -107,7 +98,6 @@
     <audio id="mainRadioPlayer" playsinline></audio>
     <audio id="testAudioPlayer" playsinline></audio> 
 
-    <!-- غرفة الفحص -->
     <div id="testRoomScreen">
         <h2 style="color: var(--primary-red); margin-top:0;">🎙️ غرفة فحص الصوت</h2>
         <p style="color: #555; font-weight: bold; margin-bottom: 5px;">يجب تجربة الميكروفون قبل الدخول</p>
@@ -123,12 +113,10 @@
         <button class="btn btn-dark" style="margin-top: 40px;" onclick="cancelTest()">رجوع للوحة القيادة</button>
     </div>
 
-    <!-- الإشعارات -->
     <div id="globalRecordingBanner">🎙️ شخص ما يسجل...</div>
     <div id="radioStatus">🔊 جاري تشغيل رسالة...</div>
     <div id="sendSuccessBanner">✅ تم إرسال رسالتك الصوتية بنجاح</div>
 
-    <!-- وضع الجيب -->
     <div id="pocketModeOverlay">
         <button id="pocketExitBtn" onclick="exitPocketMode()">إغلاق وضع الجيب ❌</button>
         <canvas id="visualizerCanvas"></canvas>
@@ -268,7 +256,6 @@
     </div>
 
     <script>
-        // --- 1. Firebase Setup ---
         const firebaseConfig = { apiKey: "AIzaSyCTTjp34QhF6MPNemwKhoq7385xnJKK_Hg", authDomain: "becha-events-kids.firebaseapp.app", databaseURL: "https://becha-events-kids-default-rtdb.europe-west1.firebasedatabase.app", projectId: "becha-events-kids", storageBucket: "becha-events-kids.appspot.com", messagingSenderId: "763935242130", appId: "1:763935242130:web:490a99e38c53ba0240f34b" };
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
@@ -281,7 +268,6 @@
         function updateClock() { let n = new Date(); let days = ['الأحد', 'الإثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت']; let c = document.getElementById('live-clock'); if(c) c.innerText = `🕒 ${n.toLocaleTimeString('ar-TN', {hour:'2-digit', minute:'2-digit'})} | ${days[n.getDay()]}`; }
         setInterval(updateClock, 1000);
         
-        // التسامح في الوقت: نرجعو تاريخ اليوم، لكن إذا كان الوقت بين نص الليل والـ 02:00 صباحاً، نعتبروه مازال تابع نهار البارح.
         function getTolerantTodayIso() { 
             let d = new Date(); 
             if(d.getHours() < 2) { d.setDate(d.getDate() - 1); }
@@ -310,7 +296,6 @@
             else { db.ref('BechaEventsData/users').once('value', snap => { let all = snap.val() || {}; let f = Object.keys(all).find(k => all[k].pseudo === u && all[k].pass === p); if(f) { currentUser = all[f]; finishLogin(); } else alert("❌ بيانات خاطئة!"); }); }
         }
 
-        // قراءة العروض الحية والمأرشفة (حل مشكلة فاتن)
         function finishLogin() {
             document.getElementById('mainAppHeader').style.display = 'block'; 
             
@@ -323,11 +308,8 @@
                 let today = getTolerantTodayIso();
                 
                 let allEvents = [];
-                
-                // جلب العروض الحية
                 liveEvents.forEach((ev, i) => { if(ev) allEvents.push({...ev, originalIndex: i, isArchived: false}); });
                 
-                // جلب العروض المأرشفة اللي تابعة لتاريخ اليوم فقط
                 Object.keys(archivedEvents).forEach(key => {
                     let ev = archivedEvents[key];
                     if(ev && ev.date === today) { allEvents.push({...ev, originalIndex: key, isArchived: true}); }
@@ -416,7 +398,7 @@
             showScreen('dashboardScreen'); 
         }
 
-        // --- غرفة الفحص (Test Room Logic) ---
+        // --- غرفة الفحص السحرية (بدون قيود للصيغة) ---
         let testMediaRecorder = null; let testAudioChunks = []; let isTesting = false;
 
         function initiateEntry(id) {
@@ -435,24 +417,25 @@
         async function startTestRecording(e) {
             if(e) { e.preventDefault(); e.stopPropagation(); }
             if(isTesting) return;
+            
+            // فتح صمامات الصوت فوراً مع لمس الشاشة إرضاءً لشركة آبل
+            initAudioCtx();
+
             try {
                 if(!micStream) { micStream = await navigator.mediaDevices.getUserMedia({ audio: true }); }
                 
-                // ترك المتصفح يختار الصيغة المناسبة (حل مشكلة الآيفون)
-                let options = {};
-                if (MediaRecorder.isTypeSupported('audio/webm')) { options = { mimeType: 'audio/webm' }; }
-                testMediaRecorder = new MediaRecorder(micStream, options);
+                // الحل الجذري للآيفون والأندرويد: التخلي عن خيارات الصيغة الذكية نهائياً
+                testMediaRecorder = new MediaRecorder(micStream);
                 
                 testAudioChunks = [];
                 testMediaRecorder.ondataavailable = ev => { if(ev.data.size > 0) testAudioChunks.push(ev.data); };
                 testMediaRecorder.onstop = () => {
-                    const audioType = testMediaRecorder.mimeType || 'audio/webm';
+                    const audioType = testMediaRecorder.mimeType || 'audio/mp4'; // fallback
                     const audioBlob = new Blob(testAudioChunks, { type: audioType });
                     const audioUrl = URL.createObjectURL(audioBlob);
                     const testPlayer = document.getElementById('testAudioPlayer');
                     testPlayer.src = audioUrl;
                     
-                    initAudioCtx();
                     let silAudio = document.getElementById('silentAudio');
                     silAudio.play().catch(er=>console.log(er));
                     
@@ -470,7 +453,9 @@
                 isTesting = true;
                 document.getElementById('testStatusText').innerText = "🔴 جاري التسجيل (تحدث الآن)...";
                 testMediaRecorder.start();
-            } catch(err) { alert("⚠️ يرجى إعطاء صلاحية استخدام الميكروفون من إعدادات المتصفح!"); }
+            } catch(err) { 
+                alert("⚠️ يرجى إعطاء صلاحية استخدام الميكروفون من إعدادات المتصفح!\n(أو تأكد أن الموقع يعمل بـ HTTPS)"); 
+            }
         }
 
         function stopTestRecording(e) {
@@ -702,9 +687,8 @@
             try {
                 if(!micStream) { micStream = await navigator.mediaDevices.getUserMedia({ audio: true }); }
                 
-                let options = {};
-                if (MediaRecorder.isTypeSupported('audio/webm')) { options = { mimeType: 'audio/webm' }; }
-                mediaRecorder = new MediaRecorder(micStream, options);
+                // التخلي عن isTypeSupported (حل جذري للآيفون)
+                mediaRecorder = new MediaRecorder(micStream);
                 
                 initAudioCtx();
                 const source = audioCtx.createMediaStreamSource(micStream);
@@ -712,7 +696,7 @@
 
                 mediaRecorder.ondataavailable = e => { if(e.data.size > 0) audioChunks.push(e.data); };
                 mediaRecorder.onstop = () => {
-                    const audioType = mediaRecorder.mimeType || 'audio/webm';
+                    const audioType = mediaRecorder.mimeType || 'audio/mp4';
                     const audioBlob = new Blob(audioChunks, { type: audioType }); audioChunks = [];
                     const reader = new FileReader(); reader.readAsDataURL(audioBlob);
                     reader.onloadend = () => {
@@ -783,6 +767,10 @@
 
         async function startPTT(e) {
             if(e) { e.preventDefault(); e.stopPropagation(); }
+            
+            // فتح صمامات الصوت فوراً
+            initAudioCtx();
+
             let hasMic = await ensureMicrophone();
             if(!hasMic || isRecording) return;
             if (mediaRecorder.state !== 'inactive') return; 
