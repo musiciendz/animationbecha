@@ -50,7 +50,7 @@
         .chk-box { width: 30px; height: 30px; border-radius: 8px; border: 2px solid #ccc; display: flex; align-items: center; justify-content: center; color: white; font-size: 18px;}
         .completed .chk-box { background: #198754; border-color: #198754; }
 
-        /* الأزرار العائمة (نجدة + راديو) */
+        /* الأزرار العائمة */
         .floating-btn-container { position: fixed; bottom: 20px; left: 20px; display: flex; flex-direction: column; gap: 15px; z-index: 999; }
         .float-btn { width: 60px; height: 60px; border-radius: 50%; color: white; font-size: 26px; border: none; box-shadow: 0 4px 10px rgba(0,0,0,0.3); cursor: pointer; display: flex; align-items: center; justify-content: center; transition: 0.2s; }
         #cheatBtn { background: #17a2b8; display: none; }
@@ -58,7 +58,10 @@
         #radioBtn.recording { background: #198754; animation: pulse 1s infinite; }
         @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.1); } 100% { transform: scale(1); } }
         
+        /* رسائل الراديو */
         #radioStatus { position: fixed; top: 60px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.8); color: #fff; padding: 5px 15px; border-radius: 20px; font-size: 12px; z-index: 1000; display: none; font-weight: bold; }
+        #sendSuccessBanner { position: fixed; top: 60px; left: 50%; transform: translateX(-50%); background: #198754; color: #fff; padding: 10px 20px; border-radius: 12px; font-size: 14px; z-index: 1001; display: none; font-weight: bold; box-shadow: 0 4px 10px rgba(0,0,0,0.2); animation: slideDown 0.3s ease; }
+        @keyframes slideDown { from { top: 0; opacity: 0; } to { top: 60px; opacity: 1; } }
 
     </style>
 </head>
@@ -70,6 +73,7 @@
     </audio>
 
     <div id="radioStatus">🔊 جاري استقبال رسالة...</div>
+    <div id="sendSuccessBanner">✅ تم إرسال رسالتك الصوتية بنجاح</div>
 
     <header id="mainAppHeader" style="display:none;">
         <div class="top-bar">
@@ -92,7 +96,7 @@
         </div>
     </div>
 
-    <!-- شاشة المنع الذكية -->
+    <!-- شاشة المنع -->
     <div id="deniedMessageScreen" class="screen">
         <div style="background: white; padding: 40px 30px; border-radius: 15px; border: 3px solid var(--primary-red); margin: 50px auto; box-shadow: 0 10px 20px rgba(0,0,0,0.1);">
             <div id="deniedIcon" style="font-size: 50px; margin-bottom: 15px;">⚠️</div>
@@ -102,7 +106,7 @@
         </div>
     </div>
 
-    <!-- شاشة اختيار العرض -->
+    <!-- العروض -->
     <div id="eventsScreen" class="screen">
         <h2 style="border-bottom: 2px solid var(--primary-red); padding-bottom: 10px; color: #333;">📅 عروضي القادمة</h2>
         <div id="eventsListContainer"></div>
@@ -112,16 +116,14 @@
     <div id="dashboardScreen" class="screen">
         <h2 id="dashInstName" style="color: var(--primary-red); margin: 0; font-size: 28px;">--</h2>
         <div id="dashEventTime" style="margin-bottom: 20px; font-weight: bold; color: #666; font-size: 15px;"></div>
-        
         <div id="dashboardMenu" style="display: grid; grid-template-columns: 1fr; gap: 15px;"></div>
 
-        <!-- 1. الكواليس -->
+        <!-- الكواليس -->
         <div id="backstageSection" style="display:none; margin-top:20px;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
                 <h3 style="color:#17a2b8; margin: 0; font-size: 24px;">🧰 غرفة الكواليس</h3>
                 <button class="btn btn-dark" onclick="closeSection()">رجوع ⬅️</button>
             </div>
-
             <div class="accordion-item">
                 <div class="accordion-header" onclick="toggleAccordion('accInst')"><span>👑 معطيات الإدارة والمؤسسة</span><span id="icon_accInst">➕</span></div>
                 <div id="accInst" class="accordion-content">
@@ -135,7 +137,6 @@
                     <div id="staffList"></div><button class="btn btn-outline" style="width:100%; border-color:#9b59b6; color:#9b59b6;" onclick="addStaff()">+ إضافة عامل/شريك</button>
                 </div>
             </div>
-
             <div class="accordion-item">
                 <div class="accordion-header" onclick="toggleAccordion('accProg')"><span>📋 برنامج الحفل (<span id="totalProgCount">0</span> فقرات)</span><span id="icon_accProg">➖</span></div>
                 <div id="accProg" class="accordion-content open">
@@ -145,7 +146,7 @@
             <button class="btn btn-green" style="width:100%; margin-top:25px; font-size: 20px; padding: 15px;" onclick="saveBackstageData()">💾 حفظ التعديلات كاملة</button>
         </div>
 
-        <!-- 2. الركح -->
+        <!-- الركح -->
         <div id="stageSection" style="display:none; margin-top:20px;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
                 <h3 style="color:var(--primary-red); margin: 0; font-size: 26px;">🎭 الركح المباشر</h3>
@@ -164,10 +165,10 @@
     <!-- الأزرار العائمة -->
     <div class="floating-btn-container">
         <button id="cheatBtn" class="float-btn" onclick="showCheatSheet()">ℹ️</button>
-        <button id="radioBtn" class="float-btn" onmousedown="startPTT()" onmouseup="stopPTT()" ontouchstart="startPTT(event)" ontouchend="stopPTT(event)">🎙️</button>
+        <button id="radioBtn" class="float-btn" onmousedown="startPTT(event)" onmouseup="stopPTT(event)" ontouchstart="startPTT(event)" ontouchend="stopPTT(event)">🎙️</button>
     </div>
 
-    <!-- نافذة ورقة الغشة -->
+    <!-- نافذة الغشة -->
     <div id="cheatSheetModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:1000; justify-content:center; align-items:center;">
         <div style="background:white; width:90%; max-width:400px; padding:25px; border-radius:15px; text-align:right;">
             <h3 style="color:var(--primary-red); margin-top:0; border-bottom: 2px solid #eee; padding-bottom:10px;">👥 ورقة النجدة (الأسماء)</h3>
@@ -177,7 +178,7 @@
     </div>
 
     <script>
-        // --- 1. Firebase Configuration ---
+        // --- 1. Firebase Setup ---
         const firebaseConfig = { apiKey: "AIzaSyCTTjp34QhF6MPNemwKhoq7385xnJKK_Hg", authDomain: "becha-events-kids.firebaseapp.app", databaseURL: "https://becha-events-kids-default-rtdb.europe-west1.firebasedatabase.app", projectId: "becha-events-kids", storageBucket: "becha-events-kids.appspot.com", messagingSenderId: "763935242130", appId: "1:763935242130:web:490a99e38c53ba0240f34b" };
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
@@ -200,21 +201,11 @@
         function login() {
             let u = document.getElementById('loginUser').value.trim(); let p = document.getElementById('loginPass').value.trim();
             if(!u || !p) return alert("الرجاء إدخال البيانات");
-            
-            // حساب الإدارة السري
-            if(u === "حمادي" && p === "amouhfy2025") { 
-                currentUser = { pseudo: "حمادي", role: "admin", linkedEmpName: "المدير حمادي" }; finishLogin(); 
-            }
-            else { 
-                db.ref('BechaEventsData/users').once('value', snap => { 
-                    let all = snap.val() || {}; 
-                    let f = Object.keys(all).find(k => all[k].pseudo === u && all[k].pass === p); 
-                    if(f) { currentUser = all[f]; finishLogin(); } else alert("❌ بيانات خاطئة!"); 
-                }); 
-            }
+            if(u === "حمادي" && p === "amouhfy2025") { currentUser = { pseudo: "حمادي", role: "admin", linkedEmpName: "المدير حمادي" }; finishLogin(); }
+            else { db.ref('BechaEventsData/users').once('value', snap => { let all = snap.val() || {}; let f = Object.keys(all).find(k => all[k].pseudo === u && all[k].pass === p); if(f) { currentUser = all[f]; finishLogin(); } else alert("❌ بيانات خاطئة!"); }); }
         }
 
-        // --- 2. Security Wall & Events ---
+        // --- 2. Routing & Dashboard ---
         function finishLogin() {
             document.getElementById('mainAppHeader').style.display = 'block'; 
             db.ref('BechaEventsData/events').once('value', snap => {
@@ -245,7 +236,6 @@
                         }
                         showScreen('deniedMessageScreen'); return;
                     } else {
-                        // استخراج مهمة اليوم
                         let currentRole = (myTodayEvents[0].animationRoles || {})[currentUser.linkedEmpName];
                         let roleName = currentRole === 'animateur' ? '🎤 منشط' : currentRole === 'assistant' ? '🎁 مساعد' : '🎧 دي جي';
                         document.getElementById('headerUserBadge').innerText = `${roleName} (${currentUser.pseudo})`;
@@ -297,21 +287,11 @@
             document.getElementById('dashboardMenu').style.display = 'none'; 
             document.getElementById(id).style.display = 'block'; 
             
-            // تفعيل الراديو أوتوماتيكياً بمجرد الدخول
-            if(!radioEnabled) {
-                initRadioSystem();
-            }
+            // تفعيل الاستقبال الآلي بمجرد الدخول للركح/الكواليس
+            initRadioReceiver();
 
-            if(id === 'backstageSection') { 
-                loadBackstageData(); 
-                startBackstageListener(); 
-                document.getElementById('radioBtn').style.display = 'flex'; 
-            }
-            if(id === 'stageSection') { 
-                openStageLive(); 
-                document.getElementById('cheatBtn').style.display = 'flex'; 
-                document.getElementById('radioBtn').style.display = 'flex'; 
-            }
+            if(id === 'backstageSection') { loadBackstageData(); startBackstageListener(); document.getElementById('radioBtn').style.display = 'flex'; }
+            if(id === 'stageSection') { openStageLive(); document.getElementById('cheatBtn').style.display = 'flex'; document.getElementById('radioBtn').style.display = 'flex'; }
         }
 
         function closeSection() { 
@@ -321,7 +301,7 @@
             document.getElementById('cheatBtn').style.display = 'none'; document.getElementById('radioBtn').style.display = 'none';
         }
 
-        // --- 3. الكواليس (Backstage) ---
+        // --- 3. الكواليس ---
         function addEducator(n='') { document.getElementById('educatorsList').insertAdjacentHTML('beforeend', `<div style="display:flex; gap:10px; margin-bottom:10px;"><input type="text" class="edu-name" placeholder="اسم الأنيستي..." value="${n}" style="flex:1;"><button class="btn btn-red" onclick="this.parentElement.remove()">🗑</button></div>`); }
         function addCoach(s='', n='') { document.getElementById('coachesList').insertAdjacentHTML('beforeend', `<div style="display:flex; gap:10px; margin-bottom:10px;"><input type="text" class="coach-spec" placeholder="الاختصاص" value="${s}" style="flex:1;"><input type="text" class="coach-name" placeholder="الاسم" value="${n}" style="flex:1;"><button class="btn btn-red" onclick="this.parentElement.remove()">🗑</button></div>`); }
         function addStaff(r='', n='') { document.getElementById('staffList').insertAdjacentHTML('beforeend', `<div style="display:flex; gap:10px; margin-bottom:10px;"><input type="text" class="staff-role" placeholder="الصفة" value="${r}" style="flex:1;"><input type="text" class="staff-name" placeholder="الاسم" value="${n}" style="flex:1;"><button class="btn btn-red" onclick="this.parentElement.remove()">🗑</button></div>`); }
@@ -338,26 +318,7 @@
             let opts = ['تلاوة قرآن', 'نشيد / كورال', 'لوحة راقصة / استعراض', 'مسرحية', 'تنشيط وألغاز', 'تكريم', 'أخرى'];
             let optsHtml = opts.map(o => `<option value="${o}" ${t===o?'selected':''}>${o}</option>`).join('');
             let lockedClass = comp ? 'locked' : ''; let showOther = (t === 'أخرى') ? 'block' : 'none';
-
-            let html = `
-                <div class="prog-row ${lockedClass}" data-index="${idx}">
-                    <div class="row-num">${idx+1}</div>
-                    <div style="display:flex; gap:8px;">
-                        <button class="btn btn-dark" style="padding:5px 10px;" onclick="moveItem(this, -1)">⬆️</button>
-                        <button class="btn btn-dark" style="padding:5px 10px;" onclick="moveItem(this, 1)">⬇️</button>
-                        <select class="prog-type" onchange="checkOther(this)" style="flex:1;">${optsHtml}</select>
-                        <button class="btn btn-green" style="padding:5px 10px;" onclick="syncOneItem(this)">🔄</button>
-                        <button class="btn btn-red" style="padding:5px 10px;" onclick="this.parentElement.parentElement.remove(); updateNumbers();">🗑</button>
-                    </div>
-                    <input type="text" class="other-type" placeholder="اكتب نوع الفقرة..." value="${customType}" style="display:${showOther}; width:100%; margin-top:8px;">
-                    <input type="text" class="prog-details" placeholder="تفاصيل الفقرة (اختياري)..." value="${d}" style="width:100%; margin-top:8px;">
-                    <div style="margin-top:8px; display:flex; align-items:center; gap:10px;">
-                        <span style="font-size:14px; color:#17a2b8; font-weight:bold;">👤 المشرف:</span>
-                        <select class="prog-supervisor" style="flex:1; border-color:#17a2b8;" onmousedown="populateSupervisors(this)">
-                            <option value="${supervisor}" selected>${supervisor || '-- اضغط لاختيار المدرب/الأنيستي --'}</option>
-                        </select>
-                    </div>
-                </div>`;
+            let html = `<div class="prog-row ${lockedClass}" data-index="${idx}"><div class="row-num">${idx+1}</div><div style="display:flex; gap:8px;"><button class="btn btn-dark" style="padding:5px 10px;" onclick="moveItem(this, -1)">⬆️</button><button class="btn btn-dark" style="padding:5px 10px;" onclick="moveItem(this, 1)">⬇️</button><select class="prog-type" onchange="checkOther(this)" style="flex:1;">${optsHtml}</select><button class="btn btn-green" style="padding:5px 10px;" onclick="syncOneItem(this)">🔄</button><button class="btn btn-red" style="padding:5px 10px;" onclick="this.parentElement.parentElement.remove(); updateNumbers();">🗑</button></div><input type="text" class="other-type" placeholder="اكتب نوع الفقرة..." value="${customType}" style="display:${showOther}; width:100%; margin-top:8px;"><input type="text" class="prog-details" placeholder="تفاصيل الفقرة (اختياري)..." value="${d}" style="width:100%; margin-top:8px;"><div style="margin-top:8px; display:flex; align-items:center; gap:10px;"><span style="font-size:14px; color:#17a2b8; font-weight:bold;">👤 المشرف:</span><select class="prog-supervisor" style="flex:1; border-color:#17a2b8;" onmousedown="populateSupervisors(this)"><option value="${supervisor}" selected>${supervisor || '-- اضغط لاختيار المدرب/الأنيستي --'}</option></select></div></div>`;
             container.insertAdjacentHTML('beforeend', html); updateNumbers();
         }
 
@@ -434,9 +395,9 @@
             document.getElementById('cheatSheetContent').innerHTML = html; document.getElementById('cheatSheetModal').style.display = 'flex';
         }
 
-        // --- 5. نظام الراديو (Walkie-Talkie & MediaSession) ---
-        let radioEnabled = false; let mediaRecorder; let audioChunks = []; let isRecording = false;
-        let radioRef = null; let audioCtx = null;
+        // --- 5. نظام الراديو V2.0 (Walkie-Talkie الذكي) ---
+        let radioReceiverActive = false; let mediaRecorder = null; let micStream = null; 
+        let audioChunks = []; let isRecording = false; let audioCtx = null;
 
         function initAudioCtx() { if(!audioCtx) { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); } if(audioCtx.state === 'suspended') { audioCtx.resume(); } }
         
@@ -452,66 +413,87 @@
             }
         }
 
-        async function initRadioSystem() {
+        // 1. الاستقبال الآلي (يخدم للناس الكل بمجرد الدخول)
+        function initRadioReceiver() {
+            if(radioReceiverActive) return;
+            radioReceiverActive = true;
+            
+            // تفعيل الصوت الصامت باش التليفون ما يسكرش
+            document.getElementById('silentAudio').play().catch(e => console.log("الصوت الصامت يطلب نقرة أولى في الآيفون"));
+
+            let radioRef = db.ref('BechaEventsData/events/' + currentEventIndex + '/intercom');
+            let nowTs = Date.now();
+            radioRef.on('child_added', snap => {
+                let msg = snap.val();
+                if(msg.timestamp >= nowTs && msg.sender !== currentUser.pseudo) {
+                    let a = new Audio(msg.audio);
+                    document.getElementById('radioStatus').innerText = `🔊 رسالة من: ${msg.sender}`;
+                    document.getElementById('radioStatus').style.display = 'block';
+                    a.play().catch(e => console.log("تحذير: يجب نقر الشاشة أولا للسماح بالصوت"));
+                    a.onended = () => { document.getElementById('radioStatus').style.display = 'none'; };
+                    setTimeout(() => { snap.ref.remove(); }, 10000); // تنظيف آلي بعد 10 ثواني
+                }
+            });
+
+            // تفعيل أزرار البلوتوث
+            if ('mediaSession' in navigator) {
+                navigator.mediaSession.metadata = new MediaMetadata({ title: 'راديو الكواليس', artist: 'Becha Events' });
+                navigator.mediaSession.setActionHandler('play', () => { toggleBluetoothPTT(); });
+                navigator.mediaSession.setActionHandler('pause', () => { toggleBluetoothPTT(); });
+            }
+        }
+
+        // 2. طلب الميكروفون بصفة ديناميكية (كان كي يقرر يتكلم)
+        async function ensureMicrophone() {
+            if (mediaRecorder && mediaRecorder.state !== 'inactive') return true;
             try {
-                initAudioCtx(); document.getElementById('silentAudio').play().catch(e => console.log("Auto-play silent audio blocked."));
-                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-                mediaRecorder = new MediaRecorder(stream);
+                micStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                mediaRecorder = new MediaRecorder(micStream);
                 mediaRecorder.ondataavailable = e => { if(e.data.size > 0) audioChunks.push(e.data); };
                 mediaRecorder.onstop = () => {
                     const audioBlob = new Blob(audioChunks, { type: 'audio/webm' }); audioChunks = [];
-                    const reader = new FileReader();
-                    reader.readAsDataURL(audioBlob);
+                    const reader = new FileReader(); reader.readAsDataURL(audioBlob);
                     reader.onloadend = () => {
-                        let b64 = reader.result;
                         db.ref('BechaEventsData/events/' + currentEventIndex + '/intercom').push({
-                            sender: currentUser.pseudo, audio: b64, timestamp: Date.now()
+                            sender: currentUser.pseudo, audio: reader.result, timestamp: Date.now()
+                        }).then(() => {
+                            showSendSuccess(); // رسالة الطمأنينة الخضراء
                         });
                     };
                 };
-                
-                radioEnabled = true; 
-                
-                radioRef = db.ref('BechaEventsData/events/' + currentEventIndex + '/intercom');
-                let nowTs = Date.now();
-                radioRef.on('child_added', snap => {
-                    let msg = snap.val();
-                    if(msg.timestamp >= nowTs && msg.sender !== currentUser.pseudo) {
-                        let a = new Audio(msg.audio);
-                        document.getElementById('radioStatus').innerText = `🔊 رسالة من: ${msg.sender}`;
-                        document.getElementById('radioStatus').style.display = 'block';
-                        a.play();
-                        a.onended = () => { document.getElementById('radioStatus').style.display = 'none'; };
-                        setTimeout(() => { snap.ref.remove(); }, 10000); 
-                    }
-                });
-
-                if ('mediaSession' in navigator) {
-                    navigator.mediaSession.metadata = new MediaMetadata({ title: 'راديو الكواليس', artist: 'Becha Events' });
-                    navigator.mediaSession.setActionHandler('play', () => { toggleBluetoothPTT(); });
-                    navigator.mediaSession.setActionHandler('pause', () => { toggleBluetoothPTT(); });
-                }
-            } catch(e) { console.log("الرجاء السماح باستخدام الميكروفون لتفعيل الراديو."); }
+                return true;
+            } catch(e) {
+                alert("⚠️ لا يوجد ميكروفون! أنت الآن في وضع الاستماع فقط 🎧");
+                return false;
+            }
         }
 
-        function toggleBluetoothPTT() { if(!isRecording) { startPTT(); } else { stopPTT(); } }
+        function showSendSuccess() {
+            let banner = document.getElementById('sendSuccessBanner');
+            banner.style.display = 'block';
+            setTimeout(() => { banner.style.display = 'none'; }, 3000);
+        }
 
-        function startPTT(e) {
-            if(e) e.preventDefault(); 
-            if(!radioEnabled || isRecording) return;
+        function toggleBluetoothPTT() { if(!isRecording) { startPTT(null); } else { stopPTT(null); } }
+
+        async function startPTT(e) {
+            if(e) e.preventDefault();
+            let hasMic = await ensureMicrophone();
+            if(!hasMic || isRecording) return;
+            
             isRecording = true; document.getElementById('radioBtn').classList.add('recording');
             playBeep('start'); audioChunks = []; mediaRecorder.start();
         }
 
         function stopPTT(e) {
             if(e) e.preventDefault();
-            if(!radioEnabled || !isRecording) return;
+            if(!isRecording) return;
             isRecording = false; document.getElementById('radioBtn').classList.remove('recording');
             mediaRecorder.stop(); playBeep('end');
         }
 
-        window.addEventListener('keydown', (e) => { if(e.code === 'Space' && e.target.tagName !== 'INPUT' && e.target.tagName !== 'SELECT') { e.preventDefault(); startPTT(); } });
-        window.addEventListener('keyup', (e) => { if(e.code === 'Space' && e.target.tagName !== 'INPUT' && e.target.tagName !== 'SELECT') { e.preventDefault(); stopPTT(); } });
+        window.addEventListener('keydown', (e) => { if(e.code === 'Space' && e.target.tagName !== 'INPUT' && e.target.tagName !== 'SELECT') { e.preventDefault(); startPTT(null); } });
+        window.addEventListener('keyup', (e) => { if(e.code === 'Space' && e.target.tagName !== 'INPUT' && e.target.tagName !== 'SELECT') { e.preventDefault(); stopPTT(null); } });
 
         function logout() { location.reload(); }
         function showScreen(id) { document.querySelectorAll('.screen').forEach(s => s.classList.remove('active-screen')); document.getElementById(id).classList.add('active-screen'); }
