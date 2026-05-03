@@ -61,6 +61,12 @@
         #miniVisualizerContainer { position: fixed; bottom: 90px; left: 20px; width: 140px; height: 40px; background: rgba(0,0,0,0.85); border-radius: 10px; z-index: 899; display: none; align-items: center; justify-content: center; overflow: hidden; box-shadow: 0 4px 10px rgba(0,0,0,0.3); animation: popUp 0.3s ease; border: 1px solid #333;}
         @keyframes popUp { from { transform: translateY(10px) scale(0.9); opacity: 0; } to { transform: translateY(0) scale(1); opacity: 1; } }
 
+        /* شريط آخر متحدث وإعادة الاستماع (الجديد) */
+        #lastMessageBanner { position: fixed; bottom: 90px; left: 50%; transform: translateX(-50%); width: 90%; max-width: 400px; background: rgba(255,255,255,0.95); border: 2px solid #ccc; border-radius: 12px; z-index: 898; display: none; align-items: center; justify-content: space-between; padding: 8px 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.15); box-sizing: border-box; }
+        .last-msg-text { font-size: 13px; font-weight: bold; color: #333; text-align: right; flex: 1; margin-left: 10px; }
+        .replay-btn { background: #17a2b8; color: white; border: none; border-radius: 8px; padding: 6px 12px; font-size: 14px; font-weight: bold; cursor: pointer; display: flex; align-items: center; gap: 5px; box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
+        .replay-btn:active { transform: scale(0.95); }
+
         /* الإشعارات */
         #radioStatus { position: fixed; top: 65px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.8); color: #fff; padding: 5px 15px; border-radius: 20px; font-size: 12px; z-index: 10000; display: none; font-weight: bold; }
         #sendSuccessBanner { position: fixed; top: 65px; left: 50%; transform: translateX(-50%); background: #198754; color: #fff; padding: 10px 20px; border-radius: 12px; font-size: 14px; z-index: 10001; display: none; font-weight: bold; box-shadow: 0 4px 10px rgba(0,0,0,0.2); animation: slideDown 0.3s ease; }
@@ -79,22 +85,18 @@
         .flash-screen { animation: flashDanger 0.8s 3; }
         @keyframes flashDanger { 0% { box-shadow: inset 0 0 0px transparent; } 50% { box-shadow: inset 0 0 50px red; } 100% { box-shadow: inset 0 0 0px transparent; } }
 
-        /* مساحة التنفس في آخر الركح باش الكتيبة ما تتغطاش */
-        #stageContent { padding-bottom: 150px; }
-        #backstageContent { padding-bottom: 80px; }
+        /* مساحة التنفس في آخر الركح باش الكتيبة ما تتغطاش بالميكرو والشريط */
+        #stageContent { padding-bottom: 180px; }
+        #backstageContent { padding-bottom: 180px; }
 
-        /* --- التثبيت الجديد (Sticky Header) --- */
-        .sticky-container {
-            position: sticky;
-            top: 54px; /* تحت الشريط الأحمر مباشرة */
-            background-color: var(--light-bg);
-            z-index: 95;
-            padding: 10px 0;
-            border-bottom: 2px solid #ddd;
-            margin-bottom: 15px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
-        }
+        /* التثبيت (Sticky Header) */
+        .sticky-container { position: sticky; top: 54px; background-color: var(--light-bg); z-index: 95; padding: 10px 0; border-bottom: 2px solid #ddd; margin-bottom: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
 
+        /* غرفة الفحص (Test Room) */
+        #testRoomScreen { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: white; z-index: 10005; flex-direction: column; align-items: center; justify-content: center; padding: 20px; box-sizing: border-box; text-align: center; }
+        .test-mic-btn { width: 80px; height: 80px; border-radius: 50%; background: var(--primary-red); color: white; font-size: 30px; border: none; box-shadow: 0 4px 15px rgba(225,6,0,0.4); margin: 20px 0; transition: 0.2s; }
+        .test-mic-btn:active { transform: scale(0.9); background: #198754; box-shadow: 0 4px 15px rgba(25,135,84,0.4); }
+        #testResults { display: none; margin-top: 20px; width: 100%; max-width: 300px; }
     </style>
 </head>
 <body>
@@ -104,6 +106,23 @@
         <source src="data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAAABkYXRhAgAAAAEA" type="audio/wav">
     </audio>
     <audio id="mainRadioPlayer" playsinline></audio>
+    <audio id="testAudioPlayer" playsinline></audio> <!-- لتشغيل التسجيل التجريبي -->
+
+    <!-- غرفة الفحص الإجبارية (Test Room) -->
+    <div id="testRoomScreen">
+        <h2 style="color: var(--primary-red); margin-top:0;">🎙️ غرفة فحص الصوت</h2>
+        <p style="color: #555; font-weight: bold; margin-bottom: 5px;">يجب تجربة الميكروفون قبل الدخول</p>
+        <p style="color: #17a2b8; font-size: 13px; margin-bottom: 20px;">(التسجيل سري ولن يسمعه أحد غيرك)</p>
+        
+        <button id="testMicBtn" class="test-mic-btn" onmousedown="startTestRecording(event)" onmouseup="stopTestRecording(event)" onmouseleave="stopTestRecording(event)" ontouchstart="startTestRecording(event)" ontouchend="stopTestRecording(event)">🎤</button>
+        <div id="testStatusText" style="font-weight: bold; color: #333; margin-bottom: 20px;">اضغط مطولاً للتسجيل</div>
+
+        <div id="testResults">
+            <button class="btn btn-green" style="width: 100%; margin-bottom: 15px; padding: 12px; font-size: 18px;" onclick="enterOfficialSection()">✅ الصوت ممتاز، ادخل</button>
+            <button class="btn btn-outline" style="width: 100%; padding: 10px;" onclick="resetTest()">🔄 إعادة المحاولة</button>
+        </div>
+        <button class="btn btn-dark" style="margin-top: 40px;" onclick="cancelTest()">رجوع للوحة القيادة</button>
+    </div>
 
     <!-- الإشعارات -->
     <div id="globalRecordingBanner">🎙️ شخص ما يسجل...</div>
@@ -120,6 +139,12 @@
     <!-- الاستوديو المصغر في الواجهة الرئيسية -->
     <div id="miniVisualizerContainer">
         <canvas id="mainVisualizer" width="140" height="40"></canvas>
+    </div>
+
+    <!-- شريط آخر متحدث وإعادة الاستماع -->
+    <div id="lastMessageBanner">
+        <div class="last-msg-text" id="lastMsgText">🎙️ لا توجد رسائل سابقة</div>
+        <button class="replay-btn" onclick="replayLastMessage()">🔄 إعادة</button>
     </div>
 
     <header id="mainAppHeader" style="display:none;">
@@ -147,7 +172,6 @@
 
             <button class="btn btn-red" style="width: 100%; font-size: 18px; padding: 12px; margin-bottom: 20px;" onclick="login()">دخول للمنظومة</button>
             
-            <!-- الرابط الجديد لتطبيقة Pro -->
             <div style="border-top: 1px solid #eee; padding-top: 15px; margin-top: 10px;">
                 <a href="https://becha-events-kids.web.app/" target="_blank" style="color: #6f42c1; text-decoration: none; font-weight: 900; font-size: 16px;">🚀 الانتقال لتطبيقة Becha Events PRO</a>
             </div>
@@ -172,14 +196,13 @@
 
     <!-- لوحة القيادة -->
     <div id="dashboardScreen" class="screen">
-        <!-- غلاف القائمة باش نخبيه كي ندخلو للركح/كواليس -->
         <div id="dashboardMenuWrapper">
             <h2 id="dashInstName" style="color: var(--primary-red); margin: 0; font-size: 28px;">--</h2>
             <div id="dashEventTime" style="margin-bottom: 20px; font-weight: bold; color: #666; font-size: 15px;"></div>
             <div id="dashboardMenu" style="display: grid; grid-template-columns: 1fr; gap: 15px;"></div>
         </div>
 
-        <!-- الكواليس (بترويسة ثابتة) -->
+        <!-- الكواليس (ترويسة ثابتة) -->
         <div id="backstageSection" style="display:none; margin-top:0;">
             <div class="sticky-container">
                 <h2 id="dashInstName_bs" style="color: var(--primary-red); margin: 0; font-size: 22px;">--</h2>
@@ -214,7 +237,7 @@
             </div>
         </div>
 
-        <!-- الركح (بترويسة ثابتة) -->
+        <!-- الركح (ترويسة ثابتة) -->
         <div id="stageSection" style="display:none; margin-top:0;">
             <div class="sticky-container">
                 <h2 id="dashInstName_st" style="color: var(--primary-red); margin: 0; font-size: 22px;">--</h2>
@@ -241,7 +264,7 @@
         </div>
     </div>
 
-    <!-- زر الميكروفون (قعد وحدو اللوطة) -->
+    <!-- زر الميكروفون الرئيسي -->
     <div class="floating-btn-container">
         <button id="radioBtn" class="float-btn" onmousedown="startPTT(event)" onmouseup="stopPTT(event)" onmouseleave="stopPTT(event)" ontouchstart="startPTT(event)" ontouchend="stopPTT(event)">🎙️</button>
     </div>
@@ -263,6 +286,8 @@
 
         let currentUser = null; let currentEventIndex = -1; let currentEventData = null; 
         let liveProgRef = null; let backstageProgRef = null;
+        let pendingSectionId = ''; 
+        let lastMessageBlobUrl = null; let lastMessageTimestamp = 0;
 
         function updateClock() { let n = new Date(); let days = ['الأحد', 'الإثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت']; let c = document.getElementById('live-clock'); if(c) c.innerText = `🕒 ${n.toLocaleTimeString('ar-TN', {hour:'2-digit', minute:'2-digit'})} | ${days[n.getDay()]}`; }
         setInterval(updateClock, 1000);
@@ -349,19 +374,12 @@
         function selectEvent(idx) {
             currentEventIndex = idx; db.ref('BechaEventsData/events/'+idx).on('value', snap => {
                 currentEventData = snap.val(); 
-                
-                // تعبئة البيانات في اللوحة الرئيسية
                 document.getElementById('dashInstName').innerText = `🏫 ${currentEventData.name}`; 
                 document.getElementById('dashEventTime').innerText = `📅 ${currentEventData.date} | 🕒 ${currentEventData.time || '--'}`;
-                
-                // تعبئة البيانات في الترويسة الثابتة للكواليس
                 document.getElementById('dashInstName_bs').innerText = `🏫 ${currentEventData.name}`; 
                 document.getElementById('dashEventTime_bs').innerText = `📅 ${currentEventData.date} | 🕒 ${currentEventData.time || '--'}`;
-                
-                // تعبئة البيانات في الترويسة الثابتة للركح
                 document.getElementById('dashInstName_st').innerText = `🏫 ${currentEventData.name}`; 
                 document.getElementById('dashEventTime_st').innerText = `📅 ${currentEventData.date} | 🕒 ${currentEventData.time || '--'}`;
-                
                 renderDashboard();
             });
         }
@@ -370,34 +388,91 @@
             let m = document.getElementById('dashboardMenu'); m.innerHTML = '';
             let role = 'admin'; if (currentUser.role !== 'admin') { role = (currentEventData.animationRoles || {})[currentUser.linkedEmpName]; }
 
-            let bsBtn = `<div class="dash-card" style="border-color:#17a2b8;" onclick="openInnerSection('backstageSection')"><h3 style="color:#17a2b8; margin:0;">🧰 الكواليس (تحضير)</h3></div>`;
-            let stBtn = `<div class="dash-card" style="border-color:#E10600;" onclick="openInnerSection('stageSection')"><h3 style="color:#E10600; margin:0;">🎭 الركح المباشر</h3></div>`;
+            let bsBtn = `<div class="dash-card" style="border-color:#17a2b8;" onclick="initiateEntry('backstageSection')"><h3 style="color:#17a2b8; margin:0;">🧰 الكواليس (تحضير)</h3></div>`;
+            let stBtn = `<div class="dash-card" style="border-color:#E10600;" onclick="initiateEntry('stageSection')"><h3 style="color:#E10600; margin:0;">🎭 الركح المباشر</h3></div>`;
 
             if (role === 'admin') { m.style.gridTemplateColumns = '1fr 1fr'; m.innerHTML = bsBtn + stBtn; } 
             else { m.style.gridTemplateColumns = '1fr'; m.innerHTML = stBtn; }
             showScreen('dashboardScreen'); 
         }
 
-        // الدخول السحري: يفتح ملفات الصوت آلياً وقت النزلة باش المتصفح ما يتمردش
-        function openInnerSection(id) { 
-            document.getElementById('dashboardMenuWrapper').style.display = 'none'; 
-            document.getElementById(id).style.display = 'block'; 
+        // --- غرفة الفحص (Test Room Logic) ---
+        let testMediaRecorder = null; let testAudioChunks = []; let isTesting = false;
+
+        function initiateEntry(id) {
+            pendingSectionId = id;
+            document.getElementById('dashboardMenuWrapper').style.display = 'none';
+            document.getElementById('testRoomScreen').style.display = 'flex';
+            document.getElementById('testResults').style.display = 'none';
+            document.getElementById('testStatusText').innerText = "اضغط مطولاً للتسجيل";
+        }
+
+        function cancelTest() {
+            document.getElementById('testRoomScreen').style.display = 'none';
+            document.getElementById('dashboardMenuWrapper').style.display = 'block';
+        }
+
+        async function startTestRecording(e) {
+            if(e) { e.preventDefault(); e.stopPropagation(); }
+            if(isTesting) return;
+            try {
+                if(!micStream) { micStream = await navigator.mediaDevices.getUserMedia({ audio: true }); }
+                testMediaRecorder = new MediaRecorder(micStream);
+                testAudioChunks = [];
+                testMediaRecorder.ondataavailable = ev => { if(ev.data.size > 0) testAudioChunks.push(ev.data); };
+                testMediaRecorder.onstop = () => {
+                    const audioBlob = new Blob(testAudioChunks, { type: 'audio/webm' });
+                    const audioUrl = URL.createObjectURL(audioBlob);
+                    const testPlayer = document.getElementById('testAudioPlayer');
+                    testPlayer.src = audioUrl;
+                    
+                    // تشغيل التسجيل للتقييم (هنا تُفتح صمامات الصوت في المتصفح رسمياً)
+                    initAudioCtx();
+                    let silAudio = document.getElementById('silentAudio');
+                    silAudio.play().catch(er=>console.log(er));
+                    
+                    testPlayer.play().then(() => {
+                        document.getElementById('testStatusText').innerText = "🔊 جاري الاستماع لتسجيلك...";
+                    }).catch(er=>console.log(er));
+
+                    testPlayer.onended = () => {
+                        document.getElementById('testStatusText').innerText = "كيف كان الصوت؟";
+                        document.getElementById('testResults').style.display = 'block';
+                        document.getElementById('testMicBtn').style.display = 'none';
+                    };
+                };
+                
+                isTesting = true;
+                document.getElementById('testStatusText').innerText = "🔴 جاري التسجيل (تحدث الآن)...";
+                testMediaRecorder.start();
+            } catch(err) { alert("⚠️ الميكروفون غير متوفر!"); }
+        }
+
+        function stopTestRecording(e) {
+            if(e) { e.preventDefault(); e.stopPropagation(); }
+            if(!isTesting || !testMediaRecorder) return;
+            isTesting = false;
+            testMediaRecorder.stop();
+        }
+
+        function resetTest() {
+            document.getElementById('testResults').style.display = 'none';
+            document.getElementById('testMicBtn').style.display = 'block';
+            document.getElementById('testStatusText').innerText = "اضغط مطولاً للتسجيل مرة أخرى";
+        }
+
+        function enterOfficialSection() {
+            document.getElementById('testRoomScreen').style.display = 'none';
             
-            // فتح صمامات الصوت الإجباري للمتصفح
-            initAudioCtx();
-            let silAudio = document.getElementById('silentAudio');
-            let mainAudio = document.getElementById('mainRadioPlayer');
-            
-            // خدعة إضافية للآيفون: تمرير صوت فارغ قصير جداً كبداية
-            mainAudio.src = "data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAAABkYXRhAgAAAAEA";
-            
-            silAudio.play().catch(e=>console.log(e));
-            mainAudio.play().then(()=> { mainAudio.pause(); }).catch(e=>console.log(e));
-            
+            // تهيئة الراديو الرسمي
             initRadioReceiver();
 
-            if(id === 'backstageSection') { loadBackstageData(); startBackstageListener(); document.getElementById('radioBtn').style.display = 'flex'; }
-            if(id === 'stageSection') { openStageLive(); document.getElementById('radioBtn').style.display = 'flex'; }
+            document.getElementById(pendingSectionId).style.display = 'block'; 
+            if(pendingSectionId === 'backstageSection') { loadBackstageData(); startBackstageListener(); }
+            if(pendingSectionId === 'stageSection') { openStageLive(); }
+            
+            document.getElementById('radioBtn').style.display = 'flex';
+            document.getElementById('lastMessageBanner').style.display = 'flex';
         }
 
         function closeSection() { 
@@ -406,10 +481,11 @@
             document.getElementById('stageSection').style.display = 'none'; 
             document.getElementById('dashboardMenuWrapper').style.display = 'block';
             document.getElementById('radioBtn').style.display = 'none'; 
+            document.getElementById('lastMessageBanner').style.display = 'none';
             if(wakeLock) { wakeLock.release(); wakeLock = null; }
         }
 
-        // --- 3. الكواليس والركح ---
+        // --- الكواليس والركح (Logic) ---
         function addEducator(n='') { document.getElementById('educatorsList').insertAdjacentHTML('beforeend', `<div style="display:flex; gap:10px; margin-bottom:10px;"><input type="text" class="edu-name" placeholder="اسم الأنيستي..." value="${n}" style="flex:1;"><button class="btn btn-red" onclick="this.parentElement.remove()">🗑</button></div>`); }
         function addCoach(s='', n='') { document.getElementById('coachesList').insertAdjacentHTML('beforeend', `<div style="display:flex; gap:10px; margin-bottom:10px;"><input type="text" class="coach-spec" placeholder="الاختصاص" value="${s}" style="flex:1;"><input type="text" class="coach-name" placeholder="الاسم" value="${n}" style="flex:1;"><button class="btn btn-red" onclick="this.parentElement.remove()">🗑</button></div>`); }
         function addStaff(r='', n='') { document.getElementById('staffList').insertAdjacentHTML('beforeend', `<div style="display:flex; gap:10px; margin-bottom:10px;"><input type="text" class="staff-role" placeholder="الصفة" value="${r}" style="flex:1;"><input type="text" class="staff-name" placeholder="الاسم" value="${n}" style="flex:1;"><button class="btn btn-red" onclick="this.parentElement.remove()">🗑</button></div>`); }
@@ -502,8 +578,8 @@
             document.getElementById('cheatSheetContent').innerHTML = html; document.getElementById('cheatSheetModal').style.display = 'flex';
         }
 
-        // --- 4. الراديو، الموجات (Visualizer)، ووضع الجيب ---
-        let radioReceiverActive = false; let mediaRecorder = null; let micStream = null; 
+        // --- 4. الراديو، سجل المتحدث، والموجات ---
+        let radioReceiverActive = false; let mediaRecorder = null; 
         let audioChunks = []; let isRecording = false; 
         let audioCtx = null; let analyser = null; let dataArray = null; let animationId = null;
         let wakeLock = null;
@@ -535,24 +611,32 @@
             if(radioReceiverActive) return;
             radioReceiverActive = true;
             
-            let radioRef = db.ref('BechaEventsData/events/' + currentEventIndex + '/intercom');
-            let nowTs = Date.now();
-            radioRef.on('child_added', snap => {
+            // الاستماع للرسالة الوحيدة المتبقية (Last Message Overwrite Logic)
+            let lastMsgRef = db.ref('BechaEventsData/events/' + currentEventIndex + '/lastMessage');
+            
+            lastMsgRef.on('value', snap => {
                 let msg = snap.val();
-                if(msg.timestamp >= nowTs && msg.sender !== currentUser.pseudo) {
-                    let mainAudio = document.getElementById('mainRadioPlayer');
-                    mainAudio.src = msg.audio; 
+                if(msg && msg.timestamp > lastMessageTimestamp) {
+                    lastMessageTimestamp = msg.timestamp;
+                    lastMessageBlobUrl = msg.audio; // حفظ للاستماع لاحقاً
                     
-                    document.getElementById('radioStatus').innerText = `🔊 رسالة من: ${msg.sender}`;
-                    document.getElementById('radioStatus').style.display = 'block';
+                    // تحديث شريط آخر متحدث
+                    document.getElementById('lastMsgText').innerText = `🎙️ آخر رسالة من: ${msg.sender} (${msg.timeStr})`;
                     
-                    if(navigator.vibrate) { navigator.vibrate([200, 100, 200, 100, 200]); }
-                    document.body.classList.add('flash-screen');
-                    setTimeout(() => { document.body.classList.remove('flash-screen'); }, 2500);
+                    if(msg.sender !== currentUser.pseudo) {
+                        let mainAudio = document.getElementById('mainRadioPlayer');
+                        mainAudio.src = msg.audio; 
+                        
+                        document.getElementById('radioStatus').innerText = `🔊 رسالة من: ${msg.sender}`;
+                        document.getElementById('radioStatus').style.display = 'block';
+                        
+                        if(navigator.vibrate) { navigator.vibrate([200, 100, 200, 100, 200]); }
+                        document.body.classList.add('flash-screen');
+                        setTimeout(() => { document.body.classList.remove('flash-screen'); }, 2500);
 
-                    mainAudio.play().catch(e => console.log("Safari Audio Play Blocked"));
-                    mainAudio.onended = () => { document.getElementById('radioStatus').style.display = 'none'; };
-                    setTimeout(() => { snap.ref.remove(); }, 10000); 
+                        mainAudio.play().catch(e => console.log("Safari Audio Play Blocked"));
+                        mainAudio.onended = () => { document.getElementById('radioStatus').style.display = 'none'; };
+                    }
                 }
             });
 
@@ -567,18 +651,25 @@
                     banner.style.display = 'none';
                 }
             });
+        }
 
-            if ('mediaSession' in navigator) {
-                navigator.mediaSession.metadata = new MediaMetadata({ title: 'راديو الكواليس', artist: 'Becha Events' });
-                navigator.mediaSession.setActionHandler('play', () => { toggleBluetoothPTT(); });
-                navigator.mediaSession.setActionHandler('pause', () => { toggleBluetoothPTT(); });
+        function replayLastMessage() {
+            if(lastMessageBlobUrl) {
+                let mainAudio = document.getElementById('mainRadioPlayer');
+                mainAudio.src = lastMessageBlobUrl;
+                document.getElementById('radioStatus').innerText = `🔊 جاري إعادة الاستماع...`;
+                document.getElementById('radioStatus').style.display = 'block';
+                mainAudio.play().catch(e => alert("تعذر التشغيل"));
+                mainAudio.onended = () => { document.getElementById('radioStatus').style.display = 'none'; };
+            } else {
+                alert("لا توجد رسائل سابقة لإعادة الاستماع.");
             }
         }
 
         async function ensureMicrophone() {
             if (mediaRecorder) return true; 
             try {
-                micStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                if(!micStream) { micStream = await navigator.mediaDevices.getUserMedia({ audio: true }); }
                 mediaRecorder = new MediaRecorder(micStream);
                 
                 initAudioCtx();
@@ -590,8 +681,11 @@
                     const audioBlob = new Blob(audioChunks, { type: 'audio/webm' }); audioChunks = [];
                     const reader = new FileReader(); reader.readAsDataURL(audioBlob);
                     reader.onloadend = () => {
-                        db.ref('BechaEventsData/events/' + currentEventIndex + '/intercom').push({
-                            sender: currentUser.pseudo, audio: reader.result, timestamp: Date.now()
+                        let d = new Date();
+                        let tStr = d.toLocaleTimeString('ar-TN', {hour:'2-digit', minute:'2-digit'});
+                        // تعويض الداتا القديمة بالميساج الجديد برك
+                        db.ref('BechaEventsData/events/' + currentEventIndex + '/lastMessage').set({
+                            sender: currentUser.pseudo, audio: reader.result, timestamp: Date.now(), timeStr: tStr
                         }).then(() => { showSendSuccess(); });
                     };
                 };
@@ -606,8 +700,6 @@
             let banner = document.getElementById('sendSuccessBanner');
             banner.style.display = 'block'; setTimeout(() => { banner.style.display = 'none'; }, 3000);
         }
-
-        function toggleBluetoothPTT() { if(!isRecording) { startPTT(null); } else { stopPTT(null); } }
 
         function drawVisualizer() {
             if(!isRecording) return; 
