@@ -35,30 +35,41 @@
         
         .dash-card { background: white; padding: 20px; border-radius: 15px; border: 2px solid #eee; cursor: pointer; transition: 0.3s; box-shadow: 0 4px 8px rgba(0,0,0,0.05); text-align: center; margin-bottom: 15px;}
         
-        /* الأكورديون */
         .accordion-item { background: white; border-radius: 12px; margin-bottom: 15px; border: 2px solid #eee; overflow: hidden; box-shadow: 0 4px 8px rgba(0,0,0,0.05); }
         .accordion-header { background: #f8f9fa; padding: 15px 20px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #eee; font-weight: 900; color: var(--primary-red); font-size: 18px;}
         .accordion-content { padding: 20px; display: none; text-align: right; background: white;}
         .accordion-content.open { display: block; }
 
-        /* سطر البرنامج */
         .prog-row { position: relative; display: flex; flex-direction: column; gap: 8px; margin-bottom: 20px; background: #fdfdfd; padding: 15px; border: 1px solid #ddd; border-radius: 12px; border-right: 6px solid var(--primary-red); }
         .prog-row.locked { opacity: 0.7; background: #f0f8ff; border-right-color: #198754; pointer-events: none;}
         .row-num { position: absolute; right: -15px; top: -10px; background: var(--primary-red); color: white; width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: bold; z-index: 5; box-shadow: 0 2px 5px rgba(0,0,0,0.2);}
         .prog-row.locked .row-num { background: #198754; }
         
-        /* البرنامج في الركح */
         .program-item { display: flex; align-items: center; justify-content: space-between; background: white; border: 2px solid #eee; padding: 15px; border-radius: 12px; margin-bottom: 15px; text-align: right; font-weight: bold; font-size: 18px; transition: 0.3s; cursor: pointer; border-right: 6px solid #ff9800; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
         .program-item.completed { text-decoration: line-through; opacity: 0.6; background: #f8f9fa; border-right-color: #198754; }
         .chk-box { width: 30px; height: 30px; border-radius: 8px; border: 2px solid #ccc; display: flex; align-items: center; justify-content: center; color: white; font-size: 18px;}
         .completed .chk-box { background: #198754; border-color: #198754; }
 
-        /* زر النجدة العائم */
-        #cheatBtn { position: fixed; bottom: 20px; left: 20px; width: 55px; height: 55px; border-radius: 50%; background: #17a2b8; color: white; font-size: 26px; border: none; box-shadow: 0 4px 10px rgba(0,0,0,0.3); cursor: pointer; z-index: 999; display: flex; align-items: center; justify-content: center; }
+        /* أزرار عائمة (نجدة + راديو) */
+        .floating-btn-container { position: fixed; bottom: 20px; left: 20px; display: flex; flex-direction: column; gap: 15px; z-index: 999; }
+        .float-btn { width: 60px; height: 60px; border-radius: 50%; color: white; font-size: 26px; border: none; box-shadow: 0 4px 10px rgba(0,0,0,0.3); cursor: pointer; display: flex; align-items: center; justify-content: center; transition: 0.2s; }
+        #cheatBtn { background: #17a2b8; display: none; }
+        #radioBtn { background: #E10600; display: none; }
+        #radioBtn.recording { background: #198754; animation: pulse 1s infinite; }
+        @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.1); } 100% { transform: scale(1); } }
+        
+        #radioStatus { position: fixed; top: 60px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.8); color: #fff; padding: 5px 15px; border-radius: 20px; font-size: 12px; z-index: 1000; display: none; font-weight: bold; }
 
     </style>
 </head>
 <body>
+
+    <!-- خدعة الصوت الصامت للآيفون (Play silent track) -->
+    <audio id="silentAudio" loop playsinline>
+        <source src="data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAAABkYXRhAgAAAAEA" type="audio/wav">
+    </audio>
+
+    <div id="radioStatus">🔊 جاري استقبال رسالة...</div>
 
     <header id="mainAppHeader" style="display:none;">
         <div class="top-bar">
@@ -100,13 +111,13 @@
     <!-- لوحة القيادة -->
     <div id="dashboardScreen" class="screen">
         <h2 id="dashInstName" style="color: var(--primary-red); margin: 0; font-size: 28px;">--</h2>
-        <div id="dashEventTime" style="margin-bottom: 25px; font-weight: bold; color: #666; font-size: 15px;"></div>
+        <div id="dashEventTime" style="margin-bottom: 20px; font-weight: bold; color: #666; font-size: 15px;"></div>
         
-        <div id="dashboardMenu" style="display: grid; grid-template-columns: 1fr; gap: 15px;">
-            <!-- الأزرار ستظهر هنا ديناميكياً حسب الموظف -->
-        </div>
+        <button id="enableRadioBtn" class="btn btn-outline" style="width:100%; margin-bottom:20px; border-style:dashed; font-size:16px;" onclick="initRadioSystem()">🎧 تفعيل الراديو (Walkie-Talkie)</button>
 
-        <!-- 1. الكواليس (صناديق مطوية) -->
+        <div id="dashboardMenu" style="display: grid; grid-template-columns: 1fr; gap: 15px;"></div>
+
+        <!-- 1. الكواليس -->
         <div id="backstageSection" style="display:none; margin-top:20px;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
                 <h3 style="color:#17a2b8; margin: 0; font-size: 24px;">🧰 غرفة الكواليس</h3>
@@ -114,66 +125,48 @@
             </div>
 
             <div class="accordion-item">
-                <div class="accordion-header" onclick="toggleAccordion('accInst')">
-                    <span>👑 معطيات الإدارة والمؤسسة</span>
-                    <span id="icon_accInst">➕</span>
-                </div>
+                <div class="accordion-header" onclick="toggleAccordion('accInst')"><span>👑 معطيات الإدارة والمؤسسة</span><span id="icon_accInst">➕</span></div>
                 <div id="accInst" class="accordion-content">
                     <input type="text" id="instManager" placeholder="المديرة (مثال: السيدة فاطمة)..." style="width:100%; margin-bottom:10px;">
                     <input type="text" id="instFounder" placeholder="باعث المشروع (اختياري)..." style="width:100%; margin-bottom:20px;">
-                    
                     <h4 style="color:#198754; margin: 10px 0; border-bottom: 1px solid #eee; padding-bottom: 5px;">👩‍🏫 المربيات:</h4>
-                    <div id="educatorsList"></div>
-                    <button class="btn btn-outline" style="width:100%; border-color:#198754; color:#198754;" onclick="addEducator()">+ إضافة أنيستي</button>
-                    
+                    <div id="educatorsList"></div><button class="btn btn-outline" style="width:100%; border-color:#198754; color:#198754;" onclick="addEducator()">+ إضافة أنيستي</button>
                     <h4 style="color:#ff9800; margin: 20px 0 10px 0; border-bottom: 1px solid #eee; padding-bottom: 5px;">🎯 المدربون:</h4>
-                    <div id="coachesList"></div>
-                    <button class="btn btn-outline" style="width:100%; border-color:#ff9800; color:#ff9800;" onclick="addCoach()">+ إضافة مدرب</button>
-                    
+                    <div id="coachesList"></div><button class="btn btn-outline" style="width:100%; border-color:#ff9800; color:#ff9800;" onclick="addCoach()">+ إضافة مدرب</button>
                     <h4 style="color:#9b59b6; margin: 20px 0 10px 0; border-bottom: 1px solid #eee; padding-bottom: 5px;">🤝 العمال والشركاء:</h4>
-                    <div id="staffList"></div>
-                    <button class="btn btn-outline" style="width:100%; border-color:#9b59b6; color:#9b59b6;" onclick="addStaff()">+ إضافة عامل/شريك</button>
+                    <div id="staffList"></div><button class="btn btn-outline" style="width:100%; border-color:#9b59b6; color:#9b59b6;" onclick="addStaff()">+ إضافة عامل/شريك</button>
                 </div>
             </div>
 
             <div class="accordion-item">
-                <div class="accordion-header" onclick="toggleAccordion('accProg')">
-                    <span>📋 برنامج الحفل (<span id="totalProgCount">0</span> فقرات)</span>
-                    <span id="icon_accProg">➖</span>
-                </div>
+                <div class="accordion-header" onclick="toggleAccordion('accProg')"><span>📋 برنامج الحفل (<span id="totalProgCount">0</span> فقرات)</span><span id="icon_accProg">➖</span></div>
                 <div id="accProg" class="accordion-content open">
-                    <div id="programList"></div>
-                    <button class="btn btn-outline" style="width:100%; margin-top:10px; border-color:var(--primary-red); color:var(--primary-red); border-style: dashed;" onclick="addProgramItem()">+ إضافة فقرة جديدة</button>
+                    <div id="programList"></div><button class="btn btn-outline" style="width:100%; margin-top:10px; border-color:var(--primary-red); color:var(--primary-red); border-style: dashed;" onclick="addProgramItem()">+ إضافة فقرة جديدة</button>
                 </div>
             </div>
-
             <button class="btn btn-green" style="width:100%; margin-top:25px; font-size: 20px; padding: 15px;" onclick="saveBackstageData()">💾 حفظ التعديلات كاملة</button>
         </div>
 
-        <!-- 2. الركح (Live) -->
+        <!-- 2. الركح -->
         <div id="stageSection" style="display:none; margin-top:20px;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
                 <h3 style="color:var(--primary-red); margin: 0; font-size: 26px;">🎭 الركح المباشر</h3>
                 <button class="btn btn-dark" onclick="closeSection()">رجوع ⬅️</button>
             </div>
-            
             <div style="background: #fffdf5; border: 3px solid #ffc107; border-radius: 15px; margin-bottom: 25px;">
                 <div style="padding:15px; background:#ffc107; color:#333; font-weight:900; font-size:18px; cursor:pointer; display:flex; justify-content:space-between; border-radius: 11px 11px 0 0;" onclick="toggleTeleprompter()">
                     <span>🎤 الكلمة الترحيبية (اضغط للطي/الفتح)</span> <span id="teleIcon">➖</span>
                 </div>
-                <div id="teleprompterView" style="padding: 25px; font-size: 22px; line-height: 1.8; font-weight: 800; color: #222;">
-                    <!-- سيعمر آلياً -->
-                </div>
+                <div id="teleprompterView" style="padding: 25px; font-size: 22px; line-height: 1.8; font-weight: 800; color: #222;"></div>
             </div>
-            
-            <div style="text-align: right;">
-                <h3 style="color: #333; margin-bottom: 15px; border-bottom: 2px solid #ccc; padding-bottom: 10px;">📜 خريطة الحفل:</h3>
-                <div id="liveProgramTimeline"></div>
-            </div>
-
-            <!-- زر النجدة -->
-            <button id="cheatBtn" onclick="showCheatSheet()">ℹ️</button>
+            <div style="text-align: right;"><h3 style="color: #333; margin-bottom: 15px; border-bottom: 2px solid #ccc; padding-bottom: 10px;">📜 خريطة الحفل:</h3><div id="liveProgramTimeline"></div></div>
         </div>
+    </div>
+
+    <!-- الأزرار العائمة -->
+    <div class="floating-btn-container">
+        <button id="cheatBtn" class="float-btn" onclick="showCheatSheet()">ℹ️</button>
+        <button id="radioBtn" class="float-btn" onmousedown="startPTT()" onmouseup="stopPTT()" ontouchstart="startPTT()" ontouchend="stopPTT()">🎙️</button>
     </div>
 
     <!-- نافذة ورقة الغشة -->
@@ -186,6 +179,7 @@
     </div>
 
     <script>
+        // --- 1. Firebase Configuration ---
         const firebaseConfig = { apiKey: "AIzaSyCTTjp34QhF6MPNemwKhoq7385xnJKK_Hg", authDomain: "becha-events-kids.firebaseapp.app", databaseURL: "https://becha-events-kids-default-rtdb.europe-west1.firebasedatabase.app", projectId: "becha-events-kids", storageBucket: "becha-events-kids.appspot.com", messagingSenderId: "763935242130", appId: "1:763935242130:web:490a99e38c53ba0240f34b" };
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
@@ -200,82 +194,49 @@
         function toggleAccordion(id) {
             let el = document.getElementById(id); let icon = document.getElementById('icon_'+id);
             if(el.classList.contains('open')) { el.classList.remove('open'); icon.innerText = '➕'; }
-            else { 
-                document.querySelectorAll('.accordion-content').forEach(c => c.classList.remove('open'));
-                document.querySelectorAll('.accordion-header span[id^="icon_"]').forEach(i => i.innerText = '➕');
-                el.classList.add('open'); icon.innerText = '➖';
-            }
+            else { document.querySelectorAll('.accordion-content').forEach(c => c.classList.remove('open')); document.querySelectorAll('.accordion-header span[id^="icon_"]').forEach(i => i.innerText = '➕'); el.classList.add('open'); icon.innerText = '➖'; }
         }
 
-        function toggleTeleprompter() {
-            let tv = document.getElementById('teleprompterView'); let ti = document.getElementById('teleIcon');
-            if(tv.style.display === 'none') { tv.style.display = 'block'; ti.innerText = '➖'; }
-            else { tv.style.display = 'none'; ti.innerText = '➕'; }
-        }
+        function toggleTeleprompter() { let tv = document.getElementById('teleprompterView'); let ti = document.getElementById('teleIcon'); if(tv.style.display === 'none') { tv.style.display = 'block'; ti.innerText = '➖'; } else { tv.style.display = 'none'; ti.innerText = '➕'; } }
 
         function login() {
             let u = document.getElementById('loginUser').value.trim(); let p = document.getElementById('loginPass').value.trim();
             if(!u || !p) return alert("الرجاء إدخال البيانات");
             if(u === "حمادي" && p === "amouhfy2025") { currentUser = { pseudo: "حمادي", role: "admin", linkedEmpName: "المدير حمادي" }; finishLogin(); }
-            else { db.ref('BechaEventsData/users').once('value', snap => {
-                let all = snap.val() || {}; let f = Object.keys(all).find(k => all[k].pseudo === u && all[k].pass === p);
-                if(f) { currentUser = all[f]; finishLogin(); } else alert("❌ بيانات خاطئة!");
-            }); }
+            else { db.ref('BechaEventsData/users').once('value', snap => { let all = snap.val() || {}; let f = Object.keys(all).find(k => all[k].pseudo === u && all[k].pass === p); if(f) { currentUser = all[f]; finishLogin(); } else alert("❌ بيانات خاطئة!"); }); }
         }
 
-        // الجدار الأمني وتوجيه الموظفين
+        // --- 2. Security Wall & Events ---
         function finishLogin() {
             document.getElementById('mainAppHeader').style.display = 'block'; 
-            
             db.ref('BechaEventsData/events').once('value', snap => {
                 let events = snap.val() || []; let today = getTodayIso();
                 let allUpcoming = events.map((ev, i) => ({...ev, originalIndex: i})).filter(ev => ev.date >= today).sort((a,b) => a.date.localeCompare(b.date));
                 
                 if (currentUser.role === 'admin') {
-                    // المدير يشوف كل شيء
                     document.getElementById('headerUserBadge').innerText = `👑 المدير (${currentUser.pseudo})`;
                     renderEventsList(allUpcoming, today);
                 } else {
-                    // فرز عروض الموظف العادي
-                    let myValidEvents = allUpcoming.filter(ev => {
-                        let t = ev.assignedTeam || []; let r = ev.animationRoles || {};
-                        return t.includes(currentUser.linkedEmpName) && r[currentUser.linkedEmpName] && r[currentUser.linkedEmpName] !== 'none';
-                    });
-                    
-                    let myDriverEvents = allUpcoming.filter(ev => {
-                        let t = ev.assignedTeam || []; let r = ev.animationRoles || {};
-                        return t.includes(currentUser.linkedEmpName) && r[currentUser.linkedEmpName] === 'none';
-                    });
-
+                    let myValidEvents = allUpcoming.filter(ev => { let t = ev.assignedTeam || []; let r = ev.animationRoles || {}; return t.includes(currentUser.linkedEmpName) && r[currentUser.linkedEmpName] && r[currentUser.linkedEmpName] !== 'none'; });
+                    let myDriverEvents = allUpcoming.filter(ev => { let t = ev.assignedTeam || []; let r = ev.animationRoles || {}; return t.includes(currentUser.linkedEmpName) && r[currentUser.linkedEmpName] === 'none'; });
                     let myTodayEvents = myValidEvents.filter(e => e.date === today);
 
-                    // إذا ما عندوش عروض صالحة اليوم
                     if (myTodayEvents.length === 0) {
                         document.getElementById('deniedEmpName').innerText = currentUser.pseudo;
-                        let msgEl = document.getElementById('deniedMessageText');
-                        let iconEl = document.getElementById('deniedIcon');
-                        
+                        let msgEl = document.getElementById('deniedMessageText'); let iconEl = document.getElementById('deniedIcon');
                         if (myValidEvents.length > 0) {
-                            // ما عندوش عرض اليوم، لكن عندو في المستقبل (حالة سلمى)
                             let nextEv = myValidEvents[0];
                             msgEl.innerHTML = `ليس لديك عروض مبرمجة <b>لليوم</b>.<br><br>📅 عرضك القادم سيكون يوم:<br><b style="color:var(--primary-red); font-size:22px;">${nextEv.date}</b><br>في مؤسسة: <b style="color:#17a2b8;">${nextEv.name}</b>`;
-                            iconEl.innerText = '⏳';
-                            document.getElementById('headerUserBadge').innerText = `⏳ في الانتظار`;
+                            iconEl.innerText = '⏳'; document.getElementById('headerUserBadge').innerText = `⏳ في الانتظار`;
                         } else if (myDriverEvents.length > 0) {
-                            // دورو ديما سائق/منع (حالة عماد)
                             msgEl.innerHTML = `مهمتك الحالية لا تتطلب استعمال تطبيقة الركح.<br>يعطيك الصحة على مجهودك!`;
-                            iconEl.innerText = '🚚';
-                            document.getElementById('headerUserBadge').innerText = `🚚 لوجستيك`;
+                            iconEl.innerText = '🚚'; document.getElementById('headerUserBadge').innerText = `🚚 لوجستيك`;
                         } else {
-                            // ما عندو حتى عرض جملة
                             msgEl.innerHTML = `ليس لديك مهام تنشيطية مبرمجة على التطبيقة حالياً.`;
-                            iconEl.innerText = '⚠️';
-                            document.getElementById('headerUserBadge').innerText = `🚫 غير معين`;
+                            iconEl.innerText = '⚠️'; document.getElementById('headerUserBadge').innerText = `🚫 غير معين`;
                         }
-                        showScreen('deniedMessageScreen');
-                        return;
+                        showScreen('deniedMessageScreen'); return;
                     } else {
-                        // عندو عرض اليوم، خليه يتعدى ويشوف قائمتو
                         document.getElementById('headerUserBadge').innerText = `👤 موظف (${currentUser.pseudo})`;
                         renderEventsList(myValidEvents, today);
                     }
@@ -285,16 +246,11 @@
 
         function renderEventsList(eventsArray, today) {
             let list = document.getElementById('eventsListContainer'); list.innerHTML = '';
-            let todayEvents = eventsArray.filter(e => e.date === today);
-            let futureEvents = eventsArray.filter(e => e.date !== today);
+            let todayEvents = eventsArray.filter(e => e.date === today); let futureEvents = eventsArray.filter(e => e.date !== today);
 
             if(todayEvents.length > 0) {
                 todayEvents.forEach(ev => {
-                    list.innerHTML += `
-                    <div class="event-card" onclick="selectEvent(${ev.originalIndex})" style="background:#f0fdf4; padding:20px; margin-bottom:20px; border-radius:12px; cursor:pointer; text-align:right; border: 3px solid #198754; border-right:10px solid #198754; box-shadow:0 6px 12px rgba(25,135,84,0.15);">
-                        <span style="background: #198754; color:white; padding:4px 10px; border-radius:12px; font-size:13px; font-weight:bold; float:left;">🔥 عرض اليوم</span>
-                        <b style="font-size:20px; color:#333;">🏫 ${ev.name}</b><br><span style="color:#198754; font-weight:bold; font-size:15px;">📅 ${ev.date} | 🕒 ${ev.time || '--'}</span>
-                    </div>`;
+                    list.innerHTML += `<div class="event-card" onclick="selectEvent(${ev.originalIndex})" style="background:#f0fdf4; padding:20px; margin-bottom:20px; border-radius:12px; cursor:pointer; text-align:right; border: 3px solid #198754; border-right:10px solid #198754; box-shadow:0 6px 12px rgba(25,135,84,0.15);"><span style="background: #198754; color:white; padding:4px 10px; border-radius:12px; font-size:13px; font-weight:bold; float:left;">🔥 عرض اليوم</span><b style="font-size:20px; color:#333;">🏫 ${ev.name}</b><br><span style="color:#198754; font-weight:bold; font-size:15px;">📅 ${ev.date} | 🕒 ${ev.time || '--'}</span></div>`;
                 });
             }
             if(futureEvents.length > 0) {
@@ -309,64 +265,46 @@
         function selectEvent(idx) {
             currentEventIndex = idx; db.ref('BechaEventsData/events/'+idx).on('value', snap => {
                 currentEventData = snap.val(); 
-                document.getElementById('dashInstName').innerText = `🏫 ${currentEventData.name}`;
-                document.getElementById('dashEventTime').innerText = `📅 ${currentEventData.date} | 🕒 ${currentEventData.time || '--'}`;
+                document.getElementById('dashInstName').innerText = `🏫 ${currentEventData.name}`; document.getElementById('dashEventTime').innerText = `📅 ${currentEventData.date} | 🕒 ${currentEventData.time || '--'}`;
                 renderDashboard();
             });
         }
 
-        // بناء لوحة القيادة ديناميكيا حسب المهمة
         function renderDashboard() { 
             let m = document.getElementById('dashboardMenu'); m.innerHTML = '';
-            
-            let role = 'admin';
-            if (currentUser.role !== 'admin') {
-                 role = (currentEventData.animationRoles || {})[currentUser.linkedEmpName];
-            }
-            
-            // تحديث الشارة الفوقانية
-            let badgeName = currentUser.pseudo;
-            let roleName = role === 'admin' ? '👑 الإدارة' : role === 'animateur' ? '🎤 منشط' : role === 'assistant' ? '🎁 مساعد' : '🎧 دي جي';
+            let role = 'admin'; if (currentUser.role !== 'admin') { role = (currentEventData.animationRoles || {})[currentUser.linkedEmpName]; }
+            let badgeName = currentUser.pseudo; let roleName = role === 'admin' ? '👑 الإدارة' : role === 'animateur' ? '🎤 منشط' : role === 'assistant' ? '🎁 مساعد' : '🎧 دي جي';
             document.getElementById('headerUserBadge').innerText = `${roleName} (${badgeName})`;
 
             let bsBtn = `<div class="dash-card" style="border-color:#17a2b8;" onclick="openInnerSection('backstageSection')"><h3 style="color:#17a2b8; margin:0;">🧰 الكواليس (تحضير)</h3></div>`;
             let stBtn = `<div class="dash-card" style="border-color:#E10600;" onclick="openInnerSection('stageSection')"><h3 style="color:#E10600; margin:0;">🎭 الركح المباشر</h3></div>`;
 
-            if (role === 'admin') {
-                m.style.gridTemplateColumns = '1fr 1fr';
-                m.innerHTML = bsBtn + stBtn;
-            } else {
-                // المنشط أو المساعد يشوفو كان الركح
-                m.style.gridTemplateColumns = '1fr';
-                m.innerHTML = stBtn;
-            }
-            
+            if (role === 'admin') { m.style.gridTemplateColumns = '1fr 1fr'; m.innerHTML = bsBtn + stBtn; } 
+            else { m.style.gridTemplateColumns = '1fr'; m.innerHTML = stBtn; }
             showScreen('dashboardScreen'); 
         }
 
         function openInnerSection(id) { 
-            document.getElementById('dashboardMenu').style.display = 'none'; 
+            document.getElementById('dashboardMenu').style.display = 'none'; document.getElementById('enableRadioBtn').style.display = 'none';
             document.getElementById(id).style.display = 'block'; 
-            if(id === 'backstageSection') { loadBackstageData(); startBackstageListener(); }
-            if(id === 'stageSection') { openStageLive(); }
+            if(id === 'backstageSection') { loadBackstageData(); startBackstageListener(); document.getElementById('radioBtn').style.display = 'flex'; }
+            if(id === 'stageSection') { openStageLive(); document.getElementById('cheatBtn').style.display = 'flex'; document.getElementById('radioBtn').style.display = 'flex'; }
         }
 
         function closeSection() { 
-            if(liveProgRef) { liveProgRef.off(); liveProgRef = null; } 
-            if(backstageProgRef) { backstageProgRef.off(); backstageProgRef = null; }
-            document.getElementById('backstageSection').style.display = 'none'; 
-            document.getElementById('stageSection').style.display = 'none'; 
-            document.getElementById('dashboardMenu').style.display = 'grid'; 
+            if(liveProgRef) { liveProgRef.off(); liveProgRef = null; } if(backstageProgRef) { backstageProgRef.off(); backstageProgRef = null; }
+            document.getElementById('backstageSection').style.display = 'none'; document.getElementById('stageSection').style.display = 'none'; 
+            document.getElementById('dashboardMenu').style.display = 'grid'; document.getElementById('enableRadioBtn').style.display = 'block';
+            document.getElementById('cheatBtn').style.display = 'none'; document.getElementById('radioBtn').style.display = 'none';
         }
 
-        // ================== الكواليس ==================
+        // --- 3. الكواليس (Backstage) ---
         function addEducator(n='') { document.getElementById('educatorsList').insertAdjacentHTML('beforeend', `<div style="display:flex; gap:10px; margin-bottom:10px;"><input type="text" class="edu-name" placeholder="اسم الأنيستي..." value="${n}" style="flex:1;"><button class="btn btn-red" onclick="this.parentElement.remove()">🗑</button></div>`); }
         function addCoach(s='', n='') { document.getElementById('coachesList').insertAdjacentHTML('beforeend', `<div style="display:flex; gap:10px; margin-bottom:10px;"><input type="text" class="coach-spec" placeholder="الاختصاص" value="${s}" style="flex:1;"><input type="text" class="coach-name" placeholder="الاسم" value="${n}" style="flex:1;"><button class="btn btn-red" onclick="this.parentElement.remove()">🗑</button></div>`); }
         function addStaff(r='', n='') { document.getElementById('staffList').insertAdjacentHTML('beforeend', `<div style="display:flex; gap:10px; margin-bottom:10px;"><input type="text" class="staff-role" placeholder="الصفة" value="${r}" style="flex:1;"><input type="text" class="staff-name" placeholder="الاسم" value="${n}" style="flex:1;"><button class="btn btn-red" onclick="this.parentElement.remove()">🗑</button></div>`); }
 
         function populateSupervisors(selectElem) {
-            let currentVal = selectElem.value;
-            selectElem.innerHTML = '<option value="">-- بدون مدرب مخصص --</option>';
+            let currentVal = selectElem.value; selectElem.innerHTML = '<option value="">-- بدون مدرب مخصص --</option>';
             document.querySelectorAll('#educatorsList .edu-name').forEach(e => { let v = e.value.trim(); if(v) selectElem.innerHTML += `<option value="أنيستي ${v}">أنيستي ${v}</option>`; });
             document.querySelectorAll('#coachesList > div').forEach(r => { let s = r.querySelector('.coach-spec').value.trim(); let n = r.querySelector('.coach-name').value.trim(); if(s || n) selectElem.innerHTML += `<option value="${s} ${n}">${s} ${n}</option>`; });
             selectElem.value = currentVal;
@@ -417,14 +355,8 @@
             document.querySelectorAll('#educatorsList .edu-name').forEach(e => { if(e.value.trim()) d.educators.push(e.value.trim()); });
             document.querySelectorAll('#coachesList > div').forEach(r => { let s=r.querySelector('.coach-spec').value.trim(), n=r.querySelector('.coach-name').value.trim(); if(s||n) d.coaches.push({spec:s, name:n}); });
             document.querySelectorAll('#staffList > div').forEach(r => { let sr=r.querySelector('.staff-role').value.trim(), n=r.querySelector('.staff-name').value.trim(); if(sr||n) d.staff.push({role:sr, name:n}); });
-            
-            let prog = [];
-            document.querySelectorAll('.prog-row').forEach(r => {
-                let type = r.querySelector('.prog-type').value; let sup = r.querySelector('.prog-supervisor').value; if(sup.includes('اضغط لاختيار')) sup = '';
-                prog.push({ type: type, customType: type === 'أخرى' ? r.querySelector('.other-type').value.trim() : '', details: r.querySelector('.prog-details').value.trim(), supervisor: sup, completed: r.classList.contains('locked') });
-            });
-            db.ref('BechaEventsData/events/'+currentEventIndex+'/institutionDetails').set(d);
-            db.ref('BechaEventsData/events/'+currentEventIndex+'/eventProgram').set(prog).then(() => alert("✅ تم الحفظ بنجاح!"));
+            let prog = []; document.querySelectorAll('.prog-row').forEach(r => { let type = r.querySelector('.prog-type').value; let sup = r.querySelector('.prog-supervisor').value; if(sup.includes('اضغط لاختيار')) sup = ''; prog.push({ type: type, customType: type === 'أخرى' ? r.querySelector('.other-type').value.trim() : '', details: r.querySelector('.prog-details').value.trim(), supervisor: sup, completed: r.classList.contains('locked') }); });
+            db.ref('BechaEventsData/events/'+currentEventIndex+'/institutionDetails').set(d); db.ref('BechaEventsData/events/'+currentEventIndex+'/eventProgram').set(prog).then(() => alert("✅ تم الحفظ بنجاح!"));
         }
 
         function syncOneItem(btn) {
@@ -434,17 +366,9 @@
             db.ref('BechaEventsData/events/'+currentEventIndex+'/eventProgram/'+idx).set(data).then(() => { btn.innerText = '✅'; setTimeout(() => btn.innerText = '🔄', 1000); });
         }
 
-        function startBackstageListener() {
-            backstageProgRef = db.ref('BechaEventsData/events/' + currentEventIndex + '/eventProgram');
-            backstageProgRef.on('value', snap => {
-                if(document.getElementById('backstageSection').style.display !== 'none') {
-                    let prog = snap.val() || []; let rows = document.querySelectorAll('.prog-row');
-                    prog.forEach((p, i) => { if(rows[i]) { if(p.completed) rows[i].classList.add('locked'); else rows[i].classList.remove('locked'); } });
-                }
-            });
-        }
+        function startBackstageListener() { backstageProgRef = db.ref('BechaEventsData/events/' + currentEventIndex + '/eventProgram'); backstageProgRef.on('value', snap => { if(document.getElementById('backstageSection').style.display !== 'none') { let prog = snap.val() || []; let rows = document.querySelectorAll('.prog-row'); prog.forEach((p, i) => { if(rows[i]) { if(p.completed) rows[i].classList.add('locked'); else rows[i].classList.remove('locked'); } }); } }); }
 
-        // ================== الركح (Live Stage) ==================
+        // --- 4. الركح (Live Stage) ---
         function openStageLive() {
             renderTeleprompter(); 
             liveProgRef = db.ref('BechaEventsData/events/' + currentEventIndex + '/eventProgram');
@@ -453,9 +377,7 @@
 
         function renderTeleprompter() {
             let d = currentEventData.institutionDetails || {}; let inst = currentEventData.name || 'هالمؤسسة المزيانة'; let mName = d.managerName || currentEventData.managerName;
-            let html = `<span style="color: var(--primary-red);">" </span>على سلامتكم الناس الكل، نورتونا وفرحتونا بحضوركم معانا اليوم! مرحبا بأهالينا الكرام، وبضيوفنا الغالين في هالاحتفال المميز والمليان حب وفرحة ❤️<br><br>`;
-            html += `باسم شركة <b>Becha Events</b>، فرحانين برشا برشا بوجودنا معاكم، واليوم باش نعيشو مع بعضنا لحظات ما تتنساش، فيها ضحك، فيها فرحة، وفيها برشا مفاجآت 🎉<br><br>`;
-            html += `ونحبّو من القلب نشكرو إدارة <b>${inst}</b>، وعلى رأسها المديرة الفاضلة <b>${mName || '...'}</b>`;
+            let html = `<span style="color: var(--primary-red);">" </span>على سلامتكم الناس الكل، نورتونا وفرحتونا بحضوركم معانا اليوم! مرحبا بأهالينا الكرام، وبضيوفنا الغالين في هالاحتفال المميز والمليان حب وفرحة ❤️<br><br>باسم شركة <b>Becha Events</b>، فرحانين برشا برشا بوجودنا معاكم، واليوم باش نعيشو مع بعضنا لحظات ما تتنساش، فيها ضحك، فيها فرحة، وفيها برشا مفاجآت 🎉<br><br>ونحبّو من القلب نشكرو إدارة <b>${inst}</b>، وعلى رأسها المديرة الفاضلة <b>${mName || '...'}</b>`;
             if(d.founderName) html += ` وباعث المشروع <b>${d.founderName}</b>`;
             html += `، على الثقة والاستضافة الكريمة 🙏<br><br>`;
             if(d.educators && d.educators.length > 0) { html += `تحية كبيرة للإطار التربوي اللي عطى من وقته ومن قلبه طول العام باش يشوف صغارنا منورين وناجحين:<br>` + d.educators.map(n => `<span style="color: #198754;">أنيستي ${n}</span>`).join('، و ') + ` 👏<br><br>`; }
@@ -473,17 +395,7 @@
                 let icon = displayType.includes('قرآن')?'📖':displayType.includes('رقص')?'💃':displayType.includes('مسرح')?'🎭':displayType.includes('تنشيط')?'🎪':displayType.includes('كورال')?'🎤':'✨';
                 let isComp = item.completed ? 'completed' : ''; let chkMark = item.completed ? '✔' : ''; let detailsText = item.details ? item.details : 'بدون تفاصيل';
                 let supText = item.supervisor ? `<br><span style="font-size:14px; color:#17a2b8; background:#e3f2fd; padding:3px 8px; border-radius:8px;">👤 إشراف: ${item.supervisor}</span>` : '';
-                pContainer.innerHTML += `
-                    <div class="program-item ${isComp}" onclick="toggleStep(${idx}, ${!!item.completed})">
-                        <div style="display:flex; align-items:center; gap:15px; width:100%;">
-                            <div class="chk-box">${chkMark}</div>
-                            <div style="flex:1;">
-                                <span style="font-size:15px; color:#666;">الفقرة ${idx+1} (${displayType})</span><br>
-                                <span style="font-size:20px; color:#333;">${icon} ${detailsText}</span>
-                                ${supText}
-                            </div>
-                        </div>
-                    </div>`;
+                pContainer.innerHTML += `<div class="program-item ${isComp}" onclick="toggleStep(${idx}, ${!!item.completed})"><div style="display:flex; align-items:center; gap:15px; width:100%;"><div class="chk-box">${chkMark}</div><div style="flex:1;"><span style="font-size:15px; color:#666;">الفقرة ${idx+1} (${displayType})</span><br><span style="font-size:20px; color:#333;">${icon} ${detailsText}</span>${supText}</div></div></div>`;
             });
         }
 
@@ -498,6 +410,88 @@
             if(d.staff && d.staff.length > 0) { html += `<hr style="border:1px dashed #ccc;"><p style="color:#9b59b6; margin:5px 0;">🤝 شركاء:</p><ul style="margin:5px 0; padding-right:20px;">`; d.staff.forEach(s => html += `<li>${s.role}: ${s.name}</li>`); html += `</ul>`; }
             document.getElementById('cheatSheetContent').innerHTML = html; document.getElementById('cheatSheetModal').style.display = 'flex';
         }
+
+        // --- 5. نظام الراديو (Walkie-Talkie & MediaSession) ---
+        let radioEnabled = false; let mediaRecorder; let audioChunks = []; let isRecording = false;
+        let radioRef = null; let audioCtx = null;
+
+        function initAudioCtx() { if(!audioCtx) { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); } if(audioCtx.state === 'suspended') { audioCtx.resume(); } }
+        
+        function playBeep(type) {
+            initAudioCtx(); const osc = audioCtx.createOscillator(); const gainNode = audioCtx.createGain();
+            osc.connect(gainNode); gainNode.connect(audioCtx.destination);
+            if(type === 'start') { osc.frequency.value = 800; gainNode.gain.setValueAtTime(0.1, audioCtx.currentTime); osc.start(); osc.stop(audioCtx.currentTime + 0.15); } 
+            else {
+                osc.frequency.value = 600; gainNode.gain.setValueAtTime(0.1, audioCtx.currentTime); osc.start(); osc.stop(audioCtx.currentTime + 0.1);
+                const osc2 = audioCtx.createOscillator(); const gain2 = audioCtx.createGain(); osc2.frequency.value = 600;
+                osc2.connect(gain2); gain2.connect(audioCtx.destination); gain2.gain.setValueAtTime(0.1, audioCtx.currentTime);
+                osc2.start(audioCtx.currentTime + 0.15); osc2.stop(audioCtx.currentTime + 0.25);
+            }
+        }
+
+        async function initRadioSystem() {
+            try {
+                initAudioCtx(); document.getElementById('silentAudio').play().catch(e => console.log("Auto-play silent audio blocked."));
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                mediaRecorder = new MediaRecorder(stream);
+                mediaRecorder.ondataavailable = e => { if(e.data.size > 0) audioChunks.push(e.data); };
+                mediaRecorder.onstop = () => {
+                    const audioBlob = new Blob(audioChunks, { type: 'audio/webm' }); audioChunks = [];
+                    const reader = new FileReader();
+                    reader.readAsDataURL(audioBlob);
+                    reader.onloadend = () => {
+                        let b64 = reader.result;
+                        db.ref('BechaEventsData/events/' + currentEventIndex + '/intercom').push({
+                            sender: currentUser.pseudo, audio: b64, timestamp: Date.now()
+                        });
+                    };
+                };
+                
+                radioEnabled = true; document.getElementById('enableRadioBtn').innerText = '✅ الراديو متصل';
+                document.getElementById('enableRadioBtn').style.background = '#198754'; document.getElementById('enableRadioBtn').style.color = 'white';
+                
+                // الاستماع للرسائل (وحذفها بعد 10 ثواني من وصولها باش السيرفر ما يتعمرش)
+                radioRef = db.ref('BechaEventsData/events/' + currentEventIndex + '/intercom');
+                let nowTs = Date.now();
+                radioRef.on('child_added', snap => {
+                    let msg = snap.val();
+                    if(msg.timestamp >= nowTs && msg.sender !== currentUser.pseudo) {
+                        let a = new Audio(msg.audio);
+                        document.getElementById('radioStatus').innerText = `🔊 رسالة من: ${msg.sender}`;
+                        document.getElementById('radioStatus').style.display = 'block';
+                        a.play();
+                        a.onended = () => { document.getElementById('radioStatus').style.display = 'none'; };
+                        setTimeout(() => { snap.ref.remove(); }, 10000); 
+                    }
+                });
+
+                // تفعيل خدعة البلوتوث (MediaSession)
+                if ('mediaSession' in navigator) {
+                    navigator.mediaSession.metadata = new MediaMetadata({ title: 'راديو الكواليس', artist: 'Becha Events' });
+                    navigator.mediaSession.setActionHandler('play', () => { toggleBluetoothPTT(); });
+                    navigator.mediaSession.setActionHandler('pause', () => { toggleBluetoothPTT(); });
+                }
+
+            } catch(e) { alert("الرجاء السماح باستخدام الميكروفون لتفعيل الراديو."); }
+        }
+
+        function toggleBluetoothPTT() { if(!isRecording) { startPTT(); } else { stopPTT(); } }
+
+        function startPTT() {
+            if(!radioEnabled || isRecording) return;
+            isRecording = true; document.getElementById('radioBtn').classList.add('recording');
+            playBeep('start'); audioChunks = []; mediaRecorder.start();
+        }
+
+        function stopPTT() {
+            if(!radioEnabled || !isRecording) return;
+            isRecording = false; document.getElementById('radioBtn').classList.remove('recording');
+            mediaRecorder.stop(); playBeep('end');
+        }
+
+        // اختصار الـ Spacebar للـ PC
+        window.addEventListener('keydown', (e) => { if(e.code === 'Space' && e.target.tagName !== 'INPUT' && e.target.tagName !== 'SELECT') { e.preventDefault(); startPTT(); } });
+        window.addEventListener('keyup', (e) => { if(e.code === 'Space' && e.target.tagName !== 'INPUT' && e.target.tagName !== 'SELECT') { e.preventDefault(); stopPTT(); } });
 
         function logout() { location.reload(); }
         function showScreen(id) { document.querySelectorAll('.screen').forEach(s => s.classList.remove('active-screen')); document.getElementById(id).classList.add('active-screen'); }
