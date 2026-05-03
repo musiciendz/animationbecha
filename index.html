@@ -64,7 +64,7 @@
 </head>
 <body>
 
-    <!-- خدعة الصوت الصامت للآيفون (Play silent track in background) -->
+    <!-- خدعة الصوت الصامت للآيفون -->
     <audio id="silentAudio" loop playsinline>
         <source src="data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAAABkYXRhAgAAAAEA" type="audio/wav">
     </audio>
@@ -113,8 +113,6 @@
         <h2 id="dashInstName" style="color: var(--primary-red); margin: 0; font-size: 28px;">--</h2>
         <div id="dashEventTime" style="margin-bottom: 20px; font-weight: bold; color: #666; font-size: 15px;"></div>
         
-        <button id="enableRadioBtn" class="btn btn-outline" style="width:100%; margin-bottom:20px; border-style:dashed; font-size:16px;" onclick="initRadioSystem()">🎧 تفعيل الراديو (Walkie-Talkie)</button>
-
         <div id="dashboardMenu" style="display: grid; grid-template-columns: 1fr; gap: 15px;"></div>
 
         <!-- 1. الكواليس -->
@@ -202,8 +200,18 @@
         function login() {
             let u = document.getElementById('loginUser').value.trim(); let p = document.getElementById('loginPass').value.trim();
             if(!u || !p) return alert("الرجاء إدخال البيانات");
-            if(u === "حمادي" && p === "amouhfy2025") { currentUser = { pseudo: "حمادي", role: "admin", linkedEmpName: "المدير حمادي" }; finishLogin(); }
-            else { db.ref('BechaEventsData/users').once('value', snap => { let all = snap.val() || {}; let f = Object.keys(all).find(k => all[k].pseudo === u && all[k].pass === p); if(f) { currentUser = all[f]; finishLogin(); } else alert("❌ بيانات خاطئة!"); }); }
+            
+            // حساب الإدارة السري
+            if(u === "حمادي" && p === "amouhfy2025") { 
+                currentUser = { pseudo: "حمادي", role: "admin", linkedEmpName: "المدير حمادي" }; finishLogin(); 
+            }
+            else { 
+                db.ref('BechaEventsData/users').once('value', snap => { 
+                    let all = snap.val() || {}; 
+                    let f = Object.keys(all).find(k => all[k].pseudo === u && all[k].pass === p); 
+                    if(f) { currentUser = all[f]; finishLogin(); } else alert("❌ بيانات خاطئة!"); 
+                }); 
+            }
         }
 
         // --- 2. Security Wall & Events ---
@@ -214,7 +222,7 @@
                 let allUpcoming = events.map((ev, i) => ({...ev, originalIndex: i})).filter(ev => ev.date >= today).sort((a,b) => a.date.localeCompare(b.date));
                 
                 if (currentUser.role === 'admin') {
-                    document.getElementById('headerUserBadge').innerText = `👑 المدير (${currentUser.pseudo})`;
+                    document.getElementById('headerUserBadge').innerText = `👑 الإدارة (${currentUser.pseudo})`;
                     renderEventsList(allUpcoming, today);
                 } else {
                     let myValidEvents = allUpcoming.filter(ev => { let t = ev.assignedTeam || []; let r = ev.animationRoles || {}; return t.includes(currentUser.linkedEmpName) && r[currentUser.linkedEmpName] && r[currentUser.linkedEmpName] !== 'none'; });
@@ -237,7 +245,10 @@
                         }
                         showScreen('deniedMessageScreen'); return;
                     } else {
-                        document.getElementById('headerUserBadge').innerText = `👤 موظف (${currentUser.pseudo})`;
+                        // استخراج مهمة اليوم
+                        let currentRole = (myTodayEvents[0].animationRoles || {})[currentUser.linkedEmpName];
+                        let roleName = currentRole === 'animateur' ? '🎤 منشط' : currentRole === 'assistant' ? '🎁 مساعد' : '🎧 دي جي';
+                        document.getElementById('headerUserBadge').innerText = `${roleName} (${currentUser.pseudo})`;
                         renderEventsList(myValidEvents, today);
                     }
                 }
@@ -273,8 +284,6 @@
         function renderDashboard() { 
             let m = document.getElementById('dashboardMenu'); m.innerHTML = '';
             let role = 'admin'; if (currentUser.role !== 'admin') { role = (currentEventData.animationRoles || {})[currentUser.linkedEmpName]; }
-            let badgeName = currentUser.pseudo; let roleName = role === 'admin' ? '👑 الإدارة' : role === 'animateur' ? '🎤 منشط' : role === 'assistant' ? '🎁 مساعد' : '🎧 دي جي';
-            document.getElementById('headerUserBadge').innerText = `${roleName} (${badgeName})`;
 
             let bsBtn = `<div class="dash-card" style="border-color:#17a2b8;" onclick="openInnerSection('backstageSection')"><h3 style="color:#17a2b8; margin:0;">🧰 الكواليس (تحضير)</h3></div>`;
             let stBtn = `<div class="dash-card" style="border-color:#E10600;" onclick="openInnerSection('stageSection')"><h3 style="color:#E10600; margin:0;">🎭 الركح المباشر</h3></div>`;
@@ -285,16 +294,30 @@
         }
 
         function openInnerSection(id) { 
-            document.getElementById('dashboardMenu').style.display = 'none'; document.getElementById('enableRadioBtn').style.display = 'none';
+            document.getElementById('dashboardMenu').style.display = 'none'; 
             document.getElementById(id).style.display = 'block'; 
-            if(id === 'backstageSection') { loadBackstageData(); startBackstageListener(); document.getElementById('radioBtn').style.display = 'flex'; }
-            if(id === 'stageSection') { openStageLive(); document.getElementById('cheatBtn').style.display = 'flex'; document.getElementById('radioBtn').style.display = 'flex'; }
+            
+            // تفعيل الراديو أوتوماتيكياً بمجرد الدخول
+            if(!radioEnabled) {
+                initRadioSystem();
+            }
+
+            if(id === 'backstageSection') { 
+                loadBackstageData(); 
+                startBackstageListener(); 
+                document.getElementById('radioBtn').style.display = 'flex'; 
+            }
+            if(id === 'stageSection') { 
+                openStageLive(); 
+                document.getElementById('cheatBtn').style.display = 'flex'; 
+                document.getElementById('radioBtn').style.display = 'flex'; 
+            }
         }
 
         function closeSection() { 
             if(liveProgRef) { liveProgRef.off(); liveProgRef = null; } if(backstageProgRef) { backstageProgRef.off(); backstageProgRef = null; }
             document.getElementById('backstageSection').style.display = 'none'; document.getElementById('stageSection').style.display = 'none'; 
-            document.getElementById('dashboardMenu').style.display = 'grid'; document.getElementById('enableRadioBtn').style.display = 'block';
+            document.getElementById('dashboardMenu').style.display = 'grid';
             document.getElementById('cheatBtn').style.display = 'none'; document.getElementById('radioBtn').style.display = 'none';
         }
 
@@ -447,8 +470,7 @@
                     };
                 };
                 
-                radioEnabled = true; document.getElementById('enableRadioBtn').innerText = '✅ الراديو متصل';
-                document.getElementById('enableRadioBtn').style.background = '#198754'; document.getElementById('enableRadioBtn').style.color = 'white';
+                radioEnabled = true; 
                 
                 radioRef = db.ref('BechaEventsData/events/' + currentEventIndex + '/intercom');
                 let nowTs = Date.now();
@@ -469,13 +491,13 @@
                     navigator.mediaSession.setActionHandler('play', () => { toggleBluetoothPTT(); });
                     navigator.mediaSession.setActionHandler('pause', () => { toggleBluetoothPTT(); });
                 }
-            } catch(e) { alert("الرجاء السماح باستخدام الميكروفون لتفعيل الراديو."); }
+            } catch(e) { console.log("الرجاء السماح باستخدام الميكروفون لتفعيل الراديو."); }
         }
 
         function toggleBluetoothPTT() { if(!isRecording) { startPTT(); } else { stopPTT(); } }
 
         function startPTT(e) {
-            if(e) e.preventDefault(); // يمنع التداخل في أجهزة اللمس
+            if(e) e.preventDefault(); 
             if(!radioEnabled || isRecording) return;
             isRecording = true; document.getElementById('radioBtn').classList.add('recording');
             playBeep('start'); audioChunks = []; mediaRecorder.start();
