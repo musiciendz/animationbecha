@@ -30,20 +30,56 @@
             align-items: center;
         }
 
+        /* 🌟 الشريط العلوي الجديد (الهيدر الأحمر) */
         header {
             background-color: var(--primary-red);
             color: white;
-            width: 100%;
-            text-align: center;
-            padding: 15px 0;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
             position: sticky;
             top: 0;
             z-index: 100;
+            width: 100%;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.15);
         }
 
-        header h1 { margin: 0; font-size: 24px; font-weight: 900; letter-spacing: 1px; }
-        header p { margin: 5px 0 0 0; font-size: 14px; font-weight: bold; }
+        .top-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 20px;
+        }
+
+        .clock-text {
+            color: white;
+            font-size: 13px;
+            font-weight: 800;
+            background: rgba(255, 255, 255, 0.2);
+            padding: 4px 12px;
+            border-radius: 20px;
+        }
+
+        .logo-container {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .logo-text {
+            color: white;
+            font-size: 22px;
+            font-weight: 900;
+            margin: 0;
+            letter-spacing: 1px;
+        }
+
+        .user-badge {
+            color: white;
+            font-weight: bold;
+            font-size: 13px;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 4px 10px;
+            border-radius: 8px;
+            border: 1px solid white;
+        }
 
         /* الأزرار العامة */
         .btn {
@@ -63,7 +99,7 @@
         .btn:active { transform: scale(0.95); }
 
         /* الشاشات */
-        .screen { display: none; width: 90%; max-width: 600px; margin-top: 30px; text-align: center; }
+        .screen { display: none; width: 90%; max-width: 600px; margin-top: 30px; text-align: center; margin-bottom: 50px; }
         .active-screen { display: block; animation: fadeIn 0.4s ease; }
 
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
@@ -92,7 +128,7 @@
             background: white; padding: 20px; border-radius: 15px; border: 2px solid #eee;
             cursor: pointer; transition: 0.3s; box-shadow: 0 4px 8px rgba(0,0,0,0.05); text-align: center;
         }
-        .dash-card:hover { transform: translateY(-5px); }
+        .dash-card:hover { transform: translateY(-5px); border-color: var(--primary-red); }
         
         .role-row {
             display: flex; justify-content: space-between; align-items: center;
@@ -104,16 +140,26 @@
 </head>
 <body>
 
-    <header>
-        <h1>BECHA EVENTS</h1>
-        <p id="headerSubtitle">تطبيقة التنشيط وإدارة الركح 🎭</p>
-        <button id="logoutBtn" class="btn btn-dark" style="display:none; position:absolute; left:15px; top:15px; padding:5px 10px; font-size:12px;" onclick="logout()">خروج</button>
+    <!-- 🌟 الهيدر الاحترافي (مخفي قبل الدخول) -->
+    <header id="mainAppHeader" style="display:none;">
+        <div class="top-bar">
+            <!-- يمين: الساعة والتاريخ -->
+            <div id="live-clock" class="clock-text">🕒 --:-- | --</div>
+            
+            <!-- يسار: اللوغو وبادج الموظف -->
+            <div class="logo-container">
+                <span id="headerUserBadge" class="user-badge"></span>
+                <div class="logo-text">BECHA EVENTS</div>
+                <button id="logoutBtn" class="btn btn-dark" style="padding: 5px 10px; font-size: 12px; border: 1px solid white;" onclick="logout()">خروج</button>
+            </div>
+        </div>
     </header>
 
-    <!-- 1. شاشة الدخول المعدلة -->
+    <!-- 1. شاشة الدخول -->
     <div id="loginScreen" class="screen active-screen">
         <div style="background: white; padding: 30px; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.1);">
-            <h2 style="color: #333; font-size: 20px; margin-top: 0;">تسجيل الدخول للميدان</h2>
+            <div style="color: var(--primary-red); font-size: 30px; font-weight: 900; margin-bottom: 5px;">BECHA EVENTS</div>
+            <h2 style="color: #333; font-size: 16px; margin-top: 0; margin-bottom: 20px;">تطبيقة التنشيط وإدارة الركح 🎭</h2>
             
             <div style="margin-bottom: 15px;">
                 <input type="text" id="loginUser" placeholder="اسم المستخدم">
@@ -123,7 +169,7 @@
             <div style="position: relative; width: 100%; margin-bottom: 15px;">
                 <input type="password" id="loginPass" placeholder="كلمة السر" style="width: 100%; margin-bottom: 0;">
                 <button onclick="togglePassword()" type="button" id="eyeBtn" style="position: absolute; left: 15px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; padding: 0;">
-                    <!-- رسمة العين المسكرة الأولية -->
+                    <!-- رسمة العين المسكرة -->
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#666" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
                         <line x1="1" y1="1" x2="23" y2="23"></line>
@@ -141,14 +187,13 @@
         </div>
     </div>
 
-    <!-- 2. شاشة المنع (تظهر للسائق أو من ليس له مهام) -->
+    <!-- 2. شاشة المنع (للسائق / غير المعنيين) - كارطة موسطة وزر إغلاق -->
     <div id="deniedMessageScreen" class="screen">
         <div style="background: white; padding: 40px 30px; border-radius: 15px; box-shadow: 0 10px 30px rgba(225, 6, 0, 0.15); border: 3px solid var(--primary-red); margin: 50px auto; max-width: 400px; text-align: center;">
             <div style="font-size: 40px; margin-bottom: 10px;">⚠️</div>
             <h3 style="color: #333; margin: 0 0 15px 0;">مرحباً <span id="deniedEmpName" style="color: var(--primary-red);"></span></h3>
             <p style="font-size: 16px; font-weight: bold; color: #555; line-height: 1.6; margin-bottom: 25px;">ليس لديك مهام تنشيطية مبرمجة على التطبيقة حالياً.</p>
             
-            <!-- زر الإغلاق الذي يعيد المستخدم لنقطة الصفر -->
             <button class="btn btn-dark" style="width: 100%; font-size: 16px; padding: 12px;" onclick="logout()">🚪 إغلاق وعودة</button>
         </div>
     </div>
@@ -159,7 +204,7 @@
         <div id="eventsListContainer"><p style="color: #777;">جاري التحميل...</p></div>
     </div>
 
-    <!-- 4. شاشة الإدارة: توزيع المهام (تظهر لعمو حمادي فقط) -->
+    <!-- 4. شاشة الإدارة: توزيع المهام (للمدير فقط) -->
     <div id="adminRoleScreen" class="screen">
         <h2 style="color: #007bff;">⚙️ توزيع مهام التنشيط</h2>
         <p style="font-size: 13px; color: #666; margin-bottom: 20px;">حدد دور كل موظف مسجل في هذا العرض:</p>
@@ -172,7 +217,9 @@
 
     <!-- 5. لوحة القيادة والتنشيط (تتغير حسب الدور) -->
     <div id="dashboardScreen" class="screen" style="max-width: 800px;">
-        <h2 id="dashInstName" style="color: var(--primary-red); margin-top:0;">اسم المؤسسة</h2>
+        <h2 id="dashInstName" style="color: var(--primary-red); margin: 0; font-size: 26px;">اسم المؤسسة</h2>
+        <div id="dashEventTime" style="color: #666; font-size: 14px; font-weight: bold; margin-bottom: 20px;">📅 -- | 🕒 --</div>
+        
         <div class="dashboard-grid" id="dashboardMenu">
             <!-- سيتم تعميرها آلياً حسب الدور -->
         </div>
@@ -199,7 +246,7 @@
     </div>
 
     <script>
-        // إعدادات Firebase (نفس إعدادات منظومتك الأم)
+        // إعدادات Firebase
         const firebaseConfig = {
             apiKey: "AIzaSyCTTjp34QhF6MPNemwKhoq7385xnJKK_Hg",
             authDomain: "becha-events-kids.firebaseapp.com",
@@ -216,6 +263,17 @@
         let eventsData = [];
         let currentEventIndex = -1;
         let currentEventData = null;
+
+        // دالة الساعة الحية في الهيدر
+        function updateClock() { 
+            let now = new Date(); 
+            let days = ['الأحد', 'الإثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت']; 
+            let clockEl = document.getElementById('live-clock');
+            if(clockEl) {
+                clockEl.innerHTML = `🕒 ${now.toLocaleTimeString('ar-TN', {hour:'2-digit', minute:'2-digit'})} | ${days[now.getDay()]}`; 
+            }
+        }
+        setInterval(updateClock, 1000);
 
         function getTodayIso() {
             let d = new Date(); d.setMinutes(d.getMinutes() - d.getTimezoneOffset());
@@ -244,7 +302,7 @@
             }
         }
 
-        // قراءة البيانات المسجلة (تذكرني) عند فتح التطبيقة
+        // قراءة البيانات المسجلة
         window.addEventListener('DOMContentLoaded', () => {
             let savedUser = localStorage.getItem('animSavedUser');
             let savedPass = localStorage.getItem('animSavedPass');
@@ -261,7 +319,6 @@
             let p = document.getElementById('loginPass').value.trim();
             if(!u || !p) return alert("الرجاء إدخال البيانات!");
 
-            // حفظ أو مسح البيانات حسب اختيار "تذكرني"
             if (document.getElementById('rememberMe').checked) {
                 localStorage.setItem('animSavedUser', u);
                 localStorage.setItem('animSavedPass', p);
@@ -289,13 +346,15 @@
             });
         }
 
-        // 2. الفلترة الذكية (جدار الحماية الاستباقي)
+        // 2. الفلترة الذكية
         function finishLogin() {
+            // إظهار الهيدر الاحترافي بعد الدخول الناجح
+            document.getElementById('mainAppHeader').style.display = 'block';
+
             db.ref('BechaEventsData/events').once('value', snap => {
                 eventsData = snap.val() || [];
                 let todayIso = getTodayIso();
                 
-                // جلب كل العروض المستقبلية (من اليوم فصاعدا)
                 let allUpcoming = eventsData.map((e, i) => ({...e, originalIndex: i}))
                                          .filter(e => e.date >= todayIso)
                                          .sort((a, b) => a.date.localeCompare(b.date));
@@ -303,35 +362,31 @@
                 let filteredEvents = [];
 
                 if (currentUser.role === 'admin') {
-                    // المدير يرى كل العروض
                     filteredEvents = allUpcoming;
+                    document.getElementById('headerUserBadge').innerText = `👑 المدير (${currentUser.pseudo})`;
                 } else {
                     let empName = currentUser.linkedEmpName;
                     
-                    // فرز العروض للموظف العادي
                     filteredEvents = allUpcoming.filter(ev => {
                         let team = ev.assignedTeam || [];
                         let rolesMap = ev.animationRoles || {};
-                        
-                        // شرط 1: موجود في القائمة 
                         let isAssigned = team.includes(empName);
-                        // شرط 2: الإدارة أعطته مهمة تنشيطية، ولم تمنعه (none)
                         let isAllowed = rolesMap[empName] && rolesMap[empName] !== 'none';
-                        
                         return isAssigned && isAllowed;
                     });
                 }
 
-                // المنع الآلي إذا لم تكن له عروض
+                // المنع الآلي (بدون 3 ثواني خروج، فقط زر إغلاق يدوي)
                 if (filteredEvents.length === 0 && currentUser.role !== 'admin') {
-                    // إظهار رسالة المنع
+                    document.getElementById('eventsScreen').style.display = 'none';
                     document.getElementById('deniedEmpName').innerText = currentUser.linkedEmpName;
                     showScreen('deniedMessageScreen');
-                    return; // التوقف هنا وعدم إكمال فتح التطبيقة
+                    
+                    // تحديث بادج الهيدر للممنوع
+                    document.getElementById('headerUserBadge').innerText = `🚫 غير معين (${currentUser.linkedEmpName})`;
+                    return; 
                 }
 
-                // السماح بالدخول وبناء القائمة
-                document.getElementById('logoutBtn').style.display = 'block';
                 buildEventsList(filteredEvents);
                 showScreen('eventsScreen');
             });
@@ -339,12 +394,12 @@
 
         function logout() {
             currentUser = null;
-            document.getElementById('loginPass').value = ''; // نمسح كلمة السر فقط لزيادة الأمان
-            document.getElementById('logoutBtn').style.display = 'none';
+            document.getElementById('loginPass').value = '';
+            document.getElementById('mainAppHeader').style.display = 'none'; // إخفاء الهيدر
             showScreen('loginScreen');
         }
 
-        // 3. بناء قائمة العروض المسموح بها فقط
+        // 3. بناء قائمة العروض
         function buildEventsList(allowedEventsList) {
             let listDiv = document.getElementById('eventsListContainer');
             listDiv.innerHTML = '';
@@ -383,7 +438,7 @@
             }
         }
 
-        // 5. شاشة توزيع المهام (للمدير)
+        // 5. شاشة توزيع المهام
         function renderAdminRoleScreen() {
             let container = document.getElementById('teamRolesContainer');
             container.innerHTML = '';
@@ -429,9 +484,27 @@
             });
         }
 
+        // ترجمة المهام للبادج
+        function getRoleDisplayName(roleCode) {
+            switch(roleCode) {
+                case 'animateur': return '🎤 منشط';
+                case 'dj': return '🎧 دي جي';
+                case 'assistant': return '🎁 مساعد';
+                case 'admin': return '👑 المدير';
+                default: return '👤 موظف';
+            }
+        }
+
         // 6. بناء لوحة التنشيط حسب الدور
         function openDashboard(role) {
-            document.getElementById('dashInstName').innerText = currentEventData.name;
+            // تحديث البادج في الهيدر باسم الموظف ودوره في هذا العرض بالتحديد
+            if (role !== 'admin') {
+                document.getElementById('headerUserBadge').innerText = `${getRoleDisplayName(role)} (${currentUser.linkedEmpName})`;
+            }
+
+            document.getElementById('dashInstName').innerText = `🏫 ${currentEventData.name}`;
+            document.getElementById('dashEventTime').innerText = `📅 ${currentEventData.date} | 🕒 ${currentEventData.time || '--'}`;
+            
             document.getElementById('displayInstName').innerText = currentEventData.name;
             document.getElementById('displayManagerName').innerText = currentEventData.managerName || 'غير مسجل';
 
