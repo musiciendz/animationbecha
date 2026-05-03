@@ -53,12 +53,18 @@
         /* الأزرار العائمة */
         .floating-btn-container { position: fixed; bottom: 20px; left: 20px; display: flex; flex-direction: column; gap: 15px; z-index: 900; }
         .float-btn { width: 60px; height: 60px; border-radius: 50%; color: white; font-size: 26px; border: none; box-shadow: 0 4px 10px rgba(0,0,0,0.3); cursor: pointer; display: flex; align-items: center; justify-content: center; transition: 0.2s; }
-        #pocketBtn { background: #333; display: none; font-size: 20px; }
+        
+        /* التعديل 1: أيقونة وضع الجيب واضحة */
+        #pocketBtn { background: #6f42c1; display: none; font-size: 24px; box-shadow: 0 4px 10px rgba(111, 66, 193, 0.4); }
         #cheatBtn { background: #17a2b8; display: none; }
-        #radioBtn { background: #E10600; display: none; z-index: 10000; } /* زاد الـ z-index باش يبان في وضع الجيب */
+        #radioBtn { background: #E10600; display: none; z-index: 10000; }
         #radioBtn.recording { background: #198754; animation: pulse 1s infinite; box-shadow: 0 0 20px #198754; }
         @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.1); } 100% { transform: scale(1); } }
         
+        /* التعديل 2: الاستوديو المصغر في الواجهة الرئيسية */
+        #miniVisualizerContainer { position: fixed; bottom: 95px; left: 20px; width: 140px; height: 40px; background: rgba(0,0,0,0.85); border-radius: 10px; z-index: 899; display: none; align-items: center; justify-content: center; overflow: hidden; box-shadow: 0 4px 10px rgba(0,0,0,0.3); animation: popUp 0.3s ease; border: 1px solid #333;}
+        @keyframes popUp { from { transform: translateY(10px) scale(0.9); opacity: 0; } to { transform: translateY(0) scale(1); opacity: 1; } }
+
         /* رسائل الراديو والإشعارات */
         #radioStatus { position: fixed; top: 60px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.8); color: #fff; padding: 5px 15px; border-radius: 20px; font-size: 12px; z-index: 1000; display: none; font-weight: bold; }
         #sendSuccessBanner { position: fixed; top: 60px; left: 50%; transform: translateX(-50%); background: #198754; color: #fff; padding: 10px 20px; border-radius: 12px; font-size: 14px; z-index: 1001; display: none; font-weight: bold; box-shadow: 0 4px 10px rgba(0,0,0,0.2); animation: slideDown 0.3s ease; }
@@ -94,6 +100,11 @@
         <button id="pocketExitBtn" onclick="exitPocketMode()">إغلاق وضع الجيب ❌</button>
         <canvas id="visualizerCanvas"></canvas>
         <p class="pocket-text">أنت الآن في وضع الجيب.<br>الشاشة لن تنطفئ والصوت سيبقى متصلاً.<br>استعمل زر الميكروفون للتحدث.</p>
+    </div>
+
+    <!-- الاستوديو المصغر في الواجهة الرئيسية -->
+    <div id="miniVisualizerContainer">
+        <canvas id="mainVisualizer" width="140" height="40"></canvas>
     </div>
 
     <header id="mainAppHeader" style="display:none;">
@@ -185,7 +196,7 @@
 
     <!-- الأزرار العائمة -->
     <div class="floating-btn-container">
-        <button id="pocketBtn" class="float-btn" onclick="enterPocketMode()">🌑</button>
+        <button id="pocketBtn" class="float-btn" onclick="enterPocketMode()">🌙</button>
         <button id="cheatBtn" class="float-btn" onclick="showCheatSheet()">ℹ️</button>
         <!-- زر المايكروفون يدعم اللمس العادي والضغط -->
         <button id="radioBtn" class="float-btn" onmousedown="startPTT(event)" onmouseup="stopPTT(event)" onmouseleave="stopPTT(event)" ontouchstart="startPTT(event)" ontouchend="stopPTT(event)">🎙️</button>
@@ -228,7 +239,6 @@
             else { db.ref('BechaEventsData/users').once('value', snap => { let all = snap.val() || {}; let f = Object.keys(all).find(k => all[k].pseudo === u && all[k].pass === p); if(f) { currentUser = all[f]; finishLogin(); } else alert("❌ بيانات خاطئة!"); }); }
         }
 
-        // --- 2. Routing & Dashboard ---
         function finishLogin() {
             document.getElementById('mainAppHeader').style.display = 'block'; 
             db.ref('BechaEventsData/events').once('value', snap => {
@@ -306,7 +316,6 @@
             showScreen('dashboardScreen'); 
         }
 
-        // فتح الآيفون وبدء الاستقبال
         function openInnerSection(id) { 
             document.getElementById('dashboardMenu').style.display = 'none'; 
             document.getElementById(id).style.display = 'block'; 
@@ -330,7 +339,7 @@
             if(wakeLock) { wakeLock.release(); wakeLock = null; }
         }
 
-        // --- 3. الكواليس والركح (المنظومة السابقة) ---
+        // --- 3. الكواليس والركح ---
         function addEducator(n='') { document.getElementById('educatorsList').insertAdjacentHTML('beforeend', `<div style="display:flex; gap:10px; margin-bottom:10px;"><input type="text" class="edu-name" placeholder="اسم الأنيستي..." value="${n}" style="flex:1;"><button class="btn btn-red" onclick="this.parentElement.remove()">🗑</button></div>`); }
         function addCoach(s='', n='') { document.getElementById('coachesList').insertAdjacentHTML('beforeend', `<div style="display:flex; gap:10px; margin-bottom:10px;"><input type="text" class="coach-spec" placeholder="الاختصاص" value="${s}" style="flex:1;"><input type="text" class="coach-name" placeholder="الاسم" value="${n}" style="flex:1;"><button class="btn btn-red" onclick="this.parentElement.remove()">🗑</button></div>`); }
         function addStaff(r='', n='') { document.getElementById('staffList').insertAdjacentHTML('beforeend', `<div style="display:flex; gap:10px; margin-bottom:10px;"><input type="text" class="staff-role" placeholder="الصفة" value="${r}" style="flex:1;"><input type="text" class="staff-name" placeholder="الاسم" value="${n}" style="flex:1;"><button class="btn btn-red" onclick="this.parentElement.remove()">🗑</button></div>`); }
@@ -429,12 +438,11 @@
         let audioCtx = null; let analyser = null; let dataArray = null; let animationId = null;
         let wakeLock = null;
 
-        // إعداد هندسة الصوت والموجات
         function initAudioCtx() { 
             if(!audioCtx) { 
                 audioCtx = new (window.AudioContext || window.webkitAudioContext)(); 
                 analyser = audioCtx.createAnalyser();
-                analyser.fftSize = 128; // سرعة ودقة الموجات
+                analyser.fftSize = 128; 
                 const bufferLength = analyser.frequencyBinCount;
                 dataArray = new Uint8Array(bufferLength);
             } 
@@ -453,7 +461,6 @@
             }
         }
 
-        // الاستقبال الآلي والرادار
         function initRadioReceiver() {
             if(radioReceiverActive) return;
             radioReceiverActive = true;
@@ -494,17 +501,15 @@
             }
         }
 
-        // طلب الميكرو وربط الموجات
         async function ensureMicrophone() {
             if (mediaRecorder) return true; 
             try {
                 micStream = await navigator.mediaDevices.getUserMedia({ audio: true });
                 mediaRecorder = new MediaRecorder(micStream);
                 
-                // ربط الميكرو بالموجات المرئية (Visualizer)
                 initAudioCtx();
                 const source = audioCtx.createMediaStreamSource(micStream);
-                source.connect(analyser); // لا نربطه بـ destination لكي لا يحدث صدى
+                source.connect(analyser); 
 
                 mediaRecorder.ondataavailable = e => { if(e.data.size > 0) audioChunks.push(e.data); };
                 mediaRecorder.onstop = () => {
@@ -530,40 +535,58 @@
 
         function toggleBluetoothPTT() { if(!isRecording) { startPTT(null); } else { stopPTT(null); } }
 
-        // رسم الموجات (Visualizer Drawing Loop)
+        // التعديل السحري: رسم الموجات في الواجهتين (الجيب + الرئيسية)
         function drawVisualizer() {
-            if(!isRecording) return; // توقف الرسم إذا انتهى التسجيل
+            if(!isRecording) return; 
             animationId = requestAnimationFrame(drawVisualizer);
-            
-            const canvas = document.getElementById('visualizerCanvas');
-            const canvasCtx = canvas.getContext('2d');
-            canvas.width = canvas.offsetWidth;
-            canvas.height = canvas.offsetHeight;
-            
             analyser.getByteFrequencyData(dataArray);
             
-            canvasCtx.fillStyle = '#000';
-            canvasCtx.fillRect(0, 0, canvas.width, canvas.height);
-            
-            const barWidth = (canvas.width / dataArray.length) * 2.5;
-            let barHeight; let x = 0;
-            
-            for(let i = 0; i < dataArray.length; i++) {
-                barHeight = dataArray[i] / 1.5;
-                // لون متدرج (أحمر / برتقالي)
-                canvasCtx.fillStyle = 'rgb(' + (barHeight + 100) + ',50,50)';
-                canvasCtx.fillRect(x, canvas.height - barHeight, barWidth, barHeight);
-                x += barWidth + 1;
+            // 1. رسم الموجات في وضع الجيب (إذا كان مفتوح ومساحته أكبر من 0)
+            const pocketCanvas = document.getElementById('visualizerCanvas');
+            if(pocketCanvas.offsetWidth > 0) {
+                pocketCanvas.width = pocketCanvas.offsetWidth;
+                pocketCanvas.height = pocketCanvas.offsetHeight;
+                const pCtx = pocketCanvas.getContext('2d');
+                pCtx.fillStyle = '#000';
+                pCtx.fillRect(0, 0, pocketCanvas.width, pocketCanvas.height);
+                
+                const pBarWidth = (pocketCanvas.width / dataArray.length) * 2.5;
+                let x = 0;
+                for(let i = 0; i < dataArray.length; i++) {
+                    let barHeight = dataArray[i] / 1.5;
+                    pCtx.fillStyle = 'rgb(' + (barHeight + 100) + ',50,50)';
+                    pCtx.fillRect(x, pocketCanvas.height - barHeight, pBarWidth, barHeight);
+                    x += pBarWidth + 1;
+                }
+            }
+
+            // 2. رسم الموجات في الاستوديو المصغر (الواجهة الرئيسية)
+            const mainCanvas = document.getElementById('mainVisualizer');
+            if(mainCanvas.offsetParent !== null) {
+                const mCtx = mainCanvas.getContext('2d');
+                mCtx.clearRect(0, 0, mainCanvas.width, mainCanvas.height);
+                const mBarWidth = (mainCanvas.width / dataArray.length) * 2.5;
+                let x = 0;
+                for(let i = 0; i < dataArray.length; i++) {
+                    let barHeight = dataArray[i] / 5; // تصغير الارتفاع باش يجي مزيان
+                    mCtx.fillStyle = '#198754'; // أخضر كيما زر الميكرو
+                    mCtx.fillRect(x, mainCanvas.height - barHeight, mBarWidth, barHeight);
+                    x += mBarWidth + 1;
+                }
             }
         }
 
         function resetVisualizer() {
-            const canvas = document.getElementById('visualizerCanvas');
-            const canvasCtx = canvas.getContext('2d');
-            canvasCtx.fillStyle = '#000';
-            canvasCtx.fillRect(0, 0, canvas.width, canvas.height);
-            canvasCtx.strokeStyle = '#333'; canvasCtx.lineWidth = 2;
-            canvasCtx.beginPath(); canvasCtx.moveTo(0, canvas.height/2); canvasCtx.lineTo(canvas.width, canvas.height/2); canvasCtx.stroke();
+            const pocketCanvas = document.getElementById('visualizerCanvas');
+            if(pocketCanvas.offsetWidth > 0) {
+                const canvasCtx = pocketCanvas.getContext('2d');
+                pocketCanvas.width = pocketCanvas.offsetWidth;
+                pocketCanvas.height = pocketCanvas.offsetHeight;
+                canvasCtx.fillStyle = '#000';
+                canvasCtx.fillRect(0, 0, pocketCanvas.width, pocketCanvas.height);
+                canvasCtx.strokeStyle = '#333'; canvasCtx.lineWidth = 2;
+                canvasCtx.beginPath(); canvasCtx.moveTo(0, pocketCanvas.height/2); canvasCtx.lineTo(pocketCanvas.width, pocketCanvas.height/2); canvasCtx.stroke();
+            }
         }
 
         async function startPTT(e) {
@@ -573,26 +596,30 @@
             if (mediaRecorder.state !== 'inactive') return; 
 
             isRecording = true; document.getElementById('radioBtn').classList.add('recording');
+            document.getElementById('miniVisualizerContainer').style.display = 'flex'; // إظهار الاستوديو المصغر
+            
             db.ref('BechaEventsData/events/' + currentEventIndex + '/activeRecording').set(currentUser.pseudo);
             
             playBeep('start'); audioChunks = []; mediaRecorder.start();
-            drawVisualizer(); // بدء رسم الموجات
+            drawVisualizer(); 
         }
 
         function stopPTT(e) {
             if(e) { e.preventDefault(); e.stopPropagation(); }
             if(!isRecording) return;
             isRecording = false; document.getElementById('radioBtn').classList.remove('recording');
+            document.getElementById('miniVisualizerContainer').style.display = 'none'; // إخفاء الاستوديو المصغر
+            
             db.ref('BechaEventsData/events/' + currentEventIndex + '/activeRecording').set(null);
             
             mediaRecorder.stop(); playBeep('end');
             cancelAnimationFrame(animationId); resetVisualizer();
         }
 
-        // وضع الجيب (Pocket Mode) و Wake Lock
+        // وضع الجيب (Pocket Mode) 
         async function enterPocketMode() {
             document.getElementById('pocketModeOverlay').style.display = 'flex';
-            resetVisualizer();
+            setTimeout(resetVisualizer, 100); // تأخير صغير باش الشاشة تاخو وقتها في الفتح وتتقاس بالصحيح
             try {
                 if ('wakeLock' in navigator) {
                     wakeLock = await navigator.wakeLock.request('screen');
