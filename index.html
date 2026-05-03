@@ -224,12 +224,48 @@
             <!-- سيتم تعميرها آلياً حسب الدور -->
         </div>
 
-        <!-- الأقسام الداخلية -->
+        <!-- قسم تقديم المؤسسة المرن (Teleprompter) -->
         <div id="schoolSection" style="display:none; background:white; padding:20px; border-radius:15px; border:2px dashed #007bff; margin-top:20px;">
-            <h3 style="color:#007bff;">🏫 تقديم المؤسسة</h3>
-            <h2 id="displayInstName" style="color:var(--dark-text);">--</h2>
-            <p style="font-weight:bold;">المدير(ة): <span id="displayManagerName" style="color:var(--primary-red);">--</span></p>
-            <button class="btn btn-dark" onclick="closeSection()">رجوع</button>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <h3 style="color:#007bff; margin: 0;">🏫 تقديم وشكر المؤسسة</h3>
+                <button class="btn btn-dark" style="padding: 5px 15px; font-size: 14px;" onclick="closeSection()">رجوع ⬅️</button>
+            </div>
+
+            <!-- أزرار التبديل بين الكواليس والركح -->
+            <div style="display: flex; gap: 10px; margin-bottom: 20px;">
+                <button id="btnEditMode" class="btn btn-outline" style="flex:1; background: #e3f2fd;" onclick="toggleInstMode('edit')">✏️ الكواليس (التعمير)</button>
+                <button id="btnReadMode" class="btn btn-red" style="flex:1;" onclick="toggleInstMode('read')">🎤 الركح (وضع القراءة)</button>
+            </div>
+
+            <!-- وضع التعديل (Formulaire) -->
+            <div id="instEditMode" style="text-align: right;">
+                <!-- الإدارة -->
+                <h4 style="color: #007bff; border-bottom: 2px solid #007bff; padding-bottom: 5px;">👑 الإدارة</h4>
+                <input type="text" id="instManager" placeholder="اسم المديرة (مثال: السيدة فاطمة)" style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #ccc; margin-bottom: 10px; font-family: 'Cairo';">
+                <input type="text" id="instFounder" placeholder="باعث المشروع (اختياري)" style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #ccc; margin-bottom: 10px; font-family: 'Cairo';">
+
+                <!-- الإطار التربوي -->
+                <h4 style="color: #198754; border-bottom: 2px solid #198754; padding-bottom: 5px; margin-top: 20px;">👩‍🏫 الإطار التربوي</h4>
+                <div id="educatorsList"></div>
+                <button class="btn btn-outline" style="width:100%; margin-top:10px; border-color:#198754; color:#198754; border-style: dashed;" onclick="addEducator()">+ إضافة مربية / منشطة</button>
+
+                <!-- المدربون -->
+                <h4 style="color: #ff9800; border-bottom: 2px solid #ff9800; padding-bottom: 5px; margin-top: 20px;">🎯 المدربون (Les Coachs)</h4>
+                <div id="coachesList"></div>
+                <button class="btn btn-outline" style="width:100%; margin-top:10px; border-color:#ff9800; color:#ff9800; border-style: dashed;" onclick="addCoach()">+ إضافة مدرب</button>
+
+                <!-- الإطار العمالي وشركاء النجاح -->
+                <h4 style="color: #9b59b6; border-bottom: 2px solid #9b59b6; padding-bottom: 5px; margin-top: 20px;">🤝 الإطار العمالي وشركاء النجاح</h4>
+                <div id="staffList"></div>
+                <button class="btn btn-outline" style="width:100%; margin-top:10px; border-color:#9b59b6; color:#9b59b6; border-style: dashed;" onclick="addStaff()">+ إضافة عامل / شريك</button>
+
+                <button class="btn btn-green" style="width:100%; margin-top:30px; font-size: 18px;" onclick="saveInstitutionDetails()">💾 حفظ البيانات</button>
+            </div>
+
+            <!-- وضع القراءة للمنشط (Teleprompter) -->
+            <div id="instReadMode" style="display: none; text-align: right; background: #fffdf5; padding: 25px 15px; border-radius: 15px; border: 3px solid #ffc107; font-size: 24px; line-height: 2; font-weight: 800; color: #222;">
+                <p id="teleprompterText">الرجاء تعمير البيانات في وضع الكواليس أولاً...</p>
+            </div>
         </div>
 
         <div id="gamesSection" style="display:none; background:white; padding:20px; border-radius:15px; border:2px dashed #ff9800; margin-top:20px;">
