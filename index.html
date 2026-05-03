@@ -413,12 +413,11 @@
             }
         }
 
-        // 1. الاستقبال الآلي (يخدم للناس الكل بمجرد الدخول)
+        // 1. الاستقبال الآلي 
         function initRadioReceiver() {
             if(radioReceiverActive) return;
             radioReceiverActive = true;
             
-            // تفعيل الصوت الصامت باش التليفون ما يسكرش
             document.getElementById('silentAudio').play().catch(e => console.log("الصوت الصامت يطلب نقرة أولى في الآيفون"));
 
             let radioRef = db.ref('BechaEventsData/events/' + currentEventIndex + '/intercom');
@@ -431,11 +430,10 @@
                     document.getElementById('radioStatus').style.display = 'block';
                     a.play().catch(e => console.log("تحذير: يجب نقر الشاشة أولا للسماح بالصوت"));
                     a.onended = () => { document.getElementById('radioStatus').style.display = 'none'; };
-                    setTimeout(() => { snap.ref.remove(); }, 10000); // تنظيف آلي بعد 10 ثواني
+                    setTimeout(() => { snap.ref.remove(); }, 10000); 
                 }
             });
 
-            // تفعيل أزرار البلوتوث
             if ('mediaSession' in navigator) {
                 navigator.mediaSession.metadata = new MediaMetadata({ title: 'راديو الكواليس', artist: 'Becha Events' });
                 navigator.mediaSession.setActionHandler('play', () => { toggleBluetoothPTT(); });
@@ -443,9 +441,9 @@
             }
         }
 
-        // 2. طلب الميكروفون بصفة ديناميكية (كان كي يقرر يتكلم)
+        // 2. طلب الميكروفون بصفة ديناميكية (سر تصليح العلة هنا)
         async function ensureMicrophone() {
-            if (mediaRecorder && mediaRecorder.state !== 'inactive') return true;
+            if (mediaRecorder) return true; // الفخ كان هنا: توة ماعادش نطلبو الميكرو كل مرة!
             try {
                 micStream = await navigator.mediaDevices.getUserMedia({ audio: true });
                 mediaRecorder = new MediaRecorder(micStream);
@@ -457,7 +455,7 @@
                         db.ref('BechaEventsData/events/' + currentEventIndex + '/intercom').push({
                             sender: currentUser.pseudo, audio: reader.result, timestamp: Date.now()
                         }).then(() => {
-                            showSendSuccess(); // رسالة الطمأنينة الخضراء
+                            showSendSuccess();
                         });
                     };
                 };
@@ -481,6 +479,8 @@
             let hasMic = await ensureMicrophone();
             if(!hasMic || isRecording) return;
             
+            if (mediaRecorder.state !== 'inactive') return; // حماية إضافية للزر
+
             isRecording = true; document.getElementById('radioBtn').classList.add('recording');
             playBeep('start'); audioChunks = []; mediaRecorder.start();
         }
