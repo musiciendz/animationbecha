@@ -13,7 +13,6 @@
         :root { --primary-red: #E10600; --dark-text: #2b2b2b; --light-bg: #f8f9fa; }
         body { font-family: 'Cairo', sans-serif; background-color: var(--light-bg); margin: 0; padding: 0; color: var(--dark-text); display: flex; flex-direction: column; align-items: center; }
         
-        /* الهيدر */
         header { background-color: var(--primary-red); color: white; position: sticky; top: 0; z-index: 100; width: 100%; box-shadow: 0 4px 10px rgba(0,0,0,0.15); }
         .top-bar { display: flex; justify-content: space-between; align-items: center; padding: 12px 20px; }
         .clock-text { color: white; font-size: 13px; font-weight: 800; background: rgba(255, 255, 255, 0.2); padding: 4px 12px; border-radius: 20px; }
@@ -21,7 +20,6 @@
         .logo-text { color: white; font-size: 22px; font-weight: 900; margin: 0; letter-spacing: 1px; }
         .user-badge { color: white; font-weight: bold; font-size: 13px; background: rgba(255, 255, 255, 0.1); padding: 4px 10px; border-radius: 8px; border: 1px solid white; }
 
-        /* الأزرار والشاشات */
         .btn { border: none; border-radius: 10px; padding: 12px 20px; font-family: 'Cairo', sans-serif; font-size: 16px; font-weight: bold; cursor: pointer; transition: all 0.3s; }
         .btn-red { background: var(--primary-red); color: white; }
         .btn-green { background: #198754; color: white; }
@@ -32,29 +30,24 @@
         .active-screen { display: block; animation: fadeIn 0.4s ease; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
-        /* شاشة الدخول والعروض */
         #loginScreen input { width: 100%; padding: 15px; border-radius: 10px; border: 2px solid #ddd; font-family: 'Cairo'; font-size: 16px; text-align: center; box-sizing: border-box; }
         #loginScreen input:focus { border-color: var(--primary-red); outline: none; }
         .event-card { background: white; border: 2px solid #ddd; padding: 15px; margin-bottom: 15px; border-radius: 12px; cursor: pointer; transition: 0.3s; border-right: 5px solid var(--primary-red); text-align: right; }
-        .event-card:hover { box-shadow: 0 5px 15px rgba(0,0,0,0.1); border-color: var(--primary-red); }
         
-        /* لوحة التنشيط */
         .dashboard-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-top: 20px; }
         .dash-card { background: white; padding: 20px; border-radius: 15px; border: 2px solid #eee; cursor: pointer; transition: 0.3s; box-shadow: 0 4px 8px rgba(0,0,0,0.05); text-align: center; }
-        .dash-card:hover { transform: translateY(-5px); border-color: var(--primary-red); }
         .role-row { display: flex; justify-content: space-between; align-items: center; background: #f8f9fa; padding: 12px; border-radius: 8px; border: 1px solid #ddd; margin-bottom: 10px; }
         
-        /* البرنامج المباشر (الركح) */
-        .program-item { display: flex; align-items: center; justify-content: space-between; background: white; border: 2px solid #eee; padding: 15px; border-radius: 10px; margin-bottom: 10px; text-align: right; font-weight: bold; font-size: 18px; transition: 0.3s; cursor: pointer; border-right: 5px solid #ff9800; }
-        .program-item.completed { text-decoration: line-through; opacity: 0.5; background: #f8f9fa; border-right-color: #ccc; }
-        .chk-box { width: 25px; height: 25px; border-radius: 5px; border: 2px solid #ccc; display: flex; align-items: center; justify-content: center; font-size: 16px; color: white; }
+        /* تصميم خريطة البرنامج للمنشط */
+        .program-item { display: flex; align-items: center; justify-content: space-between; background: white; border: 2px solid #eee; padding: 15px; border-radius: 10px; margin-bottom: 10px; text-align: right; font-weight: bold; font-size: 18px; transition: 0.3s; cursor: pointer; border-right: 5px solid #ff9800; box-shadow: 0 3px 6px rgba(0,0,0,0.05); }
+        .program-item.completed { text-decoration: line-through; opacity: 0.6; background: #f8f9fa; border-right-color: #ccc; }
+        .chk-box { width: 28px; height: 28px; border-radius: 6px; border: 2px solid #ccc; display: flex; align-items: center; justify-content: center; font-size: 18px; color: white; }
         .program-item.completed .chk-box { background: #198754; border-color: #198754; }
 
     </style>
 </head>
 <body>
 
-    <!-- الهيدر -->
     <header id="mainAppHeader" style="display:none;">
         <div class="top-bar">
             <div id="live-clock" class="clock-text">🕒 --:--</div>
@@ -66,7 +59,6 @@
         </div>
     </header>
 
-    <!-- شاشة الدخول -->
     <div id="loginScreen" class="screen active-screen">
         <div style="background: white; padding: 30px; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.1);">
             <div style="color: var(--primary-red); font-size: 30px; font-weight: 900; margin-bottom: 5px;">BECHA EVENTS</div>
@@ -84,7 +76,6 @@
         </div>
     </div>
 
-    <!-- شاشة المنع -->
     <div id="deniedMessageScreen" class="screen">
         <div style="background: white; padding: 40px 30px; border-radius: 15px; border: 3px solid var(--primary-red); margin: 50px auto;">
             <div style="font-size: 40px; margin-bottom: 10px;">⚠️</div>
@@ -94,13 +85,11 @@
         </div>
     </div>
 
-    <!-- شاشة اختيار العرض -->
     <div id="eventsScreen" class="screen">
         <h2 style="color: #333; border-bottom: 2px solid var(--primary-red); padding-bottom: 10px;">📅 عروضي المبرمجة</h2>
         <div id="eventsListContainer"><p>جاري التحميل...</p></div>
     </div>
 
-    <!-- شاشة توزيع المهام (للمدير) -->
     <div id="adminRoleScreen" class="screen">
         <h2 style="color: #007bff;">⚙️ توزيع مهام التنشيط</h2>
         <div id="teamRolesContainer"></div>
@@ -110,21 +99,19 @@
         </div>
     </div>
 
-    <!-- لوحة القيادة المركزية -->
     <div id="dashboardScreen" class="screen" style="max-width: 800px;">
         <h2 id="dashInstName" style="color: var(--primary-red); margin: 0; font-size: 26px;">--</h2>
         <div id="dashEventTime" style="color: #666; font-size: 14px; font-weight: bold; margin-bottom: 20px;">📅 -- | 🕒 --</div>
         
         <div class="dashboard-grid" id="dashboardMenu"></div>
 
-        <!-- 1. قسم الكواليس (التحضير) -->
+        <!-- 1. الكواليس -->
         <div id="backstageSection" style="display:none; background:white; padding:20px; border-radius:15px; border:2px dashed #17a2b8; margin-top:20px; text-align: right;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 2px solid #17a2b8; padding-bottom: 10px;">
-                <h3 style="color:#17a2b8; margin: 0;">🧰 الكواليس (التحضير وتعمير البيانات)</h3>
+                <h3 style="color:#17a2b8; margin: 0;">🧰 الكواليس (التحضير)</h3>
                 <button class="btn btn-dark" style="padding: 5px 15px;" onclick="closeSection()">رجوع ⬅️</button>
             </div>
 
-            <!-- تقديم المؤسسة -->
             <h4 style="color: #007bff; margin-top:0;">👑 الإدارة</h4>
             <input type="text" id="instManager" placeholder="اسم المديرة..." style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #ccc; margin-bottom: 10px; font-family: 'Cairo';">
             <input type="text" id="instFounder" placeholder="باعث المشروع..." style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #ccc; font-family: 'Cairo';">
@@ -133,7 +120,7 @@
             <div id="educatorsList"></div>
             <button class="btn btn-outline" style="width:100%; margin-top:10px; border-color:#198754; color:#198754;" onclick="addEducator()">+ إضافة مربية / منشطة</button>
 
-            <h4 style="color: #ff9800; margin-top: 20px;">🎯 المدربون (الاختصاص حر)</h4>
+            <h4 style="color: #ff9800; margin-top: 20px;">🎯 المدربون</h4>
             <div id="coachesList"></div>
             <button class="btn btn-outline" style="width:100%; margin-top:10px; border-color:#ff9800; color:#ff9800;" onclick="addCoach()">+ إضافة مدرب</button>
 
@@ -141,7 +128,6 @@
             <div id="staffList"></div>
             <button class="btn btn-outline" style="width:100%; margin-top:10px; border-color:#9b59b6; color:#9b59b6;" onclick="addStaff()">+ إضافة عامل / شريك</button>
 
-            <!-- برمجة فقرات الحفل -->
             <h4 style="color: #E10600; margin-top: 30px; border-bottom: 2px solid #E10600; padding-bottom: 5px;">📋 بناء برنامج الحفل</h4>
             <div id="programList"></div>
             <button class="btn btn-outline" style="width:100%; margin-top:10px; border-color:#E10600; color:#E10600;" onclick="addProgramItem()">+ إضافة فقرة جديدة للبرنامج</button>
@@ -149,38 +135,26 @@
             <button class="btn btn-green" style="width:100%; margin-top:30px; font-size: 18px;" onclick="saveBackstageData()">💾 حفظ كل الكواليس</button>
         </div>
 
-        <!-- 2. قسم الركح (العرض المباشر) -->
+        <!-- 2. الركح (مباشر) -->
         <div id="stageSection" style="display:none; margin-top:20px;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
                 <h3 style="color:#E10600; margin: 0; font-size: 24px;">🎭 الركح (Live)</h3>
                 <button class="btn btn-dark" style="padding: 5px 15px;" onclick="closeSection()">رجوع ⬅️</button>
             </div>
 
-            <!-- التيليبرومبتر التونسي -->
-            <div id="teleprompterView" style="text-align: right; background: #fffdf5; padding: 25px 15px; border-radius: 15px; border: 3px solid #ffc107; font-size: 22px; line-height: 1.8; font-weight: 800; color: #222; margin-bottom: 25px;">
-                <!-- سيتم تعميره آليا -->
-            </div>
+            <div id="teleprompterView" style="text-align: right; background: #fffdf5; padding: 25px 15px; border-radius: 15px; border: 3px solid #ffc107; font-size: 22px; line-height: 1.8; font-weight: 800; color: #222; margin-bottom: 25px;"></div>
 
-            <!-- خريطة برنامج الحفل التفاعلية -->
             <div style="text-align: right;">
-                <h3 style="color: #333; margin-bottom: 15px;">📜 برنامج الحفل:</h3>
-                <div id="liveProgramTimeline">
-                    <!-- سيتم تعميره آليا -->
-                </div>
+                <h3 style="color: #333; margin-bottom: 15px;">📜 برنامج الحفل المباشر:</h3>
+                <div id="liveProgramTimeline"></div>
             </div>
         </div>
 
-        <!-- الأقسام الأخرى -->
-        <div id="gamesSection" style="display:none; background:white; padding:20px; border-radius:15px; border:2px dashed #ff9800; margin-top:20px;">
-            <h3 style="color:#ff9800;">🧩 بنك الألغاز والألعاب</h3><button class="btn btn-dark" onclick="closeSection()">رجوع</button>
-        </div>
-        <div id="musicSection" style="display:none; background:white; padding:20px; border-radius:15px; border:2px dashed #9b59b6; margin-top:20px;">
-            <h3 style="color:#9b59b6;">🎧 لوحة التحكم (DJ)</h3><button class="btn btn-dark" onclick="closeSection()">رجوع</button>
-        </div>
+        <div id="gamesSection" style="display:none; background:white; padding:20px; border-radius:15px; border:2px dashed #ff9800; margin-top:20px;"><h3 style="color:#ff9800;">🧩 بنك الألغاز والألعاب</h3><button class="btn btn-dark" onclick="closeSection()">رجوع</button></div>
+        <div id="musicSection" style="display:none; background:white; padding:20px; border-radius:15px; border:2px dashed #9b59b6; margin-top:20px;"><h3 style="color:#9b59b6;">🎧 لوحة التحكم (DJ)</h3><button class="btn btn-dark" onclick="closeSection()">رجوع</button></div>
     </div>
 
     <script>
-        // إعدادات Firebase
         const firebaseConfig = {
             apiKey: "AIzaSyCTTjp34QhF6MPNemwKhoq7385xnJKK_Hg",
             authDomain: "becha-events-kids.firebaseapp.com",
@@ -193,47 +167,23 @@
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
-        let currentUser = null;
-        let eventsData = [];
-        let currentEventIndex = -1;
-        let currentEventData = null;
+        let currentUser = null; let eventsData = []; let currentEventIndex = -1; let currentEventData = null;
+        let liveProgRef = null; // متغير المراقب اللحظي للبرنامج
 
-        function updateClock() { 
-            let now = new Date(); let days = ['الأحد', 'الإثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت']; 
-            let clockEl = document.getElementById('live-clock');
-            if(clockEl) clockEl.innerHTML = `🕒 ${now.toLocaleTimeString('ar-TN', {hour:'2-digit', minute:'2-digit'})} | ${days[now.getDay()]}`; 
-        }
+        function updateClock() { let now = new Date(); let days = ['الأحد', 'الإثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت']; let c = document.getElementById('live-clock'); if(c) c.innerHTML = `🕒 ${now.toLocaleTimeString('ar-TN', {hour:'2-digit', minute:'2-digit'})} | ${days[now.getDay()]}`; }
         setInterval(updateClock, 1000);
-
         function getTodayIso() { let d = new Date(); d.setMinutes(d.getMinutes() - d.getTimezoneOffset()); return d.toISOString().slice(0, 10); }
+        function showScreen(id) { document.querySelectorAll('.screen').forEach(s => s.classList.remove('active-screen')); document.getElementById(id).classList.add('active-screen'); }
+        function togglePassword() { let p = document.getElementById('loginPass'); let b = document.getElementById('eyeBtn'); if(p.type === "password") { p.type = "text"; b.innerText = "🙈"; } else { p.type = "password"; b.innerText = "👁️"; } }
 
-        function showScreen(screenId) {
-            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active-screen'));
-            document.getElementById(screenId).classList.add('active-screen');
-        }
-
-        function togglePassword() {
-            let p = document.getElementById('loginPass'); let b = document.getElementById('eyeBtn');
-            if(p.type === "password") { p.type = "text"; b.innerText = "🙈"; } else { p.type = "password"; b.innerText = "👁️"; }
-        }
-
-        window.addEventListener('DOMContentLoaded', () => {
-            let u = localStorage.getItem('animSavedUser'); let p = localStorage.getItem('animSavedPass');
-            if(u && p) { document.getElementById('loginUser').value = u; document.getElementById('loginPass').value = p; }
-        });
+        window.addEventListener('DOMContentLoaded', () => { let u = localStorage.getItem('animSavedUser'); let p = localStorage.getItem('animSavedPass'); if(u && p) { document.getElementById('loginUser').value = u; document.getElementById('loginPass').value = p; } });
 
         function login() {
             let u = document.getElementById('loginUser').value.trim(); let p = document.getElementById('loginPass').value.trim();
             if(!u || !p) return alert("الرجاء إدخال البيانات!");
-            if(document.getElementById('rememberMe').checked) { localStorage.setItem('animSavedUser', u); localStorage.setItem('animSavedPass', p); }
-            else { localStorage.removeItem('animSavedUser'); localStorage.removeItem('animSavedPass'); }
-
+            if(document.getElementById('rememberMe').checked) { localStorage.setItem('animSavedUser', u); localStorage.setItem('animSavedPass', p); } else { localStorage.removeItem('animSavedUser'); localStorage.removeItem('animSavedPass'); }
             if(u === "حمادي" && p === "amouhfy2025") { currentUser = { pseudo: "حمادي", role: "admin", linkedEmpName: "المدير حمادي" }; finishLogin(); return; }
-
-            db.ref('BechaEventsData/users').once('value', snap => {
-                let all = snap.val() || {}; let found = Object.keys(all).find(k => all[k].pseudo === u && all[k].pass === p);
-                if(found) { currentUser = all[found]; finishLogin(); } else alert("❌ بيانات الدخول خاطئة!");
-            });
+            db.ref('BechaEventsData/users').once('value', snap => { let all = snap.val() || {}; let found = Object.keys(all).find(k => all[k].pseudo === u && all[k].pass === p); if(found) { currentUser = all[found]; finishLogin(); } else alert("❌ بيانات الدخول خاطئة!"); });
         }
 
         function finishLogin() {
@@ -241,110 +191,73 @@
             db.ref('BechaEventsData/events').once('value', snap => {
                 eventsData = snap.val() || []; let today = getTodayIso();
                 let upcoming = eventsData.map((e, i) => ({...e, originalIndex: i})).filter(e => e.date >= today).sort((a, b) => a.date.localeCompare(b.date));
-                let filtered = [];
-
-                if(currentUser.role === 'admin') {
-                    filtered = upcoming; document.getElementById('headerUserBadge').innerText = `👑 المدير (${currentUser.pseudo})`;
-                } else {
-                    filtered = upcoming.filter(ev => {
-                        let t = ev.assignedTeam || []; let r = ev.animationRoles || {};
-                        return t.includes(currentUser.linkedEmpName) && r[currentUser.linkedEmpName] && r[currentUser.linkedEmpName] !== 'none';
-                    });
-                }
-
-                if(filtered.length === 0 && currentUser.role !== 'admin') {
-                    document.getElementById('eventsScreen').style.display = 'none';
-                    document.getElementById('deniedEmpName').innerText = currentUser.linkedEmpName;
-                    showScreen('deniedMessageScreen');
-                    document.getElementById('headerUserBadge').innerText = `🚫 غير معين (${currentUser.linkedEmpName})`;
-                    return; 
-                }
-
+                let filtered = currentUser.role === 'admin' ? upcoming : upcoming.filter(ev => { let t = ev.assignedTeam || []; let r = ev.animationRoles || {}; return t.includes(currentUser.linkedEmpName) && r[currentUser.linkedEmpName] && r[currentUser.linkedEmpName] !== 'none'; });
+                if(currentUser.role === 'admin') document.getElementById('headerUserBadge').innerText = `👑 المدير (${currentUser.pseudo})`;
+                if(filtered.length === 0 && currentUser.role !== 'admin') { document.getElementById('eventsScreen').style.display = 'none'; document.getElementById('deniedEmpName').innerText = currentUser.linkedEmpName; showScreen('deniedMessageScreen'); document.getElementById('headerUserBadge').innerText = `🚫 غير معين (${currentUser.linkedEmpName})`; return; }
                 let listDiv = document.getElementById('eventsListContainer'); listDiv.innerHTML = '';
-                filtered.forEach(ev => {
-                    let d = ev.date === today ? `<span style="color:#198754; font-weight:bold;">(اليوم)</span>` : ``;
-                    listDiv.innerHTML += `<div class="event-card" onclick="selectEvent(${ev.originalIndex})"><div style="font-size: 13px; color: #666; margin-bottom: 5px;">📅 ${ev.date} ${d}</div><h3>🎬 ${ev.showName || 'عرض'}</h3><div style="color: var(--primary-red); font-weight: bold;">🏫 ${ev.name}</div></div>`;
-                });
+                filtered.forEach(ev => { let d = ev.date === today ? `<span style="color:#198754; font-weight:bold;">(اليوم)</span>` : ``; listDiv.innerHTML += `<div class="event-card" onclick="selectEvent(${ev.originalIndex})"><div style="font-size: 13px; color: #666; margin-bottom: 5px;">📅 ${ev.date} ${d}</div><h3>🎬 ${ev.showName || 'عرض'}</h3><div style="color: var(--primary-red); font-weight: bold;">🏫 ${ev.name}</div></div>`; });
                 showScreen('eventsScreen');
             });
         }
 
         function logout() { currentUser = null; document.getElementById('loginPass').value = ''; document.getElementById('mainAppHeader').style.display = 'none'; showScreen('loginScreen'); }
-
-        function selectEvent(idx) {
-            currentEventIndex = idx; currentEventData = eventsData[idx];
-            if(currentUser.role === 'admin') { renderAdminRoleScreen(); showScreen('adminRoleScreen'); }
-            else openDashboard((currentEventData.animationRoles || {})[currentUser.linkedEmpName]);
-        }
+        function selectEvent(idx) { currentEventIndex = idx; currentEventData = eventsData[idx]; if(currentUser.role === 'admin') { renderAdminRoleScreen(); showScreen('adminRoleScreen'); } else openDashboard((currentEventData.animationRoles || {})[currentUser.linkedEmpName]); }
 
         function renderAdminRoleScreen() {
-            let c = document.getElementById('teamRolesContainer'); c.innerHTML = '';
-            let t = currentEventData.assignedTeam || []; let r = currentEventData.animationRoles || {};
+            let c = document.getElementById('teamRolesContainer'); c.innerHTML = ''; let t = currentEventData.assignedTeam || []; let r = currentEventData.animationRoles || {};
             if(t.length === 0) { c.innerHTML = '<p style="color:red;">لم تعين فريق!</p>'; return; }
-            t.forEach(emp => {
-                c.innerHTML += `<div class="role-row"><strong>👤 ${emp}</strong><select id="role_${emp}">
-                    <option value="" disabled ${!r[emp]?'selected':''}>-- المهمة --</option>
-                    <option value="animateur" ${r[emp]==='animateur'?'selected':''}>🎤 منشط</option>
-                    <option value="dj" ${r[emp]==='dj'?'selected':''}>🎧 دي جي</option>
-                    <option value="assistant" ${r[emp]==='assistant'?'selected':''}>🎁 مساعد</option>
-                    <option value="none" ${r[emp]==='none'?'selected':''}>🚫 سائق/منع</option></select></div>`;
-            });
+            t.forEach(emp => { c.innerHTML += `<div class="role-row"><strong>👤 ${emp}</strong><select id="role_${emp}"><option value="" disabled ${!r[emp]?'selected':''}>-- المهمة --</option><option value="animateur" ${r[emp]==='animateur'?'selected':''}>🎤 منشط</option><option value="dj" ${r[emp]==='dj'?'selected':''}>🎧 دي جي</option><option value="assistant" ${r[emp]==='assistant'?'selected':''}>🎁 مساعد</option><option value="none" ${r[emp]==='none'?'selected':''}>🚫 سائق/منع</option></select></div>`; });
         }
+        function saveRoles() { let m = {}; (currentEventData.assignedTeam || []).forEach(e => { let v = document.getElementById('role_'+e).value; if(v) m[e] = v; }); db.ref('BechaEventsData/events/' + currentEventIndex + '/animationRoles').set(m).then(() => { alert("✅ حُفظت المهام!"); openDashboard('admin'); }); }
 
-        function saveRoles() {
-            let m = {}; (currentEventData.assignedTeam || []).forEach(e => { let v = document.getElementById('role_'+e).value; if(v) m[e] = v; });
-            db.ref('BechaEventsData/events/' + currentEventIndex + '/animationRoles').set(m).then(() => { alert("✅ حُفظت المهام!"); openDashboard('admin'); });
-        }
-
-        // ==========================================
-        // اللوحة المركزية وتفريغ الأقسام
-        // ==========================================
         function getRoleDisplayName(rc) { return rc==='animateur'?'🎤 منشط':rc==='dj'?'🎧 دي جي':rc==='assistant'?'🎁 مساعد':rc==='admin'?'👑 المدير':'👤 موظف'; }
 
         function openDashboard(role) {
             if(role !== 'admin') document.getElementById('headerUserBadge').innerText = `${getRoleDisplayName(role)} (${currentUser.linkedEmpName})`;
-            document.getElementById('dashInstName').innerText = `🏫 ${currentEventData.name}`;
-            document.getElementById('dashEventTime').innerText = `📅 ${currentEventData.date} | 🕒 ${currentEventData.time || '--'}`;
-            
+            document.getElementById('dashInstName').innerText = `🏫 ${currentEventData.name}`; document.getElementById('dashEventTime').innerText = `📅 ${currentEventData.date} | 🕒 ${currentEventData.time || '--'}`;
             let m = document.getElementById('dashboardMenu'); m.innerHTML = '';
             let bs = `<div class="dash-card" style="border-color:#17a2b8;" onclick="openInnerSection('backstageSection')"><h3 style="color:#17a2b8; margin:0;">🧰 الكواليس (تحضير)</h3></div>`;
             let st = `<div class="dash-card" style="border-color:#E10600;" onclick="openInnerSection('stageSection')"><h3 style="color:#E10600; margin:0;">🎭 الركح (Live)</h3></div>`;
             let gm = `<div class="dash-card" style="border-color:#ff9800;" onclick="openInnerSection('gamesSection')"><h3 style="color:#ff9800; margin:0;">🧩 الألغاز</h3></div>`;
             let dj = `<div class="dash-card" style="border-color:#9b59b6;" onclick="openInnerSection('musicSection')"><h3 style="color:#9b59b6; margin:0;">🎧 الموسيقى</h3></div>`;
-            
             if(role === 'animateur' || role === 'assistant' || role === 'admin') m.innerHTML += bs + st + gm;
             if(role === 'dj' || role === 'admin') m.innerHTML += dj;
-            
             showScreen('dashboardScreen');
         }
 
         function openInnerSection(id) {
-            document.getElementById('dashboardMenu').style.display = 'none';
-            document.getElementById(id).style.display = 'block';
+            document.getElementById('dashboardMenu').style.display = 'none'; document.getElementById(id).style.display = 'block';
             if(id === 'backstageSection') loadBackstageData();
-            if(id === 'stageSection') renderStageLive();
+            if(id === 'stageSection') openStageLive(); // دالة جديدة تحل المراقب اللحظي
         }
 
         function closeSection() {
+            // إيقاف المراقب اللحظي كي نخرجو من الركح باش ما يثقلش التطبيقة
+            if(liveProgRef) { liveProgRef.off(); liveProgRef = null; }
             ['backstageSection', 'stageSection', 'gamesSection', 'musicSection'].forEach(id => document.getElementById(id).style.display = 'none');
             document.getElementById('dashboardMenu').style.display = 'grid';
         }
 
-        // ==========================================
-        // 1. الكواليس (التحضير وبناء البرنامج)
-        // ==========================================
+        // ================== الكواليس ==================
         function addEducator(n = '') { document.getElementById('educatorsList').insertAdjacentHTML('beforeend', `<div style="display:flex; gap:10px; margin-bottom:10px;"><input type="text" class="edu-name" placeholder="اسم المربية..." value="${n}" style="flex:1; padding:10px; border-radius:8px; border:1px solid #ccc; font-family:'Cairo';"><button class="btn btn-red" onclick="this.parentElement.remove()">🗑</button></div>`); }
-        // تعديل المدربين: اختصاص حر (Input بدل Select)
-        function addCoach(s = '', n = '') { document.getElementById('coachesList').insertAdjacentHTML('beforeend', `<div style="display:flex; gap:10px; margin-bottom:10px;"><input type="text" class="coach-spec" placeholder="الاختصاص (مثال: مسرح)" value="${s}" style="flex:1; padding:10px; border-radius:8px; border:1px solid #ccc; font-family:'Cairo';"><input type="text" class="coach-name" placeholder="الاسم..." value="${n}" style="flex:1.5; padding:10px; border-radius:8px; border:1px solid #ccc; font-family:'Cairo';"><button class="btn btn-red" onclick="this.parentElement.remove()">🗑</button></div>`); }
+        function addCoach(s = '', n = '') { document.getElementById('coachesList').insertAdjacentHTML('beforeend', `<div style="display:flex; gap:10px; margin-bottom:10px;"><input type="text" class="coach-spec" placeholder="الاختصاص..." value="${s}" style="flex:1; padding:10px; border-radius:8px; border:1px solid #ccc; font-family:'Cairo';"><input type="text" class="coach-name" placeholder="الاسم..." value="${n}" style="flex:1.5; padding:10px; border-radius:8px; border:1px solid #ccc; font-family:'Cairo';"><button class="btn btn-red" onclick="this.parentElement.remove()">🗑</button></div>`); }
         function addStaff(r = '', n = '') { document.getElementById('staffList').insertAdjacentHTML('beforeend', `<div style="display:flex; gap:10px; margin-bottom:10px;"><input type="text" class="staff-role" placeholder="الصفة..." value="${r}" style="flex:1; padding:10px; border-radius:8px; border:1px solid #ccc; font-family:'Cairo';"><input type="text" class="staff-name" placeholder="الاسم..." value="${n}" style="flex:1.5; padding:10px; border-radius:8px; border:1px solid #ccc; font-family:'Cairo';"><button class="btn btn-red" onclick="this.parentElement.remove()">🗑</button></div>`); }
         
-        // بناء البرنامج
-        function addProgramItem(t = '', d = '') {
+        // أزرار الترتيب في الكواليس
+        function moveUp(btn) { let row = btn.closest('.prog-row'); if(row.previousElementSibling) row.parentNode.insertBefore(row, row.previousElementSibling); }
+        function moveDown(btn) { let row = btn.closest('.prog-row'); if(row.nextElementSibling) row.parentNode.insertBefore(row.nextElementSibling, row); }
+
+        function addProgramItem(t = '', d = '', completed = false) {
             let opts = ['تلاوة قرآن', 'نشيد / كورال', 'لوحة راقصة / استعراض', 'مسرحية', 'تنشيط وألغاز', 'تكريم', 'أخرى'];
             let optsHtml = opts.map(o => `<option value="${o}" ${t===o?'selected':''}>${o}</option>`).join('');
-            document.getElementById('programList').insertAdjacentHTML('beforeend', `<div class="prog-row" style="display:flex; flex-direction:column; gap:5px; margin-bottom:15px; background:#f9f9f9; padding:10px; border:1px solid #ddd; border-radius:8px; border-right:4px solid var(--primary-red);">
-                <div style="display:flex; gap:10px;"><select class="prog-type" style="flex:1; padding:8px; border-radius:6px; font-family:'Cairo';">${optsHtml}</select><button class="btn btn-red" style="padding:5px 10px;" onclick="this.parentElement.parentElement.remove()">🗑 حذف</button></div>
-                <input type="text" class="prog-details" placeholder="عنوان أو تفاصيل الفقرة (مثال: رقصة الفراشات)..." value="${d}" style="width:100%; padding:10px; border-radius:8px; border:1px solid #ccc; font-family:'Cairo'; box-sizing:border-box;">
+            document.getElementById('programList').insertAdjacentHTML('beforeend', `<div class="prog-row" data-completed="${completed}" style="display:flex; flex-direction:column; gap:5px; margin-bottom:15px; background:#f9f9f9; padding:10px; border:1px solid #ddd; border-radius:8px; border-right:4px solid var(--primary-red);">
+                <div style="display:flex; gap:5px;">
+                    <button class="btn btn-dark" style="padding:5px 10px;" onclick="moveUp(this)">⬆️</button>
+                    <button class="btn btn-dark" style="padding:5px 10px;" onclick="moveDown(this)">⬇️</button>
+                    <select class="prog-type" style="flex:1; padding:8px; border-radius:6px; font-family:'Cairo';">${optsHtml}</select>
+                    <button class="btn btn-red" style="padding:5px 10px;" onclick="this.parentElement.parentElement.remove()">🗑</button>
+                </div>
+                <input type="text" class="prog-details" placeholder="تفاصيل الفقرة..." value="${d}" style="width:100%; padding:10px; border-radius:8px; border:1px solid #ccc; font-family:'Cairo'; box-sizing:border-box;">
             </div>`);
         }
 
@@ -353,11 +266,8 @@
             let d = currentEventData.institutionDetails || {};
             document.getElementById('instManager').value = d.managerName !== undefined ? d.managerName : (currentEventData.managerName || '');
             document.getElementById('instFounder').value = d.founderName || '';
-            if(d.educators) d.educators.forEach(n => addEducator(n));
-            if(d.coaches) d.coaches.forEach(c => addCoach(c.spec, c.name));
-            if(d.staff) d.staff.forEach(s => addStaff(s.role, s.name));
-            let p = currentEventData.eventProgram || [];
-            if(p.length > 0) p.forEach(i => addProgramItem(i.type, i.details)); else addProgramItem(); // فقرة فارغة كبداية
+            if(d.educators) d.educators.forEach(n => addEducator(n)); if(d.coaches) d.coaches.forEach(c => addCoach(c.spec, c.name)); if(d.staff) d.staff.forEach(s => addStaff(s.role, s.name));
+            let p = currentEventData.eventProgram || []; if(p.length > 0) p.forEach(i => addProgramItem(i.type, i.details, i.completed)); else addProgramItem();
         }
 
         function saveBackstageData() {
@@ -367,7 +277,12 @@
             document.querySelectorAll('#staffList > div').forEach(r => { let sr=r.querySelector('.staff-role').value.trim(), n=r.querySelector('.staff-name').value.trim(); if(n) d.staff.push({role:sr, name:n}); });
             
             let prog = [];
-            document.querySelectorAll('.prog-row').forEach(r => { let t=r.querySelector('.prog-type').value, dt=r.querySelector('.prog-details').value.trim(); if(dt) prog.push({type:t, details:dt}); });
+            document.querySelectorAll('.prog-row').forEach(r => { 
+                let t = r.querySelector('.prog-type').value; 
+                let dt = r.querySelector('.prog-details').value.trim(); 
+                let comp = r.getAttribute('data-completed') === 'true'; // نستحفظو على حالة التشطيب
+                if(dt) prog.push({type:t, details:dt, completed: comp}); 
+            });
 
             db.ref('BechaEventsData/events/' + currentEventIndex + '/institutionDetails').set(d);
             db.ref('BechaEventsData/events/' + currentEventIndex + '/eventProgram').set(prog).then(() => {
@@ -376,46 +291,45 @@
             });
         }
 
-        // ==========================================
-        // 2. الركح (Live Stage) - الدارجة والبرنامج
-        // ==========================================
-        function renderStageLive() {
-            // 1. توليد النص بالدارجة التونسية
-            let d = currentEventData.institutionDetails || {};
-            let inst = currentEventData.name || 'هالمؤسسة المزيانة';
-            let mName = d.managerName || currentEventData.managerName;
+        // ================== الركح والمراقب اللحظي ==================
+        function openStageLive() {
+            renderTeleprompter(); // كلمة الترحيب الثابتة
             
-            let html = `<span style="color: var(--primary-red);">" </span>على سلامتكم الناس الكل، مرحبا بأهالينا وضيوفنا الكرام في هالحفل المزيان.<br>`;
-            html += `باسم شركة <b>Becha Events</b>، فرحانين برشا بوجودنا معاكم، ونحبو نشكرو برشا إدارة <b>${inst}</b>، `;
+            // تشغيل المراقب اللحظي (Firebase Listener) على فقرات الحفل
+            liveProgRef = db.ref('BechaEventsData/events/' + currentEventIndex + '/eventProgram');
+            liveProgRef.on('value', snap => {
+                let progData = snap.val() || [];
+                currentEventData.eventProgram = progData;
+                renderStageTimeline(progData); // إعادة الرسم التلقائي عند أي تغيير
+            });
+        }
+
+        function renderTeleprompter() {
+            let d = currentEventData.institutionDetails || {}; let inst = currentEventData.name || 'هالمؤسسة المزيانة'; let mName = d.managerName || currentEventData.managerName;
+            let html = `<span style="color: var(--primary-red);">" </span>على سلامتكم الناس الكل، مرحبا بأهالينا وضيوفنا الكرام في هالحفل المزيان.<br>باسم شركة <b>Becha Events</b>، فرحانين برشا بوجودنا معاكم، ونحبو نشكرو برشا إدارة <b>${inst}</b>، `;
             if(mName) html += `وعلى رأسها المديرة الفاضلة <span style="color: #007bff;">${mName}</span>، `;
             if(d.founderName) html += `وباعث المشروع <span style="color: #007bff;">${d.founderName}</span>. <br><br>`;
-
-            if(d.educators && d.educators.length > 0) {
-                html += `تحية كبيرة من القلب للإطار التربوي اللي تعب وسهر على صغارنا طول العام: <br>`;
-                html += d.educators.map(n => `<span style="color: #198754;">المربية ${n}</span>`).join('، و') + `.<br><br>`;
-            }
-            if(d.coaches && d.coaches.length > 0) {
-                html += `ونحييو زادة الإطار الشبه تربوي والمدربين متاعنا: <br>`;
-                html += d.coaches.map(c => `مدرب(ة) ${c.spec} <span style="color: #ff9800;">${c.name}</span>`).join('، و') + `.<br><br>`;
-            }
-            if(d.staff && d.staff.length > 0) {
-                html += `وما ننساوش زادة الجنود الخفاء وشركاء النجاح معانا: <br>`;
-                html += d.staff.map(s => `${s.role} <span style="color: #9b59b6;">${s.name}</span>`).join('، و') + `.<br><br>`;
-            }
+            if(d.educators && d.educators.length > 0) html += `تحية كبيرة من القلب للإطار التربوي اللي تعب وسهر على صغارنا طول العام: <br>` + d.educators.map(n => `<span style="color: #198754;">المربية ${n}</span>`).join('، و') + `.<br><br>`;
+            if(d.coaches && d.coaches.length > 0) html += `ونحييو زادة الإطار الشبه تربوي والمدربين متاعنا: <br>` + d.coaches.map(c => `مدرب(ة) ${c.spec} <span style="color: #ff9800;">${c.name}</span>`).join('، و') + `.<br><br>`;
+            if(d.staff && d.staff.length > 0) html += `وما ننساوش زادة الجنود الخفاء وشركاء النجاح معانا: <br>` + d.staff.map(s => `${s.role} <span style="color: #9b59b6;">${s.name}</span>`).join('، و') + `.<br><br>`;
             html += `أيا سيدي، يزينا من الكلام، وخلينا نبداو جوّنا واحتفالنا! <span style="color: var(--primary-red);">"</span>`;
             document.getElementById('teleprompterView').innerHTML = html;
+        }
 
-            // 2. توليد البرنامج التفاعلي
+        function renderStageTimeline(progArray) {
             let pContainer = document.getElementById('liveProgramTimeline'); pContainer.innerHTML = '';
-            let prog = currentEventData.eventProgram || [];
-            if(prog.length === 0) { pContainer.innerHTML = '<p style="color:#777; text-align:center;">لم يتم برمجة فقرات في الكواليس.</p>'; return; }
+            if(progArray.length === 0) { pContainer.innerHTML = '<p style="color:#777; text-align:center;">لم يتم برمجة فقرات في الكواليس.</p>'; return; }
             
-            prog.forEach((item, idx) => {
+            progArray.forEach((item, idx) => {
                 let icon = item.type.includes('قرآن')?'📖':item.type.includes('رقص')?'💃':item.type.includes('مسرح')?'🎭':item.type.includes('تنشيط')?'🎪':item.type.includes('كورال')?'🎤':'✨';
+                let isComp = item.completed ? 'completed' : '';
+                let chkMark = item.completed ? '✔' : '';
+                
+                // الدالة toggleProgItem توة تبعث لقاعدة البيانات اللحظية
                 pContainer.innerHTML += `
-                    <div class="program-item" id="progItem_${idx}" onclick="toggleProgItem(${idx})">
+                    <div class="program-item ${isComp}" onclick="toggleProgItem(${idx}, ${!!item.completed})">
                         <div style="display:flex; align-items:center; gap:10px;">
-                            <div class="chk-box" id="chk_${idx}"></div>
+                            <div class="chk-box">${chkMark}</div>
                             <div>
                                 <span style="font-size:14px; color:#666;">الفقرة ${idx+1} (${item.type})</span><br>
                                 ${icon} ${item.details}
@@ -425,11 +339,10 @@
             });
         }
 
-        // تشطيب الفقرة المكتملة
-        function toggleProgItem(idx) {
-            let el = document.getElementById('progItem_'+idx); let chk = document.getElementById('chk_'+idx);
-            if(el.classList.contains('completed')) { el.classList.remove('completed'); chk.innerHTML = ''; } 
-            else { el.classList.add('completed'); chk.innerHTML = '✔'; }
+        // دالة التشطيب اللحظي (ترسل الإشارة للفايربيز وهو يرجع يحدث الشاشة للكل)
+        function toggleProgItem(idx, currentState) {
+            let newState = !currentState;
+            db.ref('BechaEventsData/events/' + currentEventIndex + '/eventProgram/' + idx + '/completed').set(newState);
         }
 
     </script>
