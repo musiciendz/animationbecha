@@ -51,17 +51,27 @@
         .completed .chk-box { background: #198754; border-color: #198754; }
 
         /* الأزرار العائمة */
-        .floating-btn-container { position: fixed; bottom: 20px; left: 20px; display: flex; flex-direction: column; gap: 15px; z-index: 999; }
+        .floating-btn-container { position: fixed; bottom: 20px; left: 20px; display: flex; flex-direction: column; gap: 15px; z-index: 900; }
         .float-btn { width: 60px; height: 60px; border-radius: 50%; color: white; font-size: 26px; border: none; box-shadow: 0 4px 10px rgba(0,0,0,0.3); cursor: pointer; display: flex; align-items: center; justify-content: center; transition: 0.2s; }
+        #pocketBtn { background: #333; display: none; font-size: 20px; }
         #cheatBtn { background: #17a2b8; display: none; }
-        #radioBtn { background: #E10600; display: none; }
-        #radioBtn.recording { background: #198754; animation: pulse 1s infinite; }
+        #radioBtn { background: #E10600; display: none; z-index: 10000; } /* زاد الـ z-index باش يبان في وضع الجيب */
+        #radioBtn.recording { background: #198754; animation: pulse 1s infinite; box-shadow: 0 0 20px #198754; }
         @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.1); } 100% { transform: scale(1); } }
         
-        /* رسائل الراديو */
+        /* رسائل الراديو والإشعارات */
         #radioStatus { position: fixed; top: 60px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.8); color: #fff; padding: 5px 15px; border-radius: 20px; font-size: 12px; z-index: 1000; display: none; font-weight: bold; }
         #sendSuccessBanner { position: fixed; top: 60px; left: 50%; transform: translateX(-50%); background: #198754; color: #fff; padding: 10px 20px; border-radius: 12px; font-size: 14px; z-index: 1001; display: none; font-weight: bold; box-shadow: 0 4px 10px rgba(0,0,0,0.2); animation: slideDown 0.3s ease; }
+        #globalRecordingBanner { position: fixed; top: 15px; left: 50%; transform: translateX(-50%); background: #ff9800; color: #fff; padding: 8px 15px; border-radius: 20px; font-size: 14px; z-index: 1002; display: none; font-weight: bold; box-shadow: 0 4px 10px rgba(0,0,0,0.3); animation: pulseOrange 1.5s infinite; border: 2px solid white;}
+        
         @keyframes slideDown { from { top: 0; opacity: 0; } to { top: 60px; opacity: 1; } }
+        @keyframes pulseOrange { 0% { box-shadow: 0 0 0 0 rgba(255, 152, 0, 0.7); } 70% { box-shadow: 0 0 0 10px rgba(255, 152, 0, 0); } 100% { box-shadow: 0 0 0 0 rgba(255, 152, 0, 0); } }
+
+        /* وضع الجيب والموجات الصوتية */
+        #pocketModeOverlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; z-index: 9998; display: none; flex-direction: column; justify-content: center; align-items: center; }
+        #pocketExitBtn { position: absolute; top: 40px; background: rgba(255,255,255,0.1); color: white; border: 1px solid #555; padding: 10px 20px; border-radius: 20px; font-family: 'Cairo'; font-weight: bold; cursor: pointer; }
+        #visualizerCanvas { width: 90%; max-width: 400px; height: 150px; background: #000; border-radius: 15px; margin-bottom: 20px; }
+        .pocket-text { color: #555; font-size: 14px; text-align: center; margin-top: 20px; font-weight: bold; }
 
     </style>
 </head>
@@ -71,9 +81,20 @@
     <audio id="silentAudio" loop playsinline>
         <source src="data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAAABkYXRhAgAAAAEA" type="audio/wav">
     </audio>
+    <!-- مشغل الرسائل الرئيسي للآيفون -->
+    <audio id="mainRadioPlayer" playsinline></audio>
 
-    <div id="radioStatus">🔊 جاري استقبال رسالة...</div>
+    <!-- الإشعارات -->
+    <div id="globalRecordingBanner">🎙️ شخص ما يسجل...</div>
+    <div id="radioStatus">🔊 جاري تشغيل رسالة...</div>
     <div id="sendSuccessBanner">✅ تم إرسال رسالتك الصوتية بنجاح</div>
+
+    <!-- وضع الجيب والموجات الصوتية -->
+    <div id="pocketModeOverlay">
+        <button id="pocketExitBtn" onclick="exitPocketMode()">إغلاق وضع الجيب ❌</button>
+        <canvas id="visualizerCanvas"></canvas>
+        <p class="pocket-text">أنت الآن في وضع الجيب.<br>الشاشة لن تنطفئ والصوت سيبقى متصلاً.<br>استعمل زر الميكروفون للتحدث.</p>
+    </div>
 
     <header id="mainAppHeader" style="display:none;">
         <div class="top-bar">
@@ -164,8 +185,10 @@
 
     <!-- الأزرار العائمة -->
     <div class="floating-btn-container">
+        <button id="pocketBtn" class="float-btn" onclick="enterPocketMode()">🌑</button>
         <button id="cheatBtn" class="float-btn" onclick="showCheatSheet()">ℹ️</button>
-        <button id="radioBtn" class="float-btn" onmousedown="startPTT(event)" onmouseup="stopPTT(event)" ontouchstart="startPTT(event)" ontouchend="stopPTT(event)">🎙️</button>
+        <!-- زر المايكروفون يدعم اللمس العادي والضغط -->
+        <button id="radioBtn" class="float-btn" onmousedown="startPTT(event)" onmouseup="stopPTT(event)" onmouseleave="stopPTT(event)" ontouchstart="startPTT(event)" ontouchend="stopPTT(event)">🎙️</button>
     </div>
 
     <!-- نافذة الغشة -->
@@ -283,25 +306,31 @@
             showScreen('dashboardScreen'); 
         }
 
+        // فتح الآيفون وبدء الاستقبال
         function openInnerSection(id) { 
             document.getElementById('dashboardMenu').style.display = 'none'; 
             document.getElementById(id).style.display = 'block'; 
             
-            // تفعيل الاستقبال الآلي بمجرد الدخول للركح/الكواليس
+            let silAudio = document.getElementById('silentAudio');
+            let mainAudio = document.getElementById('mainRadioPlayer');
+            silAudio.play().catch(e=>console.log("Silent Play blocked"));
+            mainAudio.play().then(()=>mainAudio.pause()).catch(e=>console.log("Main Audio unlock blocked"));
+
             initRadioReceiver();
 
-            if(id === 'backstageSection') { loadBackstageData(); startBackstageListener(); document.getElementById('radioBtn').style.display = 'flex'; }
-            if(id === 'stageSection') { openStageLive(); document.getElementById('cheatBtn').style.display = 'flex'; document.getElementById('radioBtn').style.display = 'flex'; }
+            if(id === 'backstageSection') { loadBackstageData(); startBackstageListener(); document.getElementById('radioBtn').style.display = 'flex'; document.getElementById('pocketBtn').style.display = 'flex'; }
+            if(id === 'stageSection') { openStageLive(); document.getElementById('cheatBtn').style.display = 'flex'; document.getElementById('radioBtn').style.display = 'flex'; document.getElementById('pocketBtn').style.display = 'flex'; }
         }
 
         function closeSection() { 
             if(liveProgRef) { liveProgRef.off(); liveProgRef = null; } if(backstageProgRef) { backstageProgRef.off(); backstageProgRef = null; }
             document.getElementById('backstageSection').style.display = 'none'; document.getElementById('stageSection').style.display = 'none'; 
             document.getElementById('dashboardMenu').style.display = 'grid';
-            document.getElementById('cheatBtn').style.display = 'none'; document.getElementById('radioBtn').style.display = 'none';
+            document.getElementById('cheatBtn').style.display = 'none'; document.getElementById('radioBtn').style.display = 'none'; document.getElementById('pocketBtn').style.display = 'none';
+            if(wakeLock) { wakeLock.release(); wakeLock = null; }
         }
 
-        // --- 3. الكواليس ---
+        // --- 3. الكواليس والركح (المنظومة السابقة) ---
         function addEducator(n='') { document.getElementById('educatorsList').insertAdjacentHTML('beforeend', `<div style="display:flex; gap:10px; margin-bottom:10px;"><input type="text" class="edu-name" placeholder="اسم الأنيستي..." value="${n}" style="flex:1;"><button class="btn btn-red" onclick="this.parentElement.remove()">🗑</button></div>`); }
         function addCoach(s='', n='') { document.getElementById('coachesList').insertAdjacentHTML('beforeend', `<div style="display:flex; gap:10px; margin-bottom:10px;"><input type="text" class="coach-spec" placeholder="الاختصاص" value="${s}" style="flex:1;"><input type="text" class="coach-name" placeholder="الاسم" value="${n}" style="flex:1;"><button class="btn btn-red" onclick="this.parentElement.remove()">🗑</button></div>`); }
         function addStaff(r='', n='') { document.getElementById('staffList').insertAdjacentHTML('beforeend', `<div style="display:flex; gap:10px; margin-bottom:10px;"><input type="text" class="staff-role" placeholder="الصفة" value="${r}" style="flex:1;"><input type="text" class="staff-name" placeholder="الاسم" value="${n}" style="flex:1;"><button class="btn btn-red" onclick="this.parentElement.remove()">🗑</button></div>`); }
@@ -352,7 +381,6 @@
 
         function startBackstageListener() { backstageProgRef = db.ref('BechaEventsData/events/' + currentEventIndex + '/eventProgram'); backstageProgRef.on('value', snap => { if(document.getElementById('backstageSection').style.display !== 'none') { let prog = snap.val() || []; let rows = document.querySelectorAll('.prog-row'); prog.forEach((p, i) => { if(rows[i]) { if(p.completed) rows[i].classList.add('locked'); else rows[i].classList.remove('locked'); } }); } }); }
 
-        // --- 4. الركح (Live Stage) ---
         function openStageLive() {
             renderTeleprompter(); 
             liveProgRef = db.ref('BechaEventsData/events/' + currentEventIndex + '/eventProgram');
@@ -395,11 +423,23 @@
             document.getElementById('cheatSheetContent').innerHTML = html; document.getElementById('cheatSheetModal').style.display = 'flex';
         }
 
-        // --- 5. نظام الراديو V2.0 (Walkie-Talkie الذكي) ---
+        // --- 4. الراديو، الموجات (Visualizer)، ووضع الجيب ---
         let radioReceiverActive = false; let mediaRecorder = null; let micStream = null; 
-        let audioChunks = []; let isRecording = false; let audioCtx = null;
+        let audioChunks = []; let isRecording = false; 
+        let audioCtx = null; let analyser = null; let dataArray = null; let animationId = null;
+        let wakeLock = null;
 
-        function initAudioCtx() { if(!audioCtx) { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); } if(audioCtx.state === 'suspended') { audioCtx.resume(); } }
+        // إعداد هندسة الصوت والموجات
+        function initAudioCtx() { 
+            if(!audioCtx) { 
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)(); 
+                analyser = audioCtx.createAnalyser();
+                analyser.fftSize = 128; // سرعة ودقة الموجات
+                const bufferLength = analyser.frequencyBinCount;
+                dataArray = new Uint8Array(bufferLength);
+            } 
+            if(audioCtx.state === 'suspended') { audioCtx.resume(); } 
+        }
         
         function playBeep(type) {
             initAudioCtx(); const osc = audioCtx.createOscillator(); const gainNode = audioCtx.createGain();
@@ -413,24 +453,37 @@
             }
         }
 
-        // 1. الاستقبال الآلي 
+        // الاستقبال الآلي والرادار
         function initRadioReceiver() {
             if(radioReceiverActive) return;
             radioReceiverActive = true;
             
-            document.getElementById('silentAudio').play().catch(e => console.log("الصوت الصامت يطلب نقرة أولى في الآيفون"));
-
             let radioRef = db.ref('BechaEventsData/events/' + currentEventIndex + '/intercom');
             let nowTs = Date.now();
             radioRef.on('child_added', snap => {
                 let msg = snap.val();
                 if(msg.timestamp >= nowTs && msg.sender !== currentUser.pseudo) {
-                    let a = new Audio(msg.audio);
+                    let mainAudio = document.getElementById('mainRadioPlayer');
+                    mainAudio.src = msg.audio; 
+                    
                     document.getElementById('radioStatus').innerText = `🔊 رسالة من: ${msg.sender}`;
                     document.getElementById('radioStatus').style.display = 'block';
-                    a.play().catch(e => console.log("تحذير: يجب نقر الشاشة أولا للسماح بالصوت"));
-                    a.onended = () => { document.getElementById('radioStatus').style.display = 'none'; };
+                    
+                    mainAudio.play().catch(e => console.log("Safari Audio Play Blocked"));
+                    mainAudio.onended = () => { document.getElementById('radioStatus').style.display = 'none'; };
                     setTimeout(() => { snap.ref.remove(); }, 10000); 
+                }
+            });
+
+            let statusRef = db.ref('BechaEventsData/events/' + currentEventIndex + '/activeRecording');
+            statusRef.on('value', snap => {
+                let recUser = snap.val();
+                let banner = document.getElementById('globalRecordingBanner');
+                if (recUser && recUser !== currentUser.pseudo) {
+                    banner.innerText = `🎙️ ${recUser} بصدد التسجيل...`;
+                    banner.style.display = 'block';
+                } else {
+                    banner.style.display = 'none';
                 }
             });
 
@@ -441,12 +494,18 @@
             }
         }
 
-        // 2. طلب الميكروفون بصفة ديناميكية (سر تصليح العلة هنا)
+        // طلب الميكرو وربط الموجات
         async function ensureMicrophone() {
-            if (mediaRecorder) return true; // الفخ كان هنا: توة ماعادش نطلبو الميكرو كل مرة!
+            if (mediaRecorder) return true; 
             try {
                 micStream = await navigator.mediaDevices.getUserMedia({ audio: true });
                 mediaRecorder = new MediaRecorder(micStream);
+                
+                // ربط الميكرو بالموجات المرئية (Visualizer)
+                initAudioCtx();
+                const source = audioCtx.createMediaStreamSource(micStream);
+                source.connect(analyser); // لا نربطه بـ destination لكي لا يحدث صدى
+
                 mediaRecorder.ondataavailable = e => { if(e.data.size > 0) audioChunks.push(e.data); };
                 mediaRecorder.onstop = () => {
                     const audioBlob = new Blob(audioChunks, { type: 'audio/webm' }); audioChunks = [];
@@ -454,9 +513,7 @@
                     reader.onloadend = () => {
                         db.ref('BechaEventsData/events/' + currentEventIndex + '/intercom').push({
                             sender: currentUser.pseudo, audio: reader.result, timestamp: Date.now()
-                        }).then(() => {
-                            showSendSuccess();
-                        });
+                        }).then(() => { showSendSuccess(); });
                     };
                 };
                 return true;
@@ -468,32 +525,90 @@
 
         function showSendSuccess() {
             let banner = document.getElementById('sendSuccessBanner');
-            banner.style.display = 'block';
-            setTimeout(() => { banner.style.display = 'none'; }, 3000);
+            banner.style.display = 'block'; setTimeout(() => { banner.style.display = 'none'; }, 3000);
         }
 
         function toggleBluetoothPTT() { if(!isRecording) { startPTT(null); } else { stopPTT(null); } }
 
+        // رسم الموجات (Visualizer Drawing Loop)
+        function drawVisualizer() {
+            if(!isRecording) return; // توقف الرسم إذا انتهى التسجيل
+            animationId = requestAnimationFrame(drawVisualizer);
+            
+            const canvas = document.getElementById('visualizerCanvas');
+            const canvasCtx = canvas.getContext('2d');
+            canvas.width = canvas.offsetWidth;
+            canvas.height = canvas.offsetHeight;
+            
+            analyser.getByteFrequencyData(dataArray);
+            
+            canvasCtx.fillStyle = '#000';
+            canvasCtx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            const barWidth = (canvas.width / dataArray.length) * 2.5;
+            let barHeight; let x = 0;
+            
+            for(let i = 0; i < dataArray.length; i++) {
+                barHeight = dataArray[i] / 1.5;
+                // لون متدرج (أحمر / برتقالي)
+                canvasCtx.fillStyle = 'rgb(' + (barHeight + 100) + ',50,50)';
+                canvasCtx.fillRect(x, canvas.height - barHeight, barWidth, barHeight);
+                x += barWidth + 1;
+            }
+        }
+
+        function resetVisualizer() {
+            const canvas = document.getElementById('visualizerCanvas');
+            const canvasCtx = canvas.getContext('2d');
+            canvasCtx.fillStyle = '#000';
+            canvasCtx.fillRect(0, 0, canvas.width, canvas.height);
+            canvasCtx.strokeStyle = '#333'; canvasCtx.lineWidth = 2;
+            canvasCtx.beginPath(); canvasCtx.moveTo(0, canvas.height/2); canvasCtx.lineTo(canvas.width, canvas.height/2); canvasCtx.stroke();
+        }
+
         async function startPTT(e) {
-            if(e) e.preventDefault();
+            if(e) { e.preventDefault(); e.stopPropagation(); }
             let hasMic = await ensureMicrophone();
             if(!hasMic || isRecording) return;
-            
-            if (mediaRecorder.state !== 'inactive') return; // حماية إضافية للزر
+            if (mediaRecorder.state !== 'inactive') return; 
 
             isRecording = true; document.getElementById('radioBtn').classList.add('recording');
+            db.ref('BechaEventsData/events/' + currentEventIndex + '/activeRecording').set(currentUser.pseudo);
+            
             playBeep('start'); audioChunks = []; mediaRecorder.start();
+            drawVisualizer(); // بدء رسم الموجات
         }
 
         function stopPTT(e) {
-            if(e) e.preventDefault();
+            if(e) { e.preventDefault(); e.stopPropagation(); }
             if(!isRecording) return;
             isRecording = false; document.getElementById('radioBtn').classList.remove('recording');
+            db.ref('BechaEventsData/events/' + currentEventIndex + '/activeRecording').set(null);
+            
             mediaRecorder.stop(); playBeep('end');
+            cancelAnimationFrame(animationId); resetVisualizer();
+        }
+
+        // وضع الجيب (Pocket Mode) و Wake Lock
+        async function enterPocketMode() {
+            document.getElementById('pocketModeOverlay').style.display = 'flex';
+            resetVisualizer();
+            try {
+                if ('wakeLock' in navigator) {
+                    wakeLock = await navigator.wakeLock.request('screen');
+                    console.log('Wake Lock is active');
+                }
+            } catch (err) { console.log('Wake Lock Error:', err); }
+        }
+
+        function exitPocketMode() {
+            document.getElementById('pocketModeOverlay').style.display = 'none';
+            if (wakeLock !== null) { wakeLock.release().then(() => { wakeLock = null; }); }
         }
 
         window.addEventListener('keydown', (e) => { if(e.code === 'Space' && e.target.tagName !== 'INPUT' && e.target.tagName !== 'SELECT') { e.preventDefault(); startPTT(null); } });
         window.addEventListener('keyup', (e) => { if(e.code === 'Space' && e.target.tagName !== 'INPUT' && e.target.tagName !== 'SELECT') { e.preventDefault(); stopPTT(null); } });
+        window.addEventListener('beforeunload', () => { if(isRecording) db.ref('BechaEventsData/events/' + currentEventIndex + '/activeRecording').set(null); });
 
         function logout() { location.reload(); }
         function showScreen(id) { document.querySelectorAll('.screen').forEach(s => s.classList.remove('active-screen')); document.getElementById(id).classList.add('active-screen'); }
