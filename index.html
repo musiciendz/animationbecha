@@ -35,13 +35,13 @@
         
         .dash-card { background: white; padding: 20px; border-radius: 15px; border: 2px solid #eee; cursor: pointer; transition: 0.3s; box-shadow: 0 4px 8px rgba(0,0,0,0.05); text-align: center; margin-bottom: 15px;}
         
-        /* الأكورديون (الصناديق المطوية) */
+        /* الأكورديون */
         .accordion-item { background: white; border-radius: 12px; margin-bottom: 15px; border: 2px solid #eee; overflow: hidden; box-shadow: 0 4px 8px rgba(0,0,0,0.05); }
         .accordion-header { background: #f8f9fa; padding: 15px 20px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #eee; font-weight: 900; color: var(--primary-red); font-size: 18px;}
         .accordion-content { padding: 20px; display: none; text-align: right; background: white;}
         .accordion-content.open { display: block; }
 
-        /* سطر البرنامج في الكواليس */
+        /* سطر البرنامج */
         .prog-row { position: relative; display: flex; flex-direction: column; gap: 8px; margin-bottom: 20px; background: #fdfdfd; padding: 15px; border: 1px solid #ddd; border-radius: 12px; border-right: 6px solid var(--primary-red); }
         .prog-row.locked { opacity: 0.7; background: #f0f8ff; border-right-color: #198754; pointer-events: none;}
         .row-num { position: absolute; right: -15px; top: -10px; background: var(--primary-red); color: white; width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: bold; z-index: 5; box-shadow: 0 2px 5px rgba(0,0,0,0.2);}
@@ -81,6 +81,16 @@
         </div>
     </div>
 
+    <!-- شاشة المنع الذكية -->
+    <div id="deniedMessageScreen" class="screen">
+        <div style="background: white; padding: 40px 30px; border-radius: 15px; border: 3px solid var(--primary-red); margin: 50px auto; box-shadow: 0 10px 20px rgba(0,0,0,0.1);">
+            <div id="deniedIcon" style="font-size: 50px; margin-bottom: 15px;">⚠️</div>
+            <h3 style="color: #333; margin-top:0;">مرحباً <span id="deniedEmpName" style="color: var(--primary-red);"></span></h3>
+            <div id="deniedMessageText" style="font-weight: bold; color: #555; line-height: 1.8; font-size: 18px; margin-bottom: 25px;"></div>
+            <button class="btn btn-dark" style="width: 100%; padding: 12px; font-size: 16px;" onclick="logout()">🚪 إغلاق وعودة</button>
+        </div>
+    </div>
+
     <!-- شاشة اختيار العرض -->
     <div id="eventsScreen" class="screen">
         <h2 style="border-bottom: 2px solid var(--primary-red); padding-bottom: 10px; color: #333;">📅 عروضي القادمة</h2>
@@ -92,13 +102,8 @@
         <h2 id="dashInstName" style="color: var(--primary-red); margin: 0; font-size: 28px;">--</h2>
         <div id="dashEventTime" style="margin-bottom: 25px; font-weight: bold; color: #666; font-size: 15px;"></div>
         
-        <div id="dashboardMenu" style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
-            <div class="dash-card" style="border-color:#17a2b8;" onclick="openInnerSection('backstageSection')">
-                <h3 style="color:#17a2b8; margin:0;">🧰 الكواليس (تحضير)</h3>
-            </div>
-            <div class="dash-card" style="border-color:#E10600;" onclick="openInnerSection('stageSection')">
-                <h3 style="color:#E10600; margin:0;">🎭 الركح (Live)</h3>
-            </div>
+        <div id="dashboardMenu" style="display: grid; grid-template-columns: 1fr; gap: 15px;">
+            <!-- الأزرار ستظهر هنا ديناميكياً حسب الموظف -->
         </div>
 
         <!-- 1. الكواليس (صناديق مطوية) -->
@@ -108,7 +113,6 @@
                 <button class="btn btn-dark" onclick="closeSection()">رجوع ⬅️</button>
             </div>
 
-            <!-- الصندوق 1: الإدارة -->
             <div class="accordion-item">
                 <div class="accordion-header" onclick="toggleAccordion('accInst')">
                     <span>👑 معطيات الإدارة والمؤسسة</span>
@@ -132,7 +136,6 @@
                 </div>
             </div>
 
-            <!-- الصندوق 2: البرنامج -->
             <div class="accordion-item">
                 <div class="accordion-header" onclick="toggleAccordion('accProg')">
                     <span>📋 برنامج الحفل (<span id="totalProgCount">0</span> فقرات)</span>
@@ -154,7 +157,6 @@
                 <button class="btn btn-dark" onclick="closeSection()">رجوع ⬅️</button>
             </div>
             
-            <!-- الكلمة الترحيبية (قابلة للطي) -->
             <div style="background: #fffdf5; border: 3px solid #ffc107; border-radius: 15px; margin-bottom: 25px;">
                 <div style="padding:15px; background:#ffc107; color:#333; font-weight:900; font-size:18px; cursor:pointer; display:flex; justify-content:space-between; border-radius: 11px 11px 0 0;" onclick="toggleTeleprompter()">
                     <span>🎤 الكلمة الترحيبية (اضغط للطي/الفتح)</span> <span id="teleIcon">➖</span>
@@ -174,7 +176,7 @@
         </div>
     </div>
 
-    <!-- نافذة ورقة الغشة (Modal) -->
+    <!-- نافذة ورقة الغشة -->
     <div id="cheatSheetModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:1000; justify-content:center; align-items:center;">
         <div style="background:white; width:90%; max-width:400px; padding:25px; border-radius:15px; text-align:right;">
             <h3 style="color:var(--primary-red); margin-top:0; border-bottom: 2px solid #eee; padding-bottom:10px;">👥 ورقة النجدة (الأسماء)</h3>
@@ -221,66 +223,87 @@
             }); }
         }
 
-        // دالة عرض العروض (معدلة لتمييز عرض اليوم)
+        // الجدار الأمني وتوجيه الموظفين
         function finishLogin() {
             document.getElementById('mainAppHeader').style.display = 'block'; 
-            document.getElementById('headerUserBadge').innerText = currentUser.pseudo;
             
             db.ref('BechaEventsData/events').once('value', snap => {
-                let events = snap.val() || []; 
-                let today = getTodayIso();
-                let list = document.getElementById('eventsListContainer'); 
-                list.innerHTML = '';
-                
-                // 1. استخراج كل العروض القادمة
+                let events = snap.val() || []; let today = getTodayIso();
                 let allUpcoming = events.map((ev, i) => ({...ev, originalIndex: i})).filter(ev => ev.date >= today).sort((a,b) => a.date.localeCompare(b.date));
                 
-                // 2. الجدار الأمني: تصفية العروض حسب الموظف
-                let filteredEvents = [];
                 if (currentUser.role === 'admin') {
-                    filteredEvents = allUpcoming; // المدير يشوف كل شيء
+                    // المدير يشوف كل شيء
+                    document.getElementById('headerUserBadge').innerText = `👑 المدير (${currentUser.pseudo})`;
+                    renderEventsList(allUpcoming, today);
                 } else {
-                    filteredEvents = allUpcoming.filter(ev => {
-                        let team = ev.assignedTeam || []; 
-                        let roles = ev.animationRoles || {};
-                        // شرط الظهور: مسجل في الفريق + عندو مهمة + المهمة ماهيش "سائق/منع"
-                        return team.includes(currentUser.linkedEmpName) && roles[currentUser.linkedEmpName] && roles[currentUser.linkedEmpName] !== 'none';
+                    // فرز عروض الموظف العادي
+                    let myValidEvents = allUpcoming.filter(ev => {
+                        let t = ev.assignedTeam || []; let r = ev.animationRoles || {};
+                        return t.includes(currentUser.linkedEmpName) && r[currentUser.linkedEmpName] && r[currentUser.linkedEmpName] !== 'none';
                     });
-                }
-
-                // 3. التحقق من وجود عروض (شاشة المنع تخدم هنا)
-                if (filteredEvents.length === 0 && currentUser.role !== 'admin') {
-                    document.getElementById('eventsScreen').style.display = 'none';
-                    document.getElementById('deniedEmpName').innerText = currentUser.linkedEmpName;
-                    showScreen('deniedMessageScreen');
-                    document.getElementById('headerUserBadge').innerText = `🚫 غير معين (${currentUser.linkedEmpName})`;
-                    return; // إيقاف العملية هنا باش ما يشوف حتى عرض
-                }
-
-                // 4. فرز العروض المسموح بيها للموظف بين "اليوم" و "القادمة"
-                let todayEvents = filteredEvents.filter(e => e.date === today);
-                let futureEvents = filteredEvents.filter(e => e.date !== today);
-
-                // 5. عرض قائمة "عرض اليوم"
-                if(todayEvents.length > 0) {
-                    todayEvents.forEach(ev => {
-                        list.innerHTML += `
-                        <div class="event-card" onclick="selectEvent(${ev.originalIndex})" style="background:#f0fdf4; padding:20px; margin-bottom:20px; border-radius:12px; cursor:pointer; text-align:right; border: 3px solid #198754; border-right:10px solid #198754; box-shadow:0 6px 12px rgba(25,135,84,0.15);">
-                            <span style="background: #198754; color:white; padding:4px 10px; border-radius:12px; font-size:13px; font-weight:bold; float:left;">🔥 عرض اليوم</span>
-                            <b style="font-size:20px; color:#333;">🏫 ${ev.name}</b><br><span style="color:#198754; font-weight:bold; font-size:15px;">📅 ${ev.date} | 🕒 ${ev.time || '--'}</span>
-                        </div>`;
+                    
+                    let myDriverEvents = allUpcoming.filter(ev => {
+                        let t = ev.assignedTeam || []; let r = ev.animationRoles || {};
+                        return t.includes(currentUser.linkedEmpName) && r[currentUser.linkedEmpName] === 'none';
                     });
+
+                    let myTodayEvents = myValidEvents.filter(e => e.date === today);
+
+                    // إذا ما عندوش عروض صالحة اليوم
+                    if (myTodayEvents.length === 0) {
+                        document.getElementById('deniedEmpName').innerText = currentUser.pseudo;
+                        let msgEl = document.getElementById('deniedMessageText');
+                        let iconEl = document.getElementById('deniedIcon');
+                        
+                        if (myValidEvents.length > 0) {
+                            // ما عندوش عرض اليوم، لكن عندو في المستقبل (حالة سلمى)
+                            let nextEv = myValidEvents[0];
+                            msgEl.innerHTML = `ليس لديك عروض مبرمجة <b>لليوم</b>.<br><br>📅 عرضك القادم سيكون يوم:<br><b style="color:var(--primary-red); font-size:22px;">${nextEv.date}</b><br>في مؤسسة: <b style="color:#17a2b8;">${nextEv.name}</b>`;
+                            iconEl.innerText = '⏳';
+                            document.getElementById('headerUserBadge').innerText = `⏳ في الانتظار`;
+                        } else if (myDriverEvents.length > 0) {
+                            // دورو ديما سائق/منع (حالة عماد)
+                            msgEl.innerHTML = `مهمتك الحالية لا تتطلب استعمال تطبيقة الركح.<br>يعطيك الصحة على مجهودك!`;
+                            iconEl.innerText = '🚚';
+                            document.getElementById('headerUserBadge').innerText = `🚚 لوجستيك`;
+                        } else {
+                            // ما عندو حتى عرض جملة
+                            msgEl.innerHTML = `ليس لديك مهام تنشيطية مبرمجة على التطبيقة حالياً.`;
+                            iconEl.innerText = '⚠️';
+                            document.getElementById('headerUserBadge').innerText = `🚫 غير معين`;
+                        }
+                        showScreen('deniedMessageScreen');
+                        return;
+                    } else {
+                        // عندو عرض اليوم، خليه يتعدى ويشوف قائمتو
+                        document.getElementById('headerUserBadge').innerText = `👤 موظف (${currentUser.pseudo})`;
+                        renderEventsList(myValidEvents, today);
+                    }
                 }
-                
-                // 6. عرض بقية العروض
-                if(futureEvents.length > 0) {
-                    if(todayEvents.length > 0) list.innerHTML += `<h3 style="border-bottom: 2px dashed #ccc; padding-bottom: 10px; color:#666; margin-top:20px;">📅 العروض القادمة</h3>`;
-                    futureEvents.forEach(ev => {
-                        list.innerHTML += `<div class="event-card" onclick="selectEvent(${ev.originalIndex})" style="background:white; padding:20px; margin-bottom:15px; border-radius:12px; cursor:pointer; text-align:right; border-right:6px solid var(--primary-red); box-shadow:0 4px 6px rgba(0,0,0,0.05);"><b style="font-size:18px; color:#333;">🏫 ${ev.name}</b><br><span style="color:#666; font-size:14px;">📅 ${ev.date}</span></div>`;
-                    });
-                }
-                showScreen('eventsScreen');
             });
+        }
+
+        function renderEventsList(eventsArray, today) {
+            let list = document.getElementById('eventsListContainer'); list.innerHTML = '';
+            let todayEvents = eventsArray.filter(e => e.date === today);
+            let futureEvents = eventsArray.filter(e => e.date !== today);
+
+            if(todayEvents.length > 0) {
+                todayEvents.forEach(ev => {
+                    list.innerHTML += `
+                    <div class="event-card" onclick="selectEvent(${ev.originalIndex})" style="background:#f0fdf4; padding:20px; margin-bottom:20px; border-radius:12px; cursor:pointer; text-align:right; border: 3px solid #198754; border-right:10px solid #198754; box-shadow:0 6px 12px rgba(25,135,84,0.15);">
+                        <span style="background: #198754; color:white; padding:4px 10px; border-radius:12px; font-size:13px; font-weight:bold; float:left;">🔥 عرض اليوم</span>
+                        <b style="font-size:20px; color:#333;">🏫 ${ev.name}</b><br><span style="color:#198754; font-weight:bold; font-size:15px;">📅 ${ev.date} | 🕒 ${ev.time || '--'}</span>
+                    </div>`;
+                });
+            }
+            if(futureEvents.length > 0) {
+                if(todayEvents.length > 0) list.innerHTML += `<h3 style="border-bottom: 2px dashed #ccc; padding-bottom: 10px; color:#666; margin-top:20px;">📅 العروض القادمة</h3>`;
+                futureEvents.forEach(ev => {
+                    list.innerHTML += `<div class="event-card" onclick="selectEvent(${ev.originalIndex})" style="background:white; padding:20px; margin-bottom:15px; border-radius:12px; cursor:pointer; text-align:right; border-right:6px solid var(--primary-red); box-shadow:0 4px 6px rgba(0,0,0,0.05);"><b style="font-size:18px; color:#333;">🏫 ${ev.name}</b><br><span style="color:#666; font-size:14px;">📅 ${ev.date}</span></div>`;
+                });
+            }
+            showScreen('eventsScreen');
         }
 
         function selectEvent(idx) {
@@ -292,7 +315,34 @@
             });
         }
 
-        function renderDashboard() { showScreen('dashboardScreen'); }
+        // بناء لوحة القيادة ديناميكيا حسب المهمة
+        function renderDashboard() { 
+            let m = document.getElementById('dashboardMenu'); m.innerHTML = '';
+            
+            let role = 'admin';
+            if (currentUser.role !== 'admin') {
+                 role = (currentEventData.animationRoles || {})[currentUser.linkedEmpName];
+            }
+            
+            // تحديث الشارة الفوقانية
+            let badgeName = currentUser.pseudo;
+            let roleName = role === 'admin' ? '👑 الإدارة' : role === 'animateur' ? '🎤 منشط' : role === 'assistant' ? '🎁 مساعد' : '🎧 دي جي';
+            document.getElementById('headerUserBadge').innerText = `${roleName} (${badgeName})`;
+
+            let bsBtn = `<div class="dash-card" style="border-color:#17a2b8;" onclick="openInnerSection('backstageSection')"><h3 style="color:#17a2b8; margin:0;">🧰 الكواليس (تحضير)</h3></div>`;
+            let stBtn = `<div class="dash-card" style="border-color:#E10600;" onclick="openInnerSection('stageSection')"><h3 style="color:#E10600; margin:0;">🎭 الركح المباشر</h3></div>`;
+
+            if (role === 'admin') {
+                m.style.gridTemplateColumns = '1fr 1fr';
+                m.innerHTML = bsBtn + stBtn;
+            } else {
+                // المنشط أو المساعد يشوفو كان الركح
+                m.style.gridTemplateColumns = '1fr';
+                m.innerHTML = stBtn;
+            }
+            
+            showScreen('dashboardScreen'); 
+        }
 
         function openInnerSection(id) { 
             document.getElementById('dashboardMenu').style.display = 'none'; 
@@ -314,28 +364,19 @@
         function addCoach(s='', n='') { document.getElementById('coachesList').insertAdjacentHTML('beforeend', `<div style="display:flex; gap:10px; margin-bottom:10px;"><input type="text" class="coach-spec" placeholder="الاختصاص" value="${s}" style="flex:1;"><input type="text" class="coach-name" placeholder="الاسم" value="${n}" style="flex:1;"><button class="btn btn-red" onclick="this.parentElement.remove()">🗑</button></div>`); }
         function addStaff(r='', n='') { document.getElementById('staffList').insertAdjacentHTML('beforeend', `<div style="display:flex; gap:10px; margin-bottom:10px;"><input type="text" class="staff-role" placeholder="الصفة" value="${r}" style="flex:1;"><input type="text" class="staff-name" placeholder="الاسم" value="${n}" style="flex:1;"><button class="btn btn-red" onclick="this.parentElement.remove()">🗑</button></div>`); }
 
-        // تعمير قائمة المشرفين بصفة ذكية
         function populateSupervisors(selectElem) {
             let currentVal = selectElem.value;
             selectElem.innerHTML = '<option value="">-- بدون مدرب مخصص --</option>';
-            document.querySelectorAll('#educatorsList .edu-name').forEach(e => {
-                let v = e.value.trim(); if(v) selectElem.innerHTML += `<option value="أنيستي ${v}">أنيستي ${v}</option>`;
-            });
-            document.querySelectorAll('#coachesList > div').forEach(r => {
-                let s = r.querySelector('.coach-spec').value.trim(); let n = r.querySelector('.coach-name').value.trim();
-                if(s || n) selectElem.innerHTML += `<option value="${s} ${n}">${s} ${n}</option>`;
-            });
-            selectElem.value = currentVal; // إرجاع القيمة القديمة إن أمكن
+            document.querySelectorAll('#educatorsList .edu-name').forEach(e => { let v = e.value.trim(); if(v) selectElem.innerHTML += `<option value="أنيستي ${v}">أنيستي ${v}</option>`; });
+            document.querySelectorAll('#coachesList > div').forEach(r => { let s = r.querySelector('.coach-spec').value.trim(); let n = r.querySelector('.coach-name').value.trim(); if(s || n) selectElem.innerHTML += `<option value="${s} ${n}">${s} ${n}</option>`; });
+            selectElem.value = currentVal;
         }
 
         function addProgramItem(t='', d='', comp=false, customType='', supervisor='') {
-            let container = document.getElementById('programList');
-            let idx = container.children.length;
+            let container = document.getElementById('programList'); let idx = container.children.length;
             let opts = ['تلاوة قرآن', 'نشيد / كورال', 'لوحة راقصة / استعراض', 'مسرحية', 'تنشيط وألغاز', 'تكريم', 'أخرى'];
             let optsHtml = opts.map(o => `<option value="${o}" ${t===o?'selected':''}>${o}</option>`).join('');
-            
-            let lockedClass = comp ? 'locked' : '';
-            let showOther = (t === 'أخرى') ? 'block' : 'none';
+            let lockedClass = comp ? 'locked' : ''; let showOther = (t === 'أخرى') ? 'block' : 'none';
 
             let html = `
                 <div class="prog-row ${lockedClass}" data-index="${idx}">
@@ -356,35 +397,19 @@
                         </select>
                     </div>
                 </div>`;
-            container.insertAdjacentHTML('beforeend', html);
-            updateNumbers();
+            container.insertAdjacentHTML('beforeend', html); updateNumbers();
         }
 
         function checkOther(sel) { sel.parentElement.nextElementSibling.style.display = (sel.value === 'أخرى') ? 'block' : 'none'; }
-        
-        function updateNumbers() {
-            let rows = document.querySelectorAll('.prog-row');
-            document.getElementById('totalProgCount').innerText = rows.length;
-            rows.forEach((r, i) => r.querySelector('.row-num').innerText = i+1);
-        }
-
-        function moveItem(btn, dir) {
-            let row = btn.closest('.prog-row');
-            if(dir === -1 && row.previousElementSibling) row.parentNode.insertBefore(row, row.previousElementSibling);
-            if(dir === 1 && row.nextElementSibling) row.parentNode.insertBefore(row.nextElementSibling, row);
-            updateNumbers();
-        }
+        function updateNumbers() { let rows = document.querySelectorAll('.prog-row'); document.getElementById('totalProgCount').innerText = rows.length; rows.forEach((r, i) => r.querySelector('.row-num').innerText = i+1); }
+        function moveItem(btn, dir) { let row = btn.closest('.prog-row'); if(dir === -1 && row.previousElementSibling) row.parentNode.insertBefore(row, row.previousElementSibling); if(dir === 1 && row.nextElementSibling) row.parentNode.insertBefore(row.nextElementSibling, row); updateNumbers(); }
 
         function loadBackstageData() {
             ['educatorsList', 'coachesList', 'staffList', 'programList'].forEach(id => document.getElementById(id).innerHTML = '');
             let d = currentEventData.institutionDetails || {};
-            document.getElementById('instManager').value = d.managerName || '';
-            document.getElementById('instFounder').value = d.founderName || '';
-            if(d.educators) d.educators.forEach(n => addEducator(n));
-            if(d.coaches) d.coaches.forEach(c => addCoach(c.spec, c.name));
-            if(d.staff) d.staff.forEach(s => addStaff(s.role, s.name));
-            let p = currentEventData.eventProgram || [];
-            if(p.length === 0) { addProgramItem(); } else { p.forEach(i => addProgramItem(i.type, i.details, i.completed, i.customType, i.supervisor)); }
+            document.getElementById('instManager').value = d.managerName || ''; document.getElementById('instFounder').value = d.founderName || '';
+            if(d.educators) d.educators.forEach(n => addEducator(n)); if(d.coaches) d.coaches.forEach(c => addCoach(c.spec, c.name)); if(d.staff) d.staff.forEach(s => addStaff(s.role, s.name));
+            let p = currentEventData.eventProgram || []; if(p.length === 0) { addProgramItem(); } else { p.forEach(i => addProgramItem(i.type, i.details, i.completed, i.customType, i.supervisor)); }
         }
 
         function saveBackstageData() {
@@ -395,52 +420,26 @@
             
             let prog = [];
             document.querySelectorAll('.prog-row').forEach(r => {
-                let type = r.querySelector('.prog-type').value;
-                let sup = r.querySelector('.prog-supervisor').value;
-                if(sup.includes('اضغط لاختيار')) sup = ''; // تنظيف الخانة الوهمية
-                prog.push({
-                    type: type,
-                    customType: type === 'أخرى' ? r.querySelector('.other-type').value.trim() : '',
-                    details: r.querySelector('.prog-details').value.trim(),
-                    supervisor: sup,
-                    completed: r.classList.contains('locked')
-                });
+                let type = r.querySelector('.prog-type').value; let sup = r.querySelector('.prog-supervisor').value; if(sup.includes('اضغط لاختيار')) sup = '';
+                prog.push({ type: type, customType: type === 'أخرى' ? r.querySelector('.other-type').value.trim() : '', details: r.querySelector('.prog-details').value.trim(), supervisor: sup, completed: r.classList.contains('locked') });
             });
             db.ref('BechaEventsData/events/'+currentEventIndex+'/institutionDetails').set(d);
             db.ref('BechaEventsData/events/'+currentEventIndex+'/eventProgram').set(prog).then(() => alert("✅ تم الحفظ بنجاح!"));
         }
 
         function syncOneItem(btn) {
-            let r = btn.closest('.prog-row');
-            let idx = Array.from(r.parentNode.children).indexOf(r);
-            let type = r.querySelector('.prog-type').value;
-            let sup = r.querySelector('.prog-supervisor').value;
-            if(sup.includes('اضغط لاختيار')) sup = '';
-            let data = {
-                type: type,
-                customType: type === 'أخرى' ? r.querySelector('.other-type').value.trim() : '',
-                details: r.querySelector('.prog-details').value.trim(),
-                supervisor: sup,
-                completed: r.classList.contains('locked')
-            };
-            db.ref('BechaEventsData/events/'+currentEventIndex+'/eventProgram/'+idx).set(data).then(() => {
-                btn.innerText = '✅'; setTimeout(() => btn.innerText = '🔄', 1000);
-            });
+            let r = btn.closest('.prog-row'); let idx = Array.from(r.parentNode.children).indexOf(r);
+            let type = r.querySelector('.prog-type').value; let sup = r.querySelector('.prog-supervisor').value; if(sup.includes('اضغط لاختيار')) sup = '';
+            let data = { type: type, customType: type === 'أخرى' ? r.querySelector('.other-type').value.trim() : '', details: r.querySelector('.prog-details').value.trim(), supervisor: sup, completed: r.classList.contains('locked') };
+            db.ref('BechaEventsData/events/'+currentEventIndex+'/eventProgram/'+idx).set(data).then(() => { btn.innerText = '✅'; setTimeout(() => btn.innerText = '🔄', 1000); });
         }
 
-        // المراقبة الجزئية في الكواليس (باش يشوف القفل يتسكر من غير ما يفسخلو الكتيبة)
         function startBackstageListener() {
             backstageProgRef = db.ref('BechaEventsData/events/' + currentEventIndex + '/eventProgram');
             backstageProgRef.on('value', snap => {
                 if(document.getElementById('backstageSection').style.display !== 'none') {
-                    let prog = snap.val() || [];
-                    let rows = document.querySelectorAll('.prog-row');
-                    prog.forEach((p, i) => {
-                        if(rows[i]) {
-                            if(p.completed) rows[i].classList.add('locked');
-                            else rows[i].classList.remove('locked');
-                        }
-                    });
+                    let prog = snap.val() || []; let rows = document.querySelectorAll('.prog-row');
+                    prog.forEach((p, i) => { if(rows[i]) { if(p.completed) rows[i].classList.add('locked'); else rows[i].classList.remove('locked'); } });
                 }
             });
         }
@@ -448,57 +447,32 @@
         // ================== الركح (Live Stage) ==================
         function openStageLive() {
             renderTeleprompter(); 
-            // تشغيل المراقب اللحظي
             liveProgRef = db.ref('BechaEventsData/events/' + currentEventIndex + '/eventProgram');
-            liveProgRef.on('value', snap => {
-                let progData = snap.val() || [];
-                currentEventData.eventProgram = progData;
-                renderStageTimeline(progData); 
-            });
+            liveProgRef.on('value', snap => { let progData = snap.val() || []; currentEventData.eventProgram = progData; renderStageTimeline(progData); });
         }
 
         function renderTeleprompter() {
             let d = currentEventData.institutionDetails || {}; let inst = currentEventData.name || 'هالمؤسسة المزيانة'; let mName = d.managerName || currentEventData.managerName;
-            
             let html = `<span style="color: var(--primary-red);">" </span>على سلامتكم الناس الكل، نورتونا وفرحتونا بحضوركم معانا اليوم! مرحبا بأهالينا الكرام، وبضيوفنا الغالين في هالاحتفال المميز والمليان حب وفرحة ❤️<br><br>`;
             html += `باسم شركة <b>Becha Events</b>، فرحانين برشا برشا بوجودنا معاكم، واليوم باش نعيشو مع بعضنا لحظات ما تتنساش، فيها ضحك، فيها فرحة، وفيها برشا مفاجآت 🎉<br><br>`;
             html += `ونحبّو من القلب نشكرو إدارة <b>${inst}</b>، وعلى رأسها المديرة الفاضلة <b>${mName || '...'}</b>`;
             if(d.founderName) html += ` وباعث المشروع <b>${d.founderName}</b>`;
             html += `، على الثقة والاستضافة الكريمة 🙏<br><br>`;
-
-            if(d.educators && d.educators.length > 0) {
-                html += `تحية كبيرة للإطار التربوي اللي عطى من وقته ومن قلبه طول العام باش يشوف صغارنا منورين وناجحين:<br>`;
-                html += d.educators.map(n => `<span style="color: #198754;">أنيستي ${n}</span>`).join('، و ') + ` 👏<br><br>`;
-            }
-
-            if(d.coaches && d.coaches.length > 0) {
-                html += `وزادة تحية خاصة للإطار الشبه تربوي والمدربين اللي زادو لمسة إبداع وتميّز:<br>`;
-                html += d.coaches.map(c => `<span style="color: #ff9800;">${c.spec} ${c.name}</span>`).join('، و ') + ` 🌙<br><br>`;
-            }
-
-            if(d.staff && d.staff.length > 0) {
-                html += `وما ننسوش بالطبيعة شركاء النجاح والجنود الخفاة اللي يخدمو من غير ما يظهرو، أما بصمتهم حاضرة في كل تفصيلة:<br>`;
-                html += d.staff.map(s => `<span style="color: #9b59b6;">${s.role} ${s.name}</span>`).join('، و ') + ` ✨<br><br>`;
-            }
-
-            html += `أيا سيدي… يزينا من الحكي، وخليو الطاقات تعلى، والتصفيق يدوّي 👏👏<br>`;
-            html += `ونبدأو مع بعضنا سهرتنا… وخلّيو الفرحة تاخو بلاصتهاااااا ! <span style="color: var(--primary-red);">"</span>`;
-            
+            if(d.educators && d.educators.length > 0) { html += `تحية كبيرة للإطار التربوي اللي عطى من وقته ومن قلبه طول العام باش يشوف صغارنا منورين وناجحين:<br>` + d.educators.map(n => `<span style="color: #198754;">أنيستي ${n}</span>`).join('، و ') + ` 👏<br><br>`; }
+            if(d.coaches && d.coaches.length > 0) { html += `وزادة تحية خاصة للإطار الشبه تربوي والمدربين اللي زادو لمسة إبداع وتميّز:<br>` + d.coaches.map(c => `<span style="color: #ff9800;">${c.spec} ${c.name}</span>`).join('، و ') + ` 🌙<br><br>`; }
+            if(d.staff && d.staff.length > 0) { html += `وما ننسوش بالطبيعة شركاء النجاح والجنود الخفاة اللي يخدمو من غير ما يظهرو، أما بصمتهم حاضرة في كل تفصيلة:<br>` + d.staff.map(s => `<span style="color: #9b59b6;">${s.role} ${s.name}</span>`).join('، و ') + ` ✨<br><br>`; }
+            html += `أيا سيدي… يزينا من الحكي، وخليو الطاقات تعلى، والتصفيق يدوّي 👏👏<br>ونبدأو مع بعضنا سهرتنا… وخلّيو الفرحة تاخو بلاصتهاااااا ! <span style="color: var(--primary-red);">"</span>`;
             document.getElementById('teleprompterView').innerHTML = html;
         }
 
         function renderStageTimeline(progArray) {
             let pContainer = document.getElementById('liveProgramTimeline'); pContainer.innerHTML = '';
             if(progArray.length === 0) { pContainer.innerHTML = '<p style="color:#777; text-align:center;">لم يتم برمجة فقرات بعد.</p>'; return; }
-            
             progArray.forEach((item, idx) => {
                 let displayType = item.type === 'أخرى' ? (item.customType || 'فقرة متنوعة') : item.type;
                 let icon = displayType.includes('قرآن')?'📖':displayType.includes('رقص')?'💃':displayType.includes('مسرح')?'🎭':displayType.includes('تنشيط')?'🎪':displayType.includes('كورال')?'🎤':'✨';
-                let isComp = item.completed ? 'completed' : '';
-                let chkMark = item.completed ? '✔' : '';
-                let detailsText = item.details ? item.details : 'بدون تفاصيل';
+                let isComp = item.completed ? 'completed' : ''; let chkMark = item.completed ? '✔' : ''; let detailsText = item.details ? item.details : 'بدون تفاصيل';
                 let supText = item.supervisor ? `<br><span style="font-size:14px; color:#17a2b8; background:#e3f2fd; padding:3px 8px; border-radius:8px;">👤 إشراف: ${item.supervisor}</span>` : '';
-                
                 pContainer.innerHTML += `
                     <div class="program-item ${isComp}" onclick="toggleStep(${idx}, ${!!item.completed})">
                         <div style="display:flex; align-items:center; gap:15px; width:100%;">
@@ -513,31 +487,16 @@
             });
         }
 
-        function toggleStep(idx, state) {
-            db.ref('BechaEventsData/events/'+currentEventIndex+'/eventProgram/'+idx+'/completed').set(!state);
-        }
+        function toggleStep(idx, state) { db.ref('BechaEventsData/events/'+currentEventIndex+'/eventProgram/'+idx+'/completed').set(!state); }
 
-        // إظهار ورقة النجدة
         function showCheatSheet() {
             let d = currentEventData.institutionDetails || {}; let mName = d.managerName || currentEventData.managerName || '--';
             let html = `<p style="color:#007bff; margin:5px 0;">👑 المديرة: ${mName}</p>`;
             if(d.founderName) html += `<p style="color:#007bff; margin:5px 0;">👑 الباعث: ${d.founderName}</p>`;
-            
-            if(d.educators && d.educators.length > 0) {
-                html += `<hr style="border:1px dashed #ccc;"><p style="color:#198754; margin:5px 0;">👩‍🏫 المربيات:</p><ul style="margin:5px 0; padding-right:20px;">`;
-                d.educators.forEach(n => html += `<li>أنيستي ${n}</li>`); html += `</ul>`;
-            }
-            if(d.coaches && d.coaches.length > 0) {
-                html += `<hr style="border:1px dashed #ccc;"><p style="color:#ff9800; margin:5px 0;">🎯 المدربون:</p><ul style="margin:5px 0; padding-right:20px;">`;
-                d.coaches.forEach(c => html += `<li>${c.spec}: ${c.name}</li>`); html += `</ul>`;
-            }
-            if(d.staff && d.staff.length > 0) {
-                html += `<hr style="border:1px dashed #ccc;"><p style="color:#9b59b6; margin:5px 0;">🤝 شركاء:</p><ul style="margin:5px 0; padding-right:20px;">`;
-                d.staff.forEach(s => html += `<li>${s.role}: ${s.name}</li>`); html += `</ul>`;
-            }
-            
-            document.getElementById('cheatSheetContent').innerHTML = html;
-            document.getElementById('cheatSheetModal').style.display = 'flex';
+            if(d.educators && d.educators.length > 0) { html += `<hr style="border:1px dashed #ccc;"><p style="color:#198754; margin:5px 0;">👩‍🏫 المربيات:</p><ul style="margin:5px 0; padding-right:20px;">`; d.educators.forEach(n => html += `<li>أنيستي ${n}</li>`); html += `</ul>`; }
+            if(d.coaches && d.coaches.length > 0) { html += `<hr style="border:1px dashed #ccc;"><p style="color:#ff9800; margin:5px 0;">🎯 المدربون:</p><ul style="margin:5px 0; padding-right:20px;">`; d.coaches.forEach(c => html += `<li>${c.spec}: ${c.name}</li>`); html += `</ul>`; }
+            if(d.staff && d.staff.length > 0) { html += `<hr style="border:1px dashed #ccc;"><p style="color:#9b59b6; margin:5px 0;">🤝 شركاء:</p><ul style="margin:5px 0; padding-right:20px;">`; d.staff.forEach(s => html += `<li>${s.role}: ${s.name}</li>`); html += `</ul>`; }
+            document.getElementById('cheatSheetContent').innerHTML = html; document.getElementById('cheatSheetModal').style.display = 'flex';
         }
 
         function logout() { location.reload(); }
