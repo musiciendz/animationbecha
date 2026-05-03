@@ -223,15 +223,45 @@
 
         // دالة عرض العروض (معدلة لتمييز عرض اليوم)
         function finishLogin() {
-            document.getElementById('mainAppHeader').style.display = 'block'; document.getElementById('headerUserBadge').innerText = currentUser.pseudo;
+            document.getElementById('mainAppHeader').style.display = 'block'; 
+            document.getElementById('headerUserBadge').innerText = currentUser.pseudo;
+            
             db.ref('BechaEventsData/events').once('value', snap => {
-                let events = snap.val() || []; let today = getTodayIso();
-                let list = document.getElementById('eventsListContainer'); list.innerHTML = '';
+                let events = snap.val() || []; 
+                let today = getTodayIso();
+                let list = document.getElementById('eventsListContainer'); 
+                list.innerHTML = '';
                 
-                let upcoming = events.map((ev, i) => ({...ev, originalIndex: i})).filter(ev => ev.date >= today).sort((a,b) => a.date.localeCompare(b.date));
-                let todayEvents = upcoming.filter(e => e.date === today);
-                let futureEvents = upcoming.filter(e => e.date !== today);
+                // 1. استخراج كل العروض القادمة
+                let allUpcoming = events.map((ev, i) => ({...ev, originalIndex: i})).filter(ev => ev.date >= today).sort((a,b) => a.date.localeCompare(b.date));
+                
+                // 2. الجدار الأمني: تصفية العروض حسب الموظف
+                let filteredEvents = [];
+                if (currentUser.role === 'admin') {
+                    filteredEvents = allUpcoming; // المدير يشوف كل شيء
+                } else {
+                    filteredEvents = allUpcoming.filter(ev => {
+                        let team = ev.assignedTeam || []; 
+                        let roles = ev.animationRoles || {};
+                        // شرط الظهور: مسجل في الفريق + عندو مهمة + المهمة ماهيش "سائق/منع"
+                        return team.includes(currentUser.linkedEmpName) && roles[currentUser.linkedEmpName] && roles[currentUser.linkedEmpName] !== 'none';
+                    });
+                }
 
+                // 3. التحقق من وجود عروض (شاشة المنع تخدم هنا)
+                if (filteredEvents.length === 0 && currentUser.role !== 'admin') {
+                    document.getElementById('eventsScreen').style.display = 'none';
+                    document.getElementById('deniedEmpName').innerText = currentUser.linkedEmpName;
+                    showScreen('deniedMessageScreen');
+                    document.getElementById('headerUserBadge').innerText = `🚫 غير معين (${currentUser.linkedEmpName})`;
+                    return; // إيقاف العملية هنا باش ما يشوف حتى عرض
+                }
+
+                // 4. فرز العروض المسموح بيها للموظف بين "اليوم" و "القادمة"
+                let todayEvents = filteredEvents.filter(e => e.date === today);
+                let futureEvents = filteredEvents.filter(e => e.date !== today);
+
+                // 5. عرض قائمة "عرض اليوم"
                 if(todayEvents.length > 0) {
                     todayEvents.forEach(ev => {
                         list.innerHTML += `
@@ -242,6 +272,7 @@
                     });
                 }
                 
+                // 6. عرض بقية العروض
                 if(futureEvents.length > 0) {
                     if(todayEvents.length > 0) list.innerHTML += `<h3 style="border-bottom: 2px dashed #ccc; padding-bottom: 10px; color:#666; margin-top:20px;">📅 العروض القادمة</h3>`;
                     futureEvents.forEach(ev => {
