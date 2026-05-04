@@ -398,15 +398,35 @@
             showScreen('dashboardScreen'); 
         }
 
-        // --- غرفة الفحص السحرية (بدون قيود للصيغة) ---
-        let testMediaRecorder = null; let testAudioChunks = []; let isTesting = false;
+        // --- التغيير الجذري السحري (Asking Permission BEFORE Test) ---
+        let testMediaRecorder = null; let testAudioChunks = []; let isTesting = false; let micStream = null;
 
-        function initiateEntry(id) {
+        async function initiateEntry(id) {
             pendingSectionId = id;
-            document.getElementById('dashboardMenuWrapper').style.display = 'none';
-            document.getElementById('testRoomScreen').style.display = 'flex';
-            document.getElementById('testResults').style.display = 'none';
-            document.getElementById('testStatusText').innerText = "اضغط مطولاً للتسجيل";
+            
+            // فتح صمامات الصوت الإجباري للمتصفح مع النزلة (Click Event)
+            initAudioCtx();
+
+            try {
+                if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                    alert("⚠️ متصفحك الحالي لا يدعم تسجيل الصوت. الرجاء التأكد من أنك لست في متصفح مخفي داخل تطبيقة أخرى.");
+                    return;
+                }
+                
+                // طلب الصلاحية هنا! مع النزلة الآمنة العادية
+                if(!micStream) { 
+                    micStream = await navigator.mediaDevices.getUserMedia({ audio: true }); 
+                }
+
+                // إذا تمت الموافقة، نتعداو لغرفة الفحص
+                document.getElementById('dashboardMenuWrapper').style.display = 'none';
+                document.getElementById('testRoomScreen').style.display = 'flex';
+                document.getElementById('testResults').style.display = 'none';
+                document.getElementById('testStatusText').innerText = "اضغط مطولاً للتسجيل";
+
+            } catch(err) {
+                alert("⚠️ لا يمكن الدخول: يرجى إعطاء صلاحية الميكروفون من إعدادات المتصفح أولاً! (أو تأكد من عدم وجود تطبيق آخر يستخدم الميكروفون)");
+            }
         }
 
         function cancelTest() {
@@ -417,20 +437,15 @@
         async function startTestRecording(e) {
             if(e) { e.preventDefault(); e.stopPropagation(); }
             if(isTesting) return;
-            
-            // فتح صمامات الصوت فوراً مع لمس الشاشة إرضاءً لشركة آبل
-            initAudioCtx();
 
             try {
-                if(!micStream) { micStream = await navigator.mediaDevices.getUserMedia({ audio: true }); }
-                
-                // الحل الجذري للآيفون والأندرويد: التخلي عن خيارات الصيغة الذكية نهائياً
+                // الميكروفون ديجا مريقل وخذا الصلاحية في النزلة اللي فاتت!
                 testMediaRecorder = new MediaRecorder(micStream);
                 
                 testAudioChunks = [];
                 testMediaRecorder.ondataavailable = ev => { if(ev.data.size > 0) testAudioChunks.push(ev.data); };
                 testMediaRecorder.onstop = () => {
-                    const audioType = testMediaRecorder.mimeType || 'audio/mp4'; // fallback
+                    const audioType = testMediaRecorder.mimeType || 'audio/mp4'; 
                     const audioBlob = new Blob(testAudioChunks, { type: audioType });
                     const audioUrl = URL.createObjectURL(audioBlob);
                     const testPlayer = document.getElementById('testAudioPlayer');
@@ -454,7 +469,7 @@
                 document.getElementById('testStatusText').innerText = "🔴 جاري التسجيل (تحدث الآن)...";
                 testMediaRecorder.start();
             } catch(err) { 
-                alert("⚠️ يرجى إعطاء صلاحية استخدام الميكروفون من إعدادات المتصفح!\n(أو تأكد أن الموقع يعمل بـ HTTPS)"); 
+                console.log(err);
             }
         }
 
@@ -687,7 +702,6 @@
             try {
                 if(!micStream) { micStream = await navigator.mediaDevices.getUserMedia({ audio: true }); }
                 
-                // التخلي عن isTypeSupported (حل جذري للآيفون)
                 mediaRecorder = new MediaRecorder(micStream);
                 
                 initAudioCtx();
@@ -710,7 +724,6 @@
                 };
                 return true;
             } catch(e) {
-                alert("⚠️ الميكروفون غير متوفر! يرجى إعطاء الصلاحية من إعدادات المتصفح.");
                 return false;
             }
         }
@@ -768,7 +781,6 @@
         async function startPTT(e) {
             if(e) { e.preventDefault(); e.stopPropagation(); }
             
-            // فتح صمامات الصوت فوراً
             initAudioCtx();
 
             let hasMic = await ensureMicrophone();
