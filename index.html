@@ -50,20 +50,22 @@
         .chk-box { width: 30px; height: 30px; border-radius: 8px; border: 2px solid #ccc; display: flex; align-items: center; justify-content: center; color: white; font-size: 18px;}
         .completed .chk-box { background: #198754; border-color: #198754; }
 
-        .floating-btn-container { position: fixed; bottom: 20px; left: 20px; display: flex; flex-direction: column; gap: 15px; z-index: 900; }
-        .float-btn { width: 60px; height: 60px; border-radius: 50%; color: white; font-size: 26px; border: none; box-shadow: 0 4px 10px rgba(0,0,0,0.3); cursor: pointer; display: flex; align-items: center; justify-content: center; transition: 0.2s; }
-        #radioBtn { background: #E10600; display: none; z-index: 10000; }
-        #radioBtn.recording { background: #198754; animation: pulse 1s infinite; box-shadow: 0 0 20px #198754; }
+        /* شريط التحكم السفلي (الجديد والمحسن) */
+        #bottomControlBar { position: fixed; bottom: 0; right: 0; width: 100%; background: rgba(255,255,255,0.98); border-top: 2px solid #ddd; z-index: 900; display: none; padding: 10px 20px; box-sizing: border-box; box-shadow: 0 -4px 15px rgba(0,0,0,0.08); align-items: center; justify-content: flex-start; gap: 15px; }
+        .float-btn { width: 60px; height: 60px; border-radius: 50%; color: white; font-size: 26px; border: none; box-shadow: 0 4px 10px rgba(0,0,0,0.3); cursor: pointer; display: flex; align-items: center; justify-content: center; transition: 0.2s; background: var(--primary-red); flex-shrink: 0;}
+        .float-btn.recording { background: #198754; animation: pulse 1s infinite; box-shadow: 0 0 20px #198754; }
         @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.1); } 100% { transform: scale(1); } }
         
-        #miniVisualizerContainer { position: fixed; bottom: 90px; left: 20px; width: 140px; height: 40px; background: rgba(0,0,0,0.85); border-radius: 10px; z-index: 899; display: none; align-items: center; justify-content: center; overflow: hidden; box-shadow: 0 4px 10px rgba(0,0,0,0.3); animation: popUp 0.3s ease; border: 1px solid #333;}
-        @keyframes popUp { from { transform: translateY(10px) scale(0.9); opacity: 0; } to { transform: translateY(0) scale(1); opacity: 1; } }
-
-        #lastMessageBanner { position: fixed; bottom: 90px; left: 50%; transform: translateX(-50%); width: 90%; max-width: 400px; background: rgba(255,255,255,0.95); border: 2px solid #ccc; border-radius: 12px; z-index: 898; display: none; align-items: center; justify-content: space-between; padding: 8px 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.15); box-sizing: border-box; }
-        .last-msg-text { font-size: 13px; font-weight: bold; color: #333; text-align: right; flex: 1; margin-left: 10px; }
-        .replay-btn { background: #17a2b8; color: white; border: none; border-radius: 8px; padding: 6px 12px; font-size: 14px; font-weight: bold; cursor: pointer; display: flex; align-items: center; gap: 5px; box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
+        .last-msg-container { display: flex; flex-direction: column; align-items: flex-start; gap: 5px; flex: 1; text-align: right; }
+        .last-msg-text { font-size: 13px; font-weight: 900; color: #333; }
+        .replay-btn { background: #17a2b8; color: white; border: none; border-radius: 8px; padding: 6px 15px; font-size: 13px; font-weight: bold; cursor: pointer; display: flex; align-items: center; gap: 5px; box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
         .replay-btn:active { transform: scale(0.95); }
 
+        /* الاستوديو المصغر (طلعناه شوية باش ما يتغطاش بالشريط) */
+        #miniVisualizerContainer { position: fixed; bottom: 100px; right: 20px; width: 140px; height: 40px; background: rgba(0,0,0,0.85); border-radius: 10px; z-index: 899; display: none; align-items: center; justify-content: center; overflow: hidden; box-shadow: 0 4px 10px rgba(0,0,0,0.3); animation: popUp 0.3s ease; border: 1px solid #333;}
+        @keyframes popUp { from { transform: translateY(10px) scale(0.9); opacity: 0; } to { transform: translateY(0) scale(1); opacity: 1; } }
+
+        /* الإشعارات */
         #radioStatus { position: fixed; top: 65px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.8); color: #fff; padding: 5px 15px; border-radius: 20px; font-size: 12px; z-index: 10000; display: none; font-weight: bold; }
         #sendSuccessBanner { position: fixed; top: 65px; left: 50%; transform: translateX(-50%); background: #198754; color: #fff; padding: 10px 20px; border-radius: 12px; font-size: 14px; z-index: 10001; display: none; font-weight: bold; box-shadow: 0 4px 10px rgba(0,0,0,0.2); animation: slideDown 0.3s ease; }
         #globalRecordingBanner { position: fixed; top: 15px; left: 50%; transform: translateX(-50%); background: #ff9800; color: #fff; padding: 4px 12px; border-radius: 20px; font-size: 13px; z-index: 10002; display: none; font-weight: bold; box-shadow: 0 4px 10px rgba(0,0,0,0.3); animation: pulseOrange 1.5s infinite; border: 2px solid white;}
@@ -71,6 +73,7 @@
         @keyframes slideDown { from { top: 0; opacity: 0; } to { top: 65px; opacity: 1; } }
         @keyframes pulseOrange { 0% { box-shadow: 0 0 0 0 rgba(255, 152, 0, 0.7); } 70% { box-shadow: 0 0 0 10px rgba(255, 152, 0, 0); } 100% { box-shadow: 0 0 0 0 rgba(255, 152, 0, 0); } }
 
+        /* وضع الجيب */
         #pocketModeOverlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; z-index: 9998; display: none; flex-direction: column; justify-content: center; align-items: center; }
         #pocketExitBtn { position: absolute; top: 40px; background: rgba(255,255,255,0.1); color: white; border: 1px solid #555; padding: 10px 20px; border-radius: 20px; font-family: 'Cairo'; font-weight: bold; cursor: pointer; }
         #visualizerCanvas { width: 90%; max-width: 400px; height: 150px; background: #000; border-radius: 15px; margin-bottom: 20px; }
@@ -79,11 +82,14 @@
         .flash-screen { animation: flashDanger 0.8s 3; }
         @keyframes flashDanger { 0% { box-shadow: inset 0 0 0px transparent; } 50% { box-shadow: inset 0 0 50px red; } 100% { box-shadow: inset 0 0 0px transparent; } }
 
-        #stageContent { padding-bottom: 180px; }
-        #backstageContent { padding-bottom: 180px; }
+        /* مساحة الأمان السفلية باش الكتيبة ما تتغطاش بالشريط */
+        #stageContent { padding-bottom: 120px; }
+        #backstageContent { padding-bottom: 120px; }
 
-        .sticky-container { position: sticky; top: 54px; background-color: var(--light-bg); z-index: 95; padding: 10px 0; border-bottom: 2px solid #ddd; margin-bottom: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+        /* التثبيت (Sticky Header) - الترويسة المدمجة */
+        .sticky-container { position: sticky; top: 54px; background-color: var(--light-bg); z-index: 95; border-bottom: 2px solid #ddd; margin-bottom: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); display: flex; justify-content: space-between; align-items: center; padding: 10px 15px; box-sizing: border-box; }
 
+        /* غرفة الفحص (Test Room) */
         #testRoomScreen { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: white; z-index: 10005; flex-direction: column; align-items: center; justify-content: center; padding: 20px; box-sizing: border-box; text-align: center; }
         .test-mic-btn { width: 80px; height: 80px; border-radius: 50%; background: var(--primary-red); color: white; font-size: 30px; border: none; box-shadow: 0 4px 15px rgba(225,6,0,0.4); margin: 20px 0; transition: 0.2s; }
         .test-mic-btn:active { transform: scale(0.9); background: #198754; box-shadow: 0 4px 15px rgba(25,135,84,0.4); }
@@ -127,9 +133,15 @@
         <canvas id="mainVisualizer" width="140" height="40"></canvas>
     </div>
 
-    <div id="lastMessageBanner">
-        <div class="last-msg-text" id="lastMsgText">🎙️ لا توجد رسائل سابقة</div>
-        <button class="replay-btn" onclick="replayLastMessage()">🔄 إعادة</button>
+    <!-- شريط التحكم السفلي (الميكرو، والرسائل، والنجدة الكلها ملمومة هنا) -->
+    <div id="bottomControlBar">
+        <!-- الميكروفون على اليمين -->
+        <button id="radioBtn" class="float-btn" onmousedown="startPTT(event)" onmouseup="stopPTT(event)" onmouseleave="stopPTT(event)" ontouchstart="startPTT(event)" ontouchend="stopPTT(event)">🎙️</button>
+        <!-- الرسائل وزر الإعادة -->
+        <div class="last-msg-container">
+            <div id="lastMsgText" class="last-msg-text">🎙️ لا توجد رسائل سابقة</div>
+            <button class="replay-btn" onclick="replayLastMessage()">🔄 إعادة الاستماع</button>
+        </div>
     </div>
 
     <header id="mainAppHeader" style="display:none;">
@@ -184,12 +196,14 @@
         </div>
 
         <div id="backstageSection" style="display:none; margin-top:0;">
+            <!-- الترويسة المدمجة (فلسات يمين، روضة يسار) -->
             <div class="sticky-container">
-                <h2 id="dashInstName_bs" style="color: var(--primary-red); margin: 0; font-size: 22px;">--</h2>
-                <div id="dashEventTime_bs" style="margin-bottom: 10px; font-weight: bold; color: #666; font-size: 14px;"></div>
-                <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px dashed #ccc; padding-top: 10px;">
-                    <h3 style="color:#17a2b8; margin: 0; font-size: 20px;">🧰 غرفة الكواليس</h3>
-                    <button class="btn btn-dark" style="padding: 5px 15px; border-radius: 12px;" onclick="closeSection()">رجوع ⬅️</button>
+                <div style="display: flex; gap: 8px;">
+                    <button class="btn btn-dark" style="padding: 5px 15px; font-size: 14px; border-radius: 12px;" onclick="closeSection()">رجوع ⬅️</button>
+                </div>
+                <div style="text-align: left;">
+                    <div id="compactInstName_bs" style="color: #17a2b8; font-size: 16px; font-weight: 900;">--</div>
+                    <div id="compactTime_bs" style="color: #666; font-size: 12px; font-weight: bold;">--</div>
                 </div>
             </div>
             
@@ -218,16 +232,16 @@
         </div>
 
         <div id="stageSection" style="display:none; margin-top:0;">
+            <!-- الترويسة المدمجة (فلسات يمين، روضة يسار) -->
             <div class="sticky-container">
-                <h2 id="dashInstName_st" style="color: var(--primary-red); margin: 0; font-size: 22px;">--</h2>
-                <div id="dashEventTime_st" style="margin-bottom: 10px; font-weight: bold; color: #666; font-size: 14px;"></div>
-                <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px dashed #ccc; padding-top: 10px;">
-                    <h3 style="color:var(--primary-red); margin: 0; font-size: 20px;">🎭 الركح المباشر</h3>
-                    <div style="display: flex; gap: 6px;">
-                        <button class="btn btn-outline" style="border-color:#6f42c1; color:#6f42c1; padding: 5px 12px; font-size: 18px; border-radius: 12px;" onclick="enterPocketMode()">🌙</button>
-                        <button class="btn btn-info" style="padding: 5px 12px; font-size: 18px; border-radius: 12px;" onclick="showCheatSheet()">ℹ️</button>
-                        <button class="btn btn-dark" style="padding: 5px 15px; font-size: 15px; border-radius: 12px;" onclick="closeSection()">رجوع</button>
-                    </div>
+                <div style="display: flex; gap: 8px;">
+                    <button class="btn btn-outline" style="border-color:#6f42c1; color:#6f42c1; padding: 5px 12px; font-size: 16px; border-radius: 12px;" onclick="enterPocketMode()">🌙</button>
+                    <button class="btn btn-info" style="padding: 5px 12px; font-size: 16px; border-radius: 12px;" onclick="showCheatSheet()">ℹ️</button>
+                    <button class="btn btn-dark" style="padding: 5px 15px; font-size: 14px; border-radius: 12px;" onclick="closeSection()">رجوع ⬅️</button>
+                </div>
+                <div style="text-align: left;">
+                    <div id="compactInstName_st" style="color: var(--primary-red); font-size: 16px; font-weight: 900;">--</div>
+                    <div id="compactTime_st" style="color: #666; font-size: 12px; font-weight: bold;">--</div>
                 </div>
             </div>
             
@@ -243,10 +257,7 @@
         </div>
     </div>
 
-    <div class="floating-btn-container">
-        <button id="radioBtn" class="float-btn" onmousedown="startPTT(event)" onmouseup="stopPTT(event)" onmouseleave="stopPTT(event)" ontouchstart="startPTT(event)" ontouchend="stopPTT(event)">🎙️</button>
-    </div>
-
+    <!-- نافذة الغشة -->
     <div id="cheatSheetModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:1000; justify-content:center; align-items:center;">
         <div style="background:white; width:90%; max-width:400px; padding:25px; border-radius:15px; text-align:right;">
             <h3 style="color:var(--primary-red); margin-top:0; border-bottom: 2px solid #eee; padding-bottom:10px;">👥 ورقة النجدة (الأسماء)</h3>
@@ -288,6 +299,21 @@
         }
 
         function toggleTeleprompter() { let tv = document.getElementById('teleprompterView'); let ti = document.getElementById('teleIcon'); if(tv.style.display === 'none') { tv.style.display = 'block'; ti.innerText = '➖'; } else { tv.style.display = 'none'; ti.innerText = '➕'; } }
+
+        // --- دالة صناعة الشارة (Dynamic Role Tagging) ---
+        function getFormattedSenderName() {
+            if (currentUser.pseudo === "حمادي" || currentUser.role === "admin") {
+                return "سي حمادي (المدير)";
+            }
+            let roleStr = "";
+            if (currentEventData && currentEventData.animationRoles && currentUser.linkedEmpName) {
+                let role = currentEventData.animationRoles[currentUser.linkedEmpName];
+                if (role === 'animateur') roleStr = " (منشط)";
+                else if (role === 'assistant') roleStr = " (مساعد)";
+                else if (role === 'dj') roleStr = " (دي جي)";
+            }
+            return currentUser.pseudo + roleStr;
+        }
 
         function login() {
             let u = document.getElementById('loginUser').value.trim(); let p = document.getElementById('loginPass').value.trim();
@@ -378,10 +404,13 @@
                 currentEventData = snap.val(); 
                 document.getElementById('dashInstName').innerText = `🏫 ${currentEventData.name}`; 
                 document.getElementById('dashEventTime').innerText = `📅 ${currentEventData.date} | 🕒 ${currentEventData.time || '--'}`;
-                document.getElementById('dashInstName_bs').innerText = `🏫 ${currentEventData.name}`; 
-                document.getElementById('dashEventTime_bs').innerText = `📅 ${currentEventData.date} | 🕒 ${currentEventData.time || '--'}`;
-                document.getElementById('dashInstName_st').innerText = `🏫 ${currentEventData.name}`; 
-                document.getElementById('dashEventTime_st').innerText = `📅 ${currentEventData.date} | 🕒 ${currentEventData.time || '--'}`;
+                
+                // تحديث الترويسة المدمجة (الركح والكواليس)
+                document.getElementById('compactInstName_bs').innerText = `🏫 ${currentEventData.name}`;
+                document.getElementById('compactTime_bs').innerText = `🕒 ${currentEventData.time || '--'} | 📅 ${currentEventData.date}`;
+                document.getElementById('compactInstName_st').innerText = `🏫 ${currentEventData.name}`;
+                document.getElementById('compactTime_st').innerText = `🕒 ${currentEventData.time || '--'} | 📅 ${currentEventData.date}`;
+                
                 renderDashboard();
             });
         }
@@ -398,34 +427,30 @@
             showScreen('dashboardScreen'); 
         }
 
-        // --- التغيير الجذري السحري (Asking Permission BEFORE Test) ---
+        // --- أخذ الصلاحية قبل الفحص ---
         let testMediaRecorder = null; let testAudioChunks = []; let isTesting = false; let micStream = null;
 
         async function initiateEntry(id) {
             pendingSectionId = id;
-            
-            // فتح صمامات الصوت الإجباري للمتصفح مع النزلة (Click Event)
             initAudioCtx();
 
             try {
                 if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-                    alert("⚠️ متصفحك الحالي لا يدعم تسجيل الصوت. الرجاء التأكد من أنك لست في متصفح مخفي داخل تطبيقة أخرى.");
+                    alert("⚠️ متصفحك الحالي لا يدعم تسجيل الصوت.");
                     return;
                 }
                 
-                // طلب الصلاحية هنا! مع النزلة الآمنة العادية
                 if(!micStream) { 
                     micStream = await navigator.mediaDevices.getUserMedia({ audio: true }); 
                 }
 
-                // إذا تمت الموافقة، نتعداو لغرفة الفحص
                 document.getElementById('dashboardMenuWrapper').style.display = 'none';
                 document.getElementById('testRoomScreen').style.display = 'flex';
                 document.getElementById('testResults').style.display = 'none';
                 document.getElementById('testStatusText').innerText = "اضغط مطولاً للتسجيل";
 
             } catch(err) {
-                alert("⚠️ لا يمكن الدخول: يرجى إعطاء صلاحية الميكروفون من إعدادات المتصفح أولاً! (أو تأكد من عدم وجود تطبيق آخر يستخدم الميكروفون)");
+                alert("⚠️ يرجى إعطاء صلاحية الميكروفون من إعدادات المتصفح أولاً!");
             }
         }
 
@@ -439,9 +464,7 @@
             if(isTesting) return;
 
             try {
-                // الميكروفون ديجا مريقل وخذا الصلاحية في النزلة اللي فاتت!
                 testMediaRecorder = new MediaRecorder(micStream);
-                
                 testAudioChunks = [];
                 testMediaRecorder.ondataavailable = ev => { if(ev.data.size > 0) testAudioChunks.push(ev.data); };
                 testMediaRecorder.onstop = () => {
@@ -468,9 +491,7 @@
                 isTesting = true;
                 document.getElementById('testStatusText').innerText = "🔴 جاري التسجيل (تحدث الآن)...";
                 testMediaRecorder.start();
-            } catch(err) { 
-                console.log(err);
-            }
+            } catch(err) { console.log(err); }
         }
 
         function stopTestRecording(e) {
@@ -492,8 +513,9 @@
             document.getElementById(pendingSectionId).style.display = 'block'; 
             if(pendingSectionId === 'backstageSection') { loadBackstageData(); startBackstageListener(); }
             if(pendingSectionId === 'stageSection') { openStageLive(); }
-            document.getElementById('radioBtn').style.display = 'flex';
-            document.getElementById('lastMessageBanner').style.display = 'flex';
+            
+            // إظهار شريط التحكم السفلي
+            document.getElementById('bottomControlBar').style.display = 'flex';
         }
 
         function closeSection() { 
@@ -501,8 +523,7 @@
             document.getElementById('backstageSection').style.display = 'none'; 
             document.getElementById('stageSection').style.display = 'none'; 
             document.getElementById('dashboardMenuWrapper').style.display = 'block';
-            document.getElementById('radioBtn').style.display = 'none'; 
-            document.getElementById('lastMessageBanner').style.display = 'none';
+            document.getElementById('bottomControlBar').style.display = 'none';
             if(wakeLock) { wakeLock.release(); wakeLock = null; }
         }
 
@@ -654,7 +675,7 @@
                     
                     document.getElementById('lastMsgText').innerText = `🎙️ آخر رسالة من: ${msg.sender} (${msg.timeStr})`;
                     
-                    if(msg.sender !== currentUser.pseudo) {
+                    if(msg.sender !== getFormattedSenderName()) {
                         let mainAudio = document.getElementById('mainRadioPlayer');
                         mainAudio.src = msg.audio; 
                         
@@ -675,7 +696,7 @@
             statusRef.on('value', snap => {
                 let recUser = snap.val();
                 let banner = document.getElementById('globalRecordingBanner');
-                if (recUser && recUser !== currentUser.pseudo) {
+                if (recUser && recUser !== getFormattedSenderName()) {
                     banner.innerText = `🎙️ ${recUser} بصدد التسجيل...`;
                     banner.style.display = 'block';
                 } else {
@@ -717,8 +738,10 @@
                         let d = new Date();
                         let tStr = d.toLocaleTimeString('ar-TN', {hour:'2-digit', minute:'2-digit'});
                         let path = isArchivedEvent ? 'BechaEventsData/archived_events/'+currentEventIndex : 'BechaEventsData/events/'+currentEventIndex;
+                        
+                        // تسجيل مع إرفاق الشارة (Dynamic Role Tagging)
                         db.ref(path + '/lastMessage').set({
-                            sender: currentUser.pseudo, audio: reader.result, timestamp: Date.now(), timeStr: tStr
+                            sender: getFormattedSenderName(), audio: reader.result, timestamp: Date.now(), timeStr: tStr
                         }).then(() => { showSendSuccess(); });
                     };
                 };
@@ -791,7 +814,7 @@
             document.getElementById('miniVisualizerContainer').style.display = 'flex'; 
             
             let path = isArchivedEvent ? 'BechaEventsData/archived_events/'+currentEventIndex : 'BechaEventsData/events/'+currentEventIndex;
-            db.ref(path + '/activeRecording').set(currentUser.pseudo);
+            db.ref(path + '/activeRecording').set(getFormattedSenderName());
             
             playBeep('start'); audioChunks = []; mediaRecorder.start();
             drawVisualizer(); 
