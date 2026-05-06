@@ -129,7 +129,6 @@
     <div id="watermarkContainer"></div>
     <div id="antiScreenshotBanner">🔴 نظام مراقبة الشاشة مفعل 🔴</div>
 
-    <!-- غرفة الفحص -->
     <div id="testRoomScreen">
         <h2 style="color: var(--primary-red); margin-top:0;">🎙️ غرفة فحص الصوت</h2>
         <p style="color: #555; font-weight: bold; margin-bottom: 5px;">يجب تجربة الميكروفون قبل الدخول</p>
@@ -142,7 +141,6 @@
         <button class="btn btn-dark" style="margin-top: 40px;" onclick="cancelMicTest()">رجوع</button>
     </div>
 
-    <!-- فخ الإقرار النفسي -->
     <div id="antiScreenModal" class="modal-overlay">
         <div class="modal-box danger">
             <h2 style="color: var(--primary-red); margin-top:0; text-align:center;">⚠️ تحذير أمني صارم!</h2>
@@ -164,7 +162,6 @@
 
     <div id="miniVisualizerContainer"><canvas id="mainVisualizer" width="140" height="40"></canvas></div>
 
-    <!-- الراديو -->
     <div id="bottomControlBar">
         <button id="radioBtn" class="float-btn" onmousedown="startPTT(event)" onmouseup="stopPTT(event)" onmouseleave="stopPTT(event)" ontouchstart="startPTT(event)" ontouchend="stopPTT(event)">🎙️</button>
         <div class="last-msg-container">
@@ -173,7 +170,6 @@
         </div>
     </div>
 
-    <!-- مودال الإنذار والتقارير -->
     <div id="infractionModal" class="modal-overlay">
         <div class="modal-box danger">
             <h2 style="color: var(--primary-red); margin-top:0;">⛔ تنبيه إداري شديد اللهجة!</h2>
@@ -202,7 +198,6 @@
         </div>
     </header>
 
-    <!-- شاشة الدخول -->
     <div id="loginScreen" class="screen active-screen">
         <div style="background: white; padding: 30px; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.1);">
             <h1 style="color: var(--primary-red); margin: 0; font-size: 32px;">BECHA EVENTS</h1>
@@ -232,13 +227,11 @@
         </div>
     </div>
 
-    <!-- العروض (للمدير) -->
     <div id="eventsScreen" class="screen">
         <h2 style="border-bottom: 2px solid var(--primary-red); padding-bottom: 10px; color: #333;">📅 عروضي القادمة</h2>
         <div id="eventsListContainer"></div>
     </div>
 
-    <!-- الإعدادات والصلاحيات التفصيلية (Gatekeeper) -->
     <div id="gatekeeperScreen" class="screen">
         <div style="background: white; padding: 20px; border-radius: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); text-align: right;">
             <h2 style="color: var(--primary-red); margin-top:0; border-bottom: 2px dashed #ccc; padding-bottom:10px;">⚙️ إعدادات وصلاحيات الفريق</h2>
@@ -252,7 +245,6 @@
         </div>
     </div>
 
-    <!-- لوحة القيادة -->
     <div id="dashboardScreen" class="screen">
         <div id="dashboardMenuWrapper">
             <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:2px dashed #ccc; padding-bottom:10px; margin-bottom:15px;">
@@ -268,7 +260,6 @@
             <button id="btnAdminSettings" class="btn btn-dark" style="width:100%; margin-top:20px; display:none;" onclick="openGatekeeper(currentEventIndex, isArchivedEvent, true)">⚙️ إعدادات وصلاحيات الفريق</button>
         </div>
 
-        <!-- الكواليس -->
         <div id="backstageSection" style="display:none; margin-top:0;">
             <div class="sticky-container">
                 <div style="display: flex; gap: 8px;"><button class="btn btn-dark" style="padding: 5px 15px; font-size: 14px; border-radius: 12px;" onclick="closeSection()">رجوع ⬅️</button></div>
@@ -298,7 +289,6 @@
             </div>
         </div>
 
-        <!-- الركح المباشر -->
         <div id="stageSection" style="display:none; margin-top:0;">
             <div class="sticky-container">
                 <div style="display: flex; gap: 8px;">
@@ -333,6 +323,27 @@
         let pendingSectionId = ''; let lastMessageBlobUrl = null; let lastMessageTimestamp = 0;
         let isEventEndedLocally = false; let localInfractionsThisSession = 0;
 
+        // المتغيرات الخاصة بالصوت (اللي كانت ناقصة وتم إرجاعها)
+        let radioReceiverActive = false; let mediaRecorder = null; let audioChunks = []; let isRecording = false; 
+        let audioCtx = null; let analyser = null; let dataArray = null; let animationId = null; let wakeLock = null;
+
+        function initAudioCtx() { 
+            if(!audioCtx) { 
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)(); 
+                analyser = audioCtx.createAnalyser(); 
+                analyser.fftSize = 128; 
+                const bufferLength = analyser.frequencyBinCount; 
+                dataArray = new Uint8Array(bufferLength); 
+            } 
+            if(audioCtx.state === 'suspended') { audioCtx.resume(); } 
+        }
+        
+        function playBeep(type) {
+            initAudioCtx(); const osc = audioCtx.createOscillator(); const gainNode = audioCtx.createGain(); osc.connect(gainNode); gainNode.connect(audioCtx.destination);
+            if(type === 'start') { osc.frequency.value = 800; gainNode.gain.setValueAtTime(0.1, audioCtx.currentTime); osc.start(); osc.stop(audioCtx.currentTime + 0.15); } 
+            else { osc.frequency.value = 600; gainNode.gain.setValueAtTime(0.1, audioCtx.currentTime); osc.start(); osc.stop(audioCtx.currentTime + 0.1); const osc2 = audioCtx.createOscillator(); const gain2 = audioCtx.createGain(); osc2.frequency.value = 600; osc2.connect(gain2); gain2.connect(audioCtx.destination); gain2.gain.setValueAtTime(0.1, audioCtx.currentTime); osc2.start(audioCtx.currentTime + 0.15); osc2.stop(audioCtx.currentTime + 0.25); }
+        }
+
         function updateClock() { let n = new Date(); let days = ['الأحد', 'الإثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت']; let c = document.getElementById('live-clock'); if(c) c.innerText = `🕒 ${n.toLocaleTimeString('ar-TN', {hour:'2-digit', minute:'2-digit'})} | ${days[n.getDay()]}`; }
         setInterval(updateClock, 1000);
         function getTolerantTodayIso() { let d = new Date(); if(d.getHours() < 2) { d.setDate(d.getDate() - 1); } d.setMinutes(d.getMinutes() - d.getTimezoneOffset()); return d.toISOString().slice(0, 10); }
@@ -346,7 +357,6 @@
         function loginAdmin() {
             let u = document.getElementById('loginUser').value.trim(); let p = document.getElementById('loginPass').value.trim();
             if(u === "حمادي" && p === "amouhfy2025") {
-                // مدير كامل الصلاحيات دائماً
                 currentUser = { pseudo: "حمادي", role: "admin", perms: { stage: true, timeline: true, bs_view: true, bs_edit: true, radar: true, end_event: true } };
                 document.getElementById('mainAppHeader').style.display = 'block';
                 document.getElementById('headerUserBadge').innerText = `👑 الإدارة (${currentUser.pseudo})`;
@@ -410,7 +420,6 @@
                             <option value="dj" ${currentRole==='dj'?'selected':''}>🎧 دي جي</option>
                         </select>`;
 
-                        // Checkboxes HTML
                         let chks = `
                             <label class="gk-perm-label"><input type="checkbox" id="perm_stage_${index}" ${perms.stage?'checked':''}> الدخول للركح 🎭</label>
                             <label class="gk-perm-label"><input type="checkbox" id="perm_timeline_${index}" ${perms.timeline?'checked':''}> التحكم بالفقرات 📜</label>
@@ -451,15 +460,10 @@
                 cStage.checked=false; cTime.checked=false; cBsView.checked=false; cBsEdit.checked=false; cRadar.checked=false; cEnd.checked=false;
             } else {
                 grid.style.opacity = '1'; grid.style.pointerEvents = 'auto';
-                cStage.checked=true; // الكل يدخل للركح أساسا
-                
-                if(role === 'admin_assistant') {
-                    cTime.checked=true; cBsView.checked=true; cBsEdit.checked=true; cRadar.checked=true; cEnd.checked=true;
-                } else if(role === 'animateur') {
-                    cTime.checked=true; cBsView.checked=false; cBsEdit.checked=false; cRadar.checked=false; cEnd.checked=false;
-                } else { // dj, assistant, assistant_anim (Read-Only Stage)
-                    cTime.checked=false; cBsView.checked=false; cBsEdit.checked=false; cRadar.checked=false; cEnd.checked=false;
-                }
+                cStage.checked=true; 
+                if(role === 'admin_assistant') { cTime.checked=true; cBsView.checked=true; cBsEdit.checked=true; cRadar.checked=true; cEnd.checked=true; } 
+                else if(role === 'animateur') { cTime.checked=true; cBsView.checked=false; cBsEdit.checked=false; cRadar.checked=false; cEnd.checked=false; } 
+                else { cTime.checked=false; cBsView.checked=false; cBsEdit.checked=false; cRadar.checked=false; cEnd.checked=false; }
             }
         }
 
@@ -496,7 +500,7 @@
             });
         }
 
-        /* ----- 3. دخول الموظف بالكود السري (PIN Login) ----- */
+        /* ----- 3. دخول الموظف بالكود السري ----- */
         function loginWithPin() {
             let pin = document.getElementById('loginPin').value.trim();
             if(!pin || pin.length < 4) return alert("الرجاء إدخال الكود السري الصحيح.");
@@ -528,7 +532,7 @@
             });
         }
 
-        /* ----- 4. الصلاحيات الديناميكية والتوجيه ----- */
+        /* ----- 4. الصلاحيات والتوجيه ----- */
         function prepareDashboardOrStage() {
             document.getElementById('dashInstName').innerText = `🏫 ${currentEventData.name}`;
             document.getElementById('dashEventTime').innerText = `📅 ${currentEventData.date} | 🕒 ${currentEventData.time || '--'}`;
@@ -536,7 +540,6 @@
             document.getElementById('compactInstName_st').innerText = `🏫 ${currentEventData.name}`;
             if(currentEventData.eventEnded === true && !isEventEndedLocally) { isEventEndedLocally = true; showFinalReport(); }
             
-            // المدير يشوف كل شيء ويرجع للوحتو
             if(currentUser.role === 'admin') { 
                 document.getElementById('btnAdminSettings').style.display = 'block'; 
                 showScreen('dashboardScreen'); 
@@ -547,26 +550,22 @@
 
         function routeBasedOnPerms() {
             let p = currentUser.perms;
-            // إظهار/إخفاء أزرار لوحة القيادة حسب الصلاحية
             document.getElementById('btnGoBackstage').style.display = p.bs_view ? 'block' : 'none';
             document.getElementById('btnGoStage').style.display = p.stage ? 'block' : 'none';
-            document.getElementById('dashBackBtn').style.display = 'none'; // الموظف ما يرجعش للعروض
+            document.getElementById('dashBackBtn').style.display = 'none'; 
             document.getElementById('btnAdminSettings').style.display = 'none';
 
-            // إذا عندو الزوز خيارات (كواليس وركح)، نخرجلو Dashboard يختار منها
             if(p.bs_view && p.stage) { showScreen('dashboardScreen'); }
-            else if (p.stage) { pendingSectionId = 'stageSection'; proceedAfterTest(); } // مباشر للركح
-            else if (p.bs_view) { pendingSectionId = 'backstageSection'; proceedAfterTest(); } // مباشر للكواليس
+            else if (p.stage) { pendingSectionId = 'stageSection'; proceedAfterTest(); } 
+            else if (p.bs_view) { pendingSectionId = 'backstageSection'; proceedAfterTest(); } 
         }
-
-        let testMediaRecorder = null; let testAudioChunks = []; let isTesting = false; let micStream = null;
 
         async function initiateMicTest(targetId) {
             pendingSectionId = targetId; initAudioCtx();
             try {
                 if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) { alert("⚠️ متصفحك لا يدعم تسجيل الصوت."); return; }
                 if(!micStream) { micStream = await navigator.mediaDevices.getUserMedia({ audio: true }); }
-                document.getElementById('dashboardMenuWrapper').style.display = 'none';
+                if(currentUser.role === 'admin' || (currentUser.perms && currentUser.perms.bs_view && currentUser.perms.stage)) { document.getElementById('dashboardMenuWrapper').style.display = 'none'; }
                 document.getElementById('testRoomScreen').style.display = 'flex';
             } catch(err) { alert("⚠️ يرجى إعطاء صلاحية الميكروفون!"); }
         }
@@ -579,7 +578,7 @@
 
         function proceedAfterTest() {
             document.getElementById('testRoomScreen').style.display = 'none';
-            if(currentUser.role === 'admin') { acceptSecurityConsent(); } // المدير ما يخرجلوش الفخ
+            if(currentUser.role === 'admin') { acceptSecurityConsent(); } 
             else { document.getElementById('antiScreenModal').style.display = 'flex'; }
         }
 
@@ -588,7 +587,6 @@
             if(currentUser.role !== 'admin') { setupWatermark(); document.getElementById('antiScreenshotBanner').style.display = 'block'; startPresenceTracker(); }
             
             initRadioReceiver(); 
-            
             if(pendingSectionId === 'route_based_on_perms') { routeBasedOnPerms(); return; }
 
             document.getElementById(pendingSectionId).style.display = 'block'; 
@@ -599,12 +597,11 @@
 
         function setupWatermark() { let wContainer = document.getElementById('watermarkContainer'); wContainer.innerHTML = ''; for(let i=0; i<40; i++) { let span = document.createElement('span'); span.className = 'watermark-text'; span.innerText = currentUser.pseudo; wContainer.appendChild(span); } wContainer.style.display = 'flex'; }
 
-        // تطبيق الصلاحيات التفصيلية (Micro-Management)
         function applyStagePermissions() {
             let tl = document.getElementById('liveProgramTimeline');
-            tl.style.pointerEvents = currentUser.perms.timeline ? 'auto' : 'none'; // تحكم الفقرات
-            document.getElementById('endEventBtn').style.display = currentUser.perms.end_event ? 'block' : 'none'; // إنهاء
-            document.querySelectorAll('.online-text').forEach(el => el.style.display = currentUser.perms.radar ? 'block' : 'none'); // رادار
+            tl.style.pointerEvents = currentUser.perms.timeline ? 'auto' : 'none';
+            document.getElementById('endEventBtn').style.display = currentUser.perms.end_event ? 'block' : 'none';
+            document.querySelectorAll('.online-text').forEach(el => el.style.display = currentUser.perms.radar ? 'block' : 'none');
         }
 
         function applyBackstagePermissions() {
@@ -612,10 +609,8 @@
             document.getElementById('instManager').disabled = !canEdit;
             document.getElementById('instFounder').disabled = !canEdit;
             document.querySelectorAll('.bs-edit-btn').forEach(btn => btn.style.display = canEdit ? 'block' : 'none');
-            // Inputs inside lists will be handled in loadBackstageData
         }
 
-        /* ----- الرادار، الكواليس، والراديو ----- */
         document.addEventListener("visibilitychange", () => {
             if(document.getElementById('stageSection').style.display === 'none' && document.getElementById('backstageSection').style.display === 'none') return;
             if(isEventEndedLocally || currentUser.role === 'admin') return; 
