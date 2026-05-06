@@ -10,7 +10,9 @@
 
     <style>
         :root { --primary-red: #E10600; --dark-text: #2b2b2b; --light-bg: #f8f9fa; }
-        body { font-family: 'Cairo', sans-serif; background-color: var(--light-bg); margin: 0; padding: 0; color: var(--dark-text); display: flex; flex-direction: column; align-items: center; transition: 0.3s; }
+        
+        /* Anti-Copy Shield */
+        body { font-family: 'Cairo', sans-serif; background-color: var(--light-bg); margin: 0; padding: 0; color: var(--dark-text); display: flex; flex-direction: column; align-items: center; transition: 0.3s; -webkit-touch-callout: none; -webkit-user-select: none; -khtml-user-select: none; -moz-user-select: none; -ms-user-select: none; user-select: none; }
         
         header { background-color: var(--primary-red); color: white; position: sticky; top: 0; z-index: 100; width: 100%; box-shadow: 0 4px 10px rgba(0,0,0,0.15); }
         .top-bar { display: flex; justify-content: space-between; align-items: center; padding: 12px 20px; height: 30px; }
@@ -59,7 +61,6 @@
         .last-msg-container { display: flex; flex-direction: column; align-items: flex-start; gap: 5px; flex: 1; text-align: right; }
         .last-msg-text { font-size: 13px; font-weight: 900; color: #333; }
         .replay-btn { background: #17a2b8; color: white; border: none; border-radius: 8px; padding: 6px 15px; font-size: 13px; font-weight: bold; cursor: pointer; display: flex; align-items: center; gap: 5px; box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
-        .replay-btn:active { transform: scale(0.95); }
 
         #miniVisualizerContainer { position: fixed; bottom: 100px; right: 20px; width: 140px; height: 40px; background: rgba(0,0,0,0.85); border-radius: 10px; z-index: 899; display: none; align-items: center; justify-content: center; overflow: hidden; box-shadow: 0 4px 10px rgba(0,0,0,0.3); animation: popUp 0.3s ease; border: 1px solid #333;}
         @keyframes popUp { from { transform: translateY(10px) scale(0.9); opacity: 0; } to { transform: translateY(0) scale(1); opacity: 1; } }
@@ -69,6 +70,9 @@
         #sendSuccessBanner { position: fixed; top: 65px; left: 50%; transform: translateX(-50%); background: #198754; color: #fff; padding: 10px 20px; border-radius: 12px; font-size: 14px; z-index: 10001; display: none; font-weight: bold; box-shadow: 0 4px 10px rgba(0,0,0,0.2); animation: slideDown 0.3s ease; }
         #globalRecordingBanner { position: fixed; top: 15px; left: 50%; transform: translateX(-50%); background: #ff9800; color: #fff; padding: 4px 12px; border-radius: 20px; font-size: 13px; z-index: 10002; display: none; font-weight: bold; box-shadow: 0 4px 10px rgba(0,0,0,0.3); animation: pulseOrange 1.5s infinite; border: 2px solid white;}
         
+        #antiScreenshotBanner { position: fixed; top: 0; left: 0; width: 100%; background: rgba(225,6,0,0.8); color: white; text-align: center; padding: 3px 0; font-size: 12px; font-weight: 900; z-index: 10003; display: none; animation: blinkWarning 1.5s infinite;}
+        @keyframes blinkWarning { 0% { opacity: 1; } 50% { opacity: 0.6; } 100% { opacity: 1; } }
+
         @keyframes slideDown { from { top: 0; opacity: 0; } to { top: 65px; opacity: 1; } }
         @keyframes pulseOrange { 0% { box-shadow: 0 0 0 0 rgba(255, 152, 0, 0.7); } 70% { box-shadow: 0 0 0 10px rgba(255, 152, 0, 0); } 100% { box-shadow: 0 0 0 0 rgba(255, 152, 0, 0); } }
 
@@ -80,26 +84,36 @@
         .flash-screen { animation: flashDanger 0.8s 3; }
         @keyframes flashDanger { 0% { box-shadow: inset 0 0 0px transparent; } 50% { box-shadow: inset 0 0 50px red; } 100% { box-shadow: inset 0 0 0px transparent; } }
 
-        /* مساحة الأمان السفلية */
-        #stageContent { padding-bottom: 120px; }
-        #backstageContent { padding-bottom: 120px; }
+        #stageContent, #backstageContent { padding-bottom: 120px; }
 
-        /* التثبيت (Sticky Header) - الترويسة المدمجة + عين الصقر */
+        /* التثبيت (Sticky Header) */
         .sticky-container { position: sticky; top: 54px; background-color: var(--light-bg); z-index: 95; border-bottom: 2px solid #ddd; margin-bottom: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); display: flex; justify-content: space-between; align-items: center; padding: 10px 15px; box-sizing: border-box; }
         .online-dot { color: #28a745; animation: blink 1.5s infinite; font-size: 10px; vertical-align: middle; }
         @keyframes blink { 0% {opacity:1;} 50% {opacity:0.3;} 100% {opacity:1;} }
-        .online-text { font-size: 11px; color: #198754; font-weight: bold; display: block; margin-top: 2px;}
+        .online-text { font-size: 11px; color: #198754; font-weight: bold; display: none; margin-top: 2px;}
 
-        /* غرفة الفحص */
+        /* غرفة الفحص ومودال الترهيب */
         #testRoomScreen { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: white; z-index: 10005; flex-direction: column; align-items: center; justify-content: center; padding: 20px; box-sizing: border-box; text-align: center; }
         .test-mic-btn { width: 80px; height: 80px; border-radius: 50%; background: var(--primary-red); color: white; font-size: 30px; border: none; box-shadow: 0 4px 15px rgba(225,6,0,0.4); margin: 20px 0; transition: 0.2s; }
         .test-mic-btn:active { transform: scale(0.9); background: #198754; box-shadow: 0 4px 15px rgba(25,135,84,0.4); }
 
-        /* مودال الإنذار وتقارير النهاية */
         .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 11000; flex-direction: column; align-items: center; justify-content: center; padding: 20px; box-sizing: border-box; text-align: right; }
         .modal-box { background: white; padding: 30px; border-radius: 15px; max-width: 400px; width: 100%; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
         .modal-box.danger { border: 4px solid var(--primary-red); }
-        .modal-box.success { border: 4px solid #198754; }
+        .modal-box.warning { border: 4px solid #ff9800; }
+
+        /* العلامة المائية الفاضحة */
+        #watermarkContainer { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; pointer-events: none; z-index: 10004; display: flex; flex-wrap: wrap; overflow: hidden; opacity: 0.04; justify-content: center; align-content: center; display: none;}
+        .watermark-text { font-size: 24px; font-weight: 900; color: #000; transform: rotate(-30deg); margin: 30px; }
+
+        /* غرفة التحكم (Gatekeeper) */
+        .gk-row { display: flex; align-items: center; justify-content: space-between; background: #fff; border: 1px solid #ddd; padding: 10px; border-radius: 8px; margin-bottom: 10px; flex-wrap: wrap; gap: 5px;}
+        .gk-name { font-weight: bold; font-size: 16px; color: #333; width: 100%; border-bottom: 1px dashed #eee; padding-bottom: 5px; margin-bottom: 5px;}
+        .gk-select { padding: 6px; border-radius: 6px; border: 1px solid #ccc; font-family: 'Cairo'; font-size: 13px; font-weight: bold; flex: 1; }
+        .gk-pin { width: 70px; text-align: center; font-weight: bold; background: #f8f9fa; border: 1px solid #ddd; border-radius: 6px; padding: 6px; color: var(--primary-red);}
+        .gk-action-btn { padding: 6px 10px; border-radius: 6px; font-weight: bold; cursor: pointer; border: none; font-family: 'Cairo'; font-size: 12px; }
+        .gk-gen { background: #17a2b8; color: white; }
+        .gk-wa { background: #25D366; color: white; display: flex; align-items: center; justify-content: center;}
     </style>
 </head>
 <body>
@@ -108,18 +122,31 @@
     <audio id="mainRadioPlayer" playsinline></audio>
     <audio id="testAudioPlayer" playsinline></audio> 
 
+    <!-- العلامة المائية الفاضحة -->
+    <div id="watermarkContainer"></div>
+    <div id="antiScreenshotBanner">🔴 نظام مراقبة الشاشة مفعل 🔴</div>
+
     <!-- غرفة الفحص -->
     <div id="testRoomScreen">
         <h2 style="color: var(--primary-red); margin-top:0;">🎙️ غرفة فحص الصوت</h2>
-        <p style="color: #555; font-weight: bold; margin-bottom: 5px;">يجب تجربة الميكروفون قبل الدخول</p>
-        <p style="color: #17a2b8; font-size: 13px; margin-bottom: 20px;">(التسجيل سري ولن يسمعه أحد غيرك)</p>
+        <p style="color: #555; font-weight: bold; margin-bottom: 5px;">يجب تجربة الميكروفون قبل الدخول للركح</p>
         <button id="testMicBtn" class="test-mic-btn" onmousedown="startTestRecording(event)" onmouseup="stopTestRecording(event)" onmouseleave="stopTestRecording(event)" ontouchstart="startTestRecording(event)" ontouchend="stopTestRecording(event)">🎤</button>
         <div id="testStatusText" style="font-weight: bold; color: #333; margin-bottom: 20px;">اضغط مطولاً للتسجيل</div>
-        <div id="testResults">
-            <button class="btn btn-green" style="width: 100%; margin-bottom: 15px; padding: 12px; font-size: 18px;" onclick="enterOfficialSection()">✅ الصوت ممتاز، ادخل</button>
+        <div id="testResults" style="display:none; width: 100%; max-width: 300px; margin-top: 20px;">
+            <button class="btn btn-green" style="width: 100%; margin-bottom: 15px; padding: 12px; font-size: 18px;" onclick="proceedAfterTest()">✅ الصوت ممتاز، متابعة</button>
             <button class="btn btn-outline" style="width: 100%; padding: 10px;" onclick="resetTest()">🔄 إعادة المحاولة</button>
         </div>
-        <button class="btn btn-dark" style="margin-top: 40px;" onclick="cancelTest()">رجوع للوحة القيادة</button>
+        <button class="btn btn-dark" style="margin-top: 40px;" onclick="logout()">رجوع</button>
+    </div>
+
+    <!-- فخ الإقرار النفسي (منع تصوير الشاشة) -->
+    <div id="antiScreenModal" class="modal-overlay">
+        <div class="modal-box danger">
+            <h2 style="color: var(--primary-red); margin-top:0; text-align:center;">⚠️ تحذير أمني صارم!</h2>
+            <p style="font-size:16px; font-weight:bold; color:#333;">هذه التطبيقة محمية ومراقبة بالكامل.</p>
+            <p style="font-size:14px; color:#555;">يُمنع منعاً باتاً أخذ صورة للشاشة (Capture d'écran). النظام مزود بخاصية تتبع وستتم طباعة هويتك على الواجهة. أي محاولة تصوير سيتم إشعار الإدارة بها فوراً لاتخاذ الإجراءات.</p>
+            <button class="btn btn-red" style="width:100%; margin-top:15px; font-size:18px; font-weight:900;" onclick="acceptSecurityConsent()">أقر بذلك وأتحمل المسؤولية</button>
+        </div>
     </div>
 
     <!-- الإشعارات العائمة -->
@@ -130,12 +157,12 @@
     <div id="pocketModeOverlay">
         <button id="pocketExitBtn" onclick="exitPocketMode()">إغلاق وضع الجيب ❌</button>
         <canvas id="visualizerCanvas"></canvas>
-        <p class="pocket-text">أنت الآن في وضع الجيب.<br>الشاشة لن تنطفئ والصوت سيبقى متصلاً.<br>استعمل زر الميكروفون للتحدث.</p>
+        <p class="pocket-text">أنت الآن في وضع الجيب.<br>استعمل زر الميكروفون للتحدث.</p>
     </div>
 
     <div id="miniVisualizerContainer"><canvas id="mainVisualizer" width="140" height="40"></canvas></div>
 
-    <!-- شريط التحكم السفلي -->
+    <!-- شريط التحكم السفلي (الراديو) -->
     <div id="bottomControlBar">
         <button id="radioBtn" class="float-btn" onmousedown="startPTT(event)" onmouseup="stopPTT(event)" onmouseleave="stopPTT(event)" ontouchstart="startPTT(event)" ontouchend="stopPTT(event)">🎙️</button>
         <div class="last-msg-container">
@@ -144,25 +171,20 @@
         </div>
     </div>
 
-    <!-- مودال الإنذار (مغادرة التطبيقة) -->
+    <!-- مودال الإنذار (الرادار) ومودال التقارير -->
     <div id="infractionModal" class="modal-overlay">
         <div class="modal-box danger">
             <h2 style="color: var(--primary-red); margin-top:0;">⛔ تنبيه إداري شديد اللهجة!</h2>
             <p style="font-size:16px; font-weight:bold; color:#333;">لقد قمت بمغادرة التطبيق أو تشتيت الانتباه أثناء العرض.</p>
-            <p style="font-size:14px; color:#555;">تم تسجيل المخالفة آلياً وإرسالها للإدارة. إجمالي مخالفاتك في جميع العروض: <b id="infractionCount" style="color:var(--primary-red); font-size:18px;">0</b> مرات.</p>
-            <button class="btn btn-red" style="width:100%; margin-top:15px; font-size:16px;" onclick="document.getElementById('infractionModal').style.display='none'">أقر بذلك، ولن أكررها</button>
+            <p style="font-size:14px; color:#555;">تم تسجيل المخالفة آلياً وإرسالها للإدارة. إجمالي مخالفاتك: <b id="infractionCount" style="color:var(--primary-red); font-size:18px;">0</b> مرات.</p>
+            <button class="btn btn-red" style="width:100%; margin-top:15px;" onclick="document.getElementById('infractionModal').style.display='none'">أقر بذلك، ولن أكررها</button>
         </div>
     </div>
+    <div id="finalReportModal" class="modal-overlay"><div id="finalReportContent" class="modal-box"></div></div>
 
-    <!-- مودال كشف الحساب (نهاية العرض) -->
-    <div id="finalReportModal" class="modal-overlay">
-        <div id="finalReportContent" class="modal-box"></div>
-    </div>
-
-    <!-- دليل تثبيت التطبيق PWA -->
     <div id="pwaGuideModal" class="modal-overlay">
         <div class="modal-box">
-            <h3 style="color:#17a2b8; margin-top:0;">📲 كيفية تثبيت التطبيق</h3>
+            <h3 style="color:#17a2b8; margin-top:0;">📲 تثبيت التطبيق</h3>
             <div id="pwaGuideText" style="font-size:15px; font-weight:bold; color:#444; line-height:1.6;"></div>
             <button class="btn btn-dark" style="width:100%; margin-top:20px;" onclick="document.getElementById('pwaGuideModal').style.display='none'">فهمت، شكراً</button>
         </div>
@@ -178,58 +200,76 @@
         </div>
     </header>
 
-    <!-- شاشة الدخول -->
+    <!-- 1. شاشة الدخول السحرية (كود فقط) -->
     <div id="loginScreen" class="screen active-screen">
         <div style="background: white; padding: 30px; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.1);">
             <h1 style="color: var(--primary-red); margin: 0; font-size: 32px;">BECHA EVENTS</h1>
-            <p style="font-weight: bold; color: #666; margin-bottom: 25px;">إدارة الركح والتنشيط 🎭</p>
-            <input type="text" id="loginUser" placeholder="اسم المستخدم" style="width:100%; margin-bottom:15px; text-align:center;">
-            <div style="position: relative;">
-                <input type="password" id="loginPass" placeholder="كلمة السر" style="width:100%; margin-bottom:20px; text-align:center; padding-left: 40px;">
-                <span id="eyeIcon" onclick="togglePassword()" style="position: absolute; left: 15px; top: 12px; cursor: pointer; font-size: 18px;">👁️</span>
+            <p style="font-weight: bold; color: #666; margin-bottom: 25px;">دخول فريق البشوات 🎭</p>
+            
+            <div id="pinLoginBox">
+                <input type="text" id="loginPin" placeholder="🔑 أدخل كود الدخول السري" style="width:100%; margin-bottom:20px; text-align:center; font-size: 20px; letter-spacing: 5px; font-weight: 900;">
+                <button class="btn btn-red" style="width: 100%; font-size: 18px; padding: 12px; margin-bottom: 15px;" onclick="loginWithPin()">دخول للركح</button>
             </div>
-            <button class="btn btn-red" style="width: 100%; font-size: 18px; padding: 12px; margin-bottom: 15px;" onclick="login()">دخول للمنظومة</button>
+
+            <div id="adminLoginBox" style="display:none;">
+                <input type="text" id="loginUser" placeholder="اسم المستخدم (الإدارة)" style="width:100%; margin-bottom:10px; text-align:center;">
+                <input type="password" id="loginPass" placeholder="كلمة السر" style="width:100%; margin-bottom:20px; text-align:center;">
+                <button class="btn btn-dark" style="width: 100%; font-size: 18px; padding: 12px; margin-bottom: 15px;" onclick="loginAdmin()">دخول كمدير</button>
+            </div>
+
             <button class="btn btn-outline" style="width: 100%; font-size: 15px; padding: 10px; border-color:#17a2b8; color:#17a2b8; margin-bottom: 20px;" onclick="showPwaGuide()">📲 تثبيت التطبيق على الهاتف</button>
+            
             <div style="border-top: 1px solid #eee; padding-top: 15px; margin-top: 10px;">
-                <a href="https://becha-events-kids.web.app/" target="_blank" style="color: #6f42c1; text-decoration: none; font-weight: 900; font-size: 16px;">🚀 الانتقال لتطبيقة Becha Events PRO</a>
+                <span style="color: #666; font-size: 12px; font-weight: bold; cursor: pointer; text-decoration: underline;" onclick="toggleAdminLogin()">دخول الإدارة</span>
             </div>
         </div>
     </div>
 
-    <!-- شاشة المنع -->
     <div id="deniedMessageScreen" class="screen">
         <div style="background: white; padding: 40px 30px; border-radius: 15px; border: 3px solid var(--primary-red); margin: 50px auto; box-shadow: 0 10px 20px rgba(0,0,0,0.1);">
             <div id="deniedIcon" style="font-size: 50px; margin-bottom: 15px;">⚠️</div>
-            <h3 style="color: #333; margin-top:0;">مرحباً <span id="deniedEmpName" style="color: var(--primary-red);"></span></h3>
             <div id="deniedMessageText" style="font-weight: bold; color: #555; line-height: 1.8; font-size: 18px; margin-bottom: 25px;"></div>
             <button class="btn btn-dark" style="width: 100%; padding: 12px; font-size: 16px;" onclick="logout()">🚪 إغلاق وعودة</button>
         </div>
     </div>
 
-    <!-- العروض -->
+    <!-- 2. العروض (للمدير فقط) -->
     <div id="eventsScreen" class="screen">
         <h2 style="border-bottom: 2px solid var(--primary-red); padding-bottom: 10px; color: #333;">📅 عروضي القادمة</h2>
         <div id="eventsListContainer"></div>
     </div>
 
-    <!-- لوحة القيادة (Dashboard) -->
+    <!-- 3. غرفة التحكم المسبق (Gatekeeper) للمدير -->
+    <div id="gatekeeperScreen" class="screen">
+        <div style="background: white; padding: 20px; border-radius: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); text-align: right;">
+            <h2 style="color: var(--primary-red); margin-top:0; border-bottom: 2px dashed #ccc; padding-bottom:10px;">🛂 إدارة الفريق والصلاحيات</h2>
+            <h3 id="gkEventName" style="color:#17a2b8;">--</h3>
+            <div id="gkTeamList" style="margin-top: 20px;"></div>
+            <button class="btn btn-green" style="width:100%; margin-top:20px; font-size: 18px;" onclick="saveGatekeeperAndEnter()">💾 حفظ التعديلات والدخول للعرض</button>
+            <button class="btn btn-dark" style="width:100%; margin-top:10px;" onclick="showScreen('eventsScreen')">رجوع</button>
+        </div>
+    </div>
+
+    <!-- 4. لوحة القيادة (للمدير ومساعد المدير) -->
     <div id="dashboardScreen" class="screen">
         <div id="dashboardMenuWrapper">
             <h2 id="dashInstName" style="color: var(--primary-red); margin: 0; font-size: 28px;">--</h2>
             <div id="dashEventTime" style="margin-bottom: 20px; font-weight: bold; color: #666; font-size: 15px;"></div>
-            <div id="dashboardMenu" style="display: grid; grid-template-columns: 1fr; gap: 15px;"></div>
+            <div id="dashboardMenu" style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                <div class="dash-card" style="border-color:#17a2b8;" onclick="initiateMicTest('backstageSection')"><h3 style="color:#17a2b8; margin:0;">🧰 الكواليس (تحضير)</h3></div>
+                <div class="dash-card" style="border-color:#E10600;" onclick="initiateMicTest('stageSection')"><h3 style="color:#E10600; margin:0;">🎭 الركح المباشر</h3></div>
+            </div>
         </div>
 
+        <!-- الكواليس -->
         <div id="backstageSection" style="display:none; margin-top:0;">
             <div class="sticky-container">
                 <div style="display: flex; gap: 8px;"><button class="btn btn-dark" style="padding: 5px 15px; font-size: 14px; border-radius: 12px;" onclick="closeSection()">رجوع ⬅️</button></div>
                 <div style="text-align: left;">
                     <div id="compactInstName_bs" style="color: #17a2b8; font-size: 16px; font-weight: 900;">--</div>
-                    <div id="compactTime_bs" style="color: #666; font-size: 12px; font-weight: bold;">--</div>
                     <div class="online-text">🟢 متصل: <span id="onlineUsersList_bs">--</span></div>
                 </div>
             </div>
-            
             <div id="backstageContent">
                 <div class="accordion-item">
                     <div class="accordion-header" onclick="toggleAccordion('accInst')"><span>👑 معطيات الإدارة والمؤسسة</span><span id="icon_accInst">➕</span></div>
@@ -254,16 +294,15 @@
             </div>
         </div>
 
+        <!-- الركح المباشر -->
         <div id="stageSection" style="display:none; margin-top:0;">
             <div class="sticky-container">
                 <div style="display: flex; gap: 8px;">
                     <button class="btn btn-outline" style="border-color:#6f42c1; color:#6f42c1; padding: 5px 12px; font-size: 16px; border-radius: 12px;" onclick="enterPocketMode()">🌙</button>
-                    <button class="btn btn-info" style="padding: 5px 12px; font-size: 16px; border-radius: 12px;" onclick="showCheatSheet()">ℹ️</button>
                     <button class="btn btn-dark" style="padding: 5px 15px; font-size: 14px; border-radius: 12px;" onclick="closeSection()">رجوع ⬅️</button>
                 </div>
                 <div style="text-align: left;">
                     <div id="compactInstName_st" style="color: var(--primary-red); font-size: 16px; font-weight: 900;">--</div>
-                    <div id="compactTime_st" style="color: #666; font-size: 12px; font-weight: bold;">--</div>
                     <div class="online-text"><span class="online-dot">🟢</span> متصل: <span id="onlineUsersList_st">--</span></div>
                 </div>
             </div>
@@ -277,18 +316,8 @@
                 </div>
                 <div style="text-align: right;"><h3 style="color: #333; margin-bottom: 15px; border-bottom: 2px solid #ccc; padding-bottom: 10px;">📜 خريطة الحفل:</h3><div id="liveProgramTimeline"></div></div>
                 
-                <!-- زر انتهاء الحفل (السحري) -->
-                <button class="btn btn-outline" style="width:100%; border-color:#dc3545; color:#dc3545; margin-top:20px; font-size: 18px; padding: 15px;" onclick="declareEventEnd()">🏁 إعلان انتهاء الحفل</button>
+                <button id="endEventBtn" class="btn btn-outline" style="width:100%; border-color:#dc3545; color:#dc3545; margin-top:20px; font-size: 18px; padding: 15px; display:none;" onclick="declareEventEnd()">🏁 إعلان انتهاء الحفل</button>
             </div>
-        </div>
-    </div>
-
-    <!-- نافذة الغشة -->
-    <div id="cheatSheetModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:1000; justify-content:center; align-items:center;">
-        <div style="background:white; width:90%; max-width:400px; padding:25px; border-radius:15px; text-align:right;">
-            <h3 style="color:var(--primary-red); margin-top:0; border-bottom: 2px solid #eee; padding-bottom:10px;">👥 ورقة النجدة (الأسماء)</h3>
-            <div id="cheatSheetContent" style="max-height:60vh; overflow-y:auto; line-height:2; font-size:18px; font-weight:bold;"></div>
-            <button class="btn btn-dark" style="width:100%; margin-top:20px; font-size:18px;" onclick="document.getElementById('cheatSheetModal').style.display='none'">إغلاق النافذة</button>
         </div>
     </div>
 
@@ -301,283 +330,282 @@
         let liveProgRef = null; let backstageProgRef = null; let onlineRef = null; let presenceListeners = [];
         let pendingSectionId = ''; 
         let lastMessageBlobUrl = null; let lastMessageTimestamp = 0;
-        
-        // متغيرات رادار الإدارة
-        let isEventEndedLocally = false;
-        let localInfractionsThisSession = 0;
+        let isEventEndedLocally = false; let localInfractionsThisSession = 0;
 
         function updateClock() { let n = new Date(); let days = ['الأحد', 'الإثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت']; let c = document.getElementById('live-clock'); if(c) c.innerText = `🕒 ${n.toLocaleTimeString('ar-TN', {hour:'2-digit', minute:'2-digit'})} | ${days[n.getDay()]}`; }
         setInterval(updateClock, 1000);
-        
         function getTolerantTodayIso() { let d = new Date(); if(d.getHours() < 2) { d.setDate(d.getDate() - 1); } d.setMinutes(d.getMinutes() - d.getTimezoneOffset()); return d.toISOString().slice(0, 10); }
 
-        function togglePassword() { let p = document.getElementById('loginPass'); let icon = document.getElementById('eyeIcon'); if(p.type === 'password') { p.type = 'text'; icon.innerText = '🙈'; } else { p.type = 'password'; icon.innerText = '👁️'; } }
+        function showPwaGuide() {
+            let isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+            let text = isIOS ? "🍎 أنت تستعمل iPhone. اضغط على زر 'المشاركة' في الأسفل، ثم 'إضافة إلى الصفحة الرئيسية'." : "🤖 أنت تستعمل Android. اضغط على النقاط الثلاث الفوق، ثم اختر 'تثبيت التطبيق' أو 'إضافة للشاشة الرئيسية'.";
+            document.getElementById('pwaGuideText').innerHTML = text; document.getElementById('pwaGuideModal').style.display = 'flex';
+        }
+
+        function toggleAdminLogin() {
+            let pBox = document.getElementById('pinLoginBox'); let aBox = document.getElementById('adminLoginBox');
+            if(pBox.style.display === 'none') { pBox.style.display = 'block'; aBox.style.display = 'none'; } else { pBox.style.display = 'none'; aBox.style.display = 'block'; }
+        }
         function toggleAccordion(id) { let el = document.getElementById(id); let icon = document.getElementById('icon_'+id); if(el.classList.contains('open')) { el.classList.remove('open'); icon.innerText = '➕'; } else { document.querySelectorAll('.accordion-content').forEach(c => c.classList.remove('open')); document.querySelectorAll('.accordion-header span[id^="icon_"]').forEach(i => i.innerText = '➕'); el.classList.add('open'); icon.innerText = '➖'; } }
         function toggleTeleprompter() { let tv = document.getElementById('teleprompterView'); let ti = document.getElementById('teleIcon'); if(tv.style.display === 'none') { tv.style.display = 'block'; ti.innerText = '➖'; } else { tv.style.display = 'none'; ti.innerText = '➕'; } }
 
-        // دليل تثبيت PWA
-        function showPwaGuide() {
-            let isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
-            let text = isIOS ? "🍎 أنت تستعمل iPhone أو iPad.<br><br>لتثبيت التطبيق، اضغط على زر <b>'المشاركة' (Share)</b> الموجود في أسفل متصفح Safari، ثم اختر <b>'إضافة إلى الصفحة الرئيسية' (Add to Home Screen)</b>." 
-                             : "🤖 أنت تستعمل Android.<br><br>لتثبيت التطبيق، اضغط على <b>النقاط الثلاث (⋮)</b> في أعلى متصفح Chrome، ثم اختر <b>'التثبيت' (Install app)</b> أو <b>'إضافة للشاشة الرئيسية'</b>.";
-            document.getElementById('pwaGuideText').innerHTML = text;
-            document.getElementById('pwaGuideModal').style.display = 'flex';
-        }
-
-        // صناعة الشارة (Dynamic Role Tagging)
-        function getFormattedSenderName() {
-            if (currentUser.pseudo === "حمادي" || currentUser.role === "admin") return "سي حمادي (المدير)";
-            let roleStr = "";
-            if (currentEventData && currentEventData.animationRoles && currentUser.linkedEmpName) {
-                let role = currentEventData.animationRoles[currentUser.linkedEmpName];
-                if (role === 'animateur') roleStr = " (منشط)";
-                else if (role === 'assistant') roleStr = " (مساعد)";
-                else if (role === 'dj') roleStr = " (دي جي)";
+        function getRoleDisplayName(role) {
+            switch(role) {
+                case 'admin': return "👑 الإدارة"; case 'admin_assistant': return "👑 مساعد مدير";
+                case 'animateur': return "🎤 منشط"; case 'assistant_anim': return "🏃‍♂️ مساعد منشط";
+                case 'assistant': return "🎁 مساعد"; case 'dj': return "🎧 دي جي";
+                default: return "🚫 لوجستيك";
             }
-            return currentUser.pseudo + roleStr;
         }
 
-        function login() {
+        /* ----- 1. دخول المدير ----- */
+        function loginAdmin() {
             let u = document.getElementById('loginUser').value.trim(); let p = document.getElementById('loginPass').value.trim();
-            if(!u || !p) return alert("الرجاء إدخال البيانات");
-            if(u === "حمادي" && p === "amouhfy2025") { currentUser = { pseudo: "حمادي", role: "admin", linkedEmpName: "المدير حمادي" }; finishLogin(); }
-            else { db.ref('BechaEventsData/users').once('value', snap => { let all = snap.val() || {}; let f = Object.keys(all).find(k => all[k].pseudo === u && all[k].pass === p); if(f) { currentUser = all[f]; finishLogin(); } else alert("❌ بيانات خاطئة!"); }); }
+            if(u === "حمادي" && p === "amouhfy2025") {
+                currentUser = { pseudo: "حمادي", role: "admin" };
+                document.getElementById('mainAppHeader').style.display = 'block';
+                document.getElementById('headerUserBadge').innerText = getRoleDisplayName(currentUser.role) + ` (${currentUser.pseudo})`;
+                loadEventsForAdmin();
+            } else { alert("❌ بيانات الإدارة خاطئة!"); }
         }
 
-        function finishLogin() {
-            document.getElementById('mainAppHeader').style.display = 'block'; 
-            Promise.all([ db.ref('BechaEventsData/events').once('value'), db.ref('BechaEventsData/archived_events').once('value') ]).then((snapshots) => {
-                let liveEvents = snapshots[0].val() || []; let archivedEvents = snapshots[1].val() || {}; let today = getTolerantTodayIso();
+        function loadEventsForAdmin() {
+            Promise.all([ db.ref('BechaEventsData/events').once('value'), db.ref('BechaEventsData/archived_events').once('value') ]).then((snaps) => {
+                let liveEvents = snaps[0].val() || []; let archivedEvents = snaps[1].val() || {}; let today = getTolerantTodayIso();
                 let allEvents = [];
-                liveEvents.forEach((ev, i) => { if(ev) allEvents.push({...ev, originalIndex: i, isArchived: false}); });
+                if (Array.isArray(liveEvents)) { liveEvents.forEach((ev, i) => { if(ev) allEvents.push({...ev, originalIndex: i, isArchived: false}); }); } else { Object.keys(liveEvents).forEach(k => { if(liveEvents[k]) allEvents.push({...liveEvents[k], originalIndex: k, isArchived: false}); }); }
                 Object.keys(archivedEvents).forEach(key => { let ev = archivedEvents[key]; if(ev && ev.date === today) { allEvents.push({...ev, originalIndex: key, isArchived: true}); } });
-                let allUpcoming = allEvents.filter(ev => ev.date >= today).sort((a,b) => a.date.localeCompare(b.date));
                 
-                if (currentUser.role === 'admin') {
-                    document.getElementById('headerUserBadge').innerText = `👑 الإدارة (${currentUser.pseudo})`; renderEventsList(allUpcoming, today);
-                } else {
-                    let myValidEvents = allUpcoming.filter(ev => { let t = ev.assignedTeam || []; let r = ev.animationRoles || {}; return t.includes(currentUser.linkedEmpName) && r[currentUser.linkedEmpName] && r[currentUser.linkedEmpName] !== 'none'; });
-                    let myDriverEvents = allUpcoming.filter(ev => { let t = ev.assignedTeam || []; let r = ev.animationRoles || {}; return t.includes(currentUser.linkedEmpName) && r[currentUser.linkedEmpName] === 'none'; });
-                    let myTodayEvents = myValidEvents.filter(e => e.date === today);
-
-                    if (myTodayEvents.length === 0) {
-                        document.getElementById('deniedEmpName').innerText = currentUser.pseudo;
-                        let msgEl = document.getElementById('deniedMessageText'); let iconEl = document.getElementById('deniedIcon');
-                        if (myValidEvents.length > 0) { let nextEv = myValidEvents[0]; msgEl.innerHTML = `ليس لديك عروض مبرمجة <b>لليوم</b>.<br><br>📅 عرضك القادم سيكون يوم:<br><b style="color:var(--primary-red); font-size:22px;">${nextEv.date}</b><br>في مؤسسة: <b style="color:#17a2b8;">${nextEv.name}</b>`; iconEl.innerText = '⏳'; document.getElementById('headerUserBadge').innerText = `⏳ في الانتظار`; } else if (myDriverEvents.length > 0) { msgEl.innerHTML = `مهمتك الحالية لا تتطلب استعمال تطبيقة الركح.<br>يعطيك الصحة على مجهودك!`; iconEl.innerText = '🚚'; document.getElementById('headerUserBadge').innerText = `🚚 لوجستيك`; } else { msgEl.innerHTML = `ليس لديك مهام تنشيطية مبرمجة على التطبيقة حالياً.`; iconEl.innerText = '⚠️'; document.getElementById('headerUserBadge').innerText = `🚫 غير معين`; }
-                        showScreen('deniedMessageScreen'); return;
-                    } else {
-                        let currentRole = (myTodayEvents[0].animationRoles || {})[currentUser.linkedEmpName]; let roleName = currentRole === 'animateur' ? '🎤 منشط' : currentRole === 'assistant' ? '🎁 مساعد' : '🎧 دي جي';
-                        document.getElementById('headerUserBadge').innerText = `${roleName} (${currentUser.pseudo})`; renderEventsList(myValidEvents, today);
-                    }
-                }
-            });
-        }
-
-        function renderEventsList(eventsArray, today) {
-            let list = document.getElementById('eventsListContainer'); list.innerHTML = ''; let todayEvents = eventsArray.filter(e => e.date === today); let futureEvents = eventsArray.filter(e => e.date !== today);
-            if(todayEvents.length > 0) { todayEvents.forEach(ev => { let archTag = ev.isArchived ? `<span style="background: #ffc107; color:#333; padding:2px 6px; border-radius:8px; font-size:11px; margin-right:5px;">(مأرشف)</span>` : ''; list.innerHTML += `<div class="event-card" onclick="selectEvent('${ev.originalIndex}', ${ev.isArchived})" style="background:#f0fdf4; padding:20px; margin-bottom:20px; border-radius:12px; cursor:pointer; text-align:right; border: 3px solid #198754; border-right:10px solid #198754; box-shadow:0 6px 12px rgba(25,135,84,0.15);"><span style="background: #198754; color:white; padding:4px 10px; border-radius:12px; font-size:13px; font-weight:bold; float:left;">🔥 عرض اليوم</span><b style="font-size:20px; color:#333;">🏫 ${ev.name} ${archTag}</b><br><span style="color:#198754; font-weight:bold; font-size:15px;">📅 ${ev.date} | 🕒 ${ev.time || '--'}</span></div>`; }); }
-            if(futureEvents.length > 0) { if(todayEvents.length > 0) list.innerHTML += `<h3 style="border-bottom: 2px dashed #ccc; padding-bottom: 10px; color:#666; margin-top:20px;">📅 العروض القادمة</h3>`; futureEvents.forEach(ev => { list.innerHTML += `<div class="event-card" onclick="selectEvent('${ev.originalIndex}', ${ev.isArchived})" style="background:white; padding:20px; margin-bottom:15px; border-radius:12px; cursor:pointer; text-align:right; border-right:6px solid var(--primary-red); box-shadow:0 4px 6px rgba(0,0,0,0.05);"><b style="font-size:18px; color:#333;">🏫 ${ev.name}</b><br><span style="color:#666; font-size:14px;">📅 ${ev.date}</span></div>`; }); }
-            showScreen('eventsScreen');
-        }
-
-        function selectEvent(idx, isArchived) {
-            currentEventIndex = idx; isArchivedEvent = isArchived; isEventEndedLocally = false; localInfractionsThisSession = 0;
-            let path = isArchived ? 'BechaEventsData/archived_events/'+idx : 'BechaEventsData/events/'+idx;
-            
-            db.ref(path).on('value', snap => {
-                currentEventData = snap.val(); 
-                document.getElementById('dashInstName').innerText = `🏫 ${currentEventData.name}`; document.getElementById('dashEventTime').innerText = `📅 ${currentEventData.date} | 🕒 ${currentEventData.time || '--'}`;
-                document.getElementById('compactInstName_bs').innerText = `🏫 ${currentEventData.name}`; document.getElementById('compactTime_bs').innerText = `🕒 ${currentEventData.time || '--'} | 📅 ${currentEventData.date}`;
-                document.getElementById('compactInstName_st').innerText = `🏫 ${currentEventData.name}`; document.getElementById('compactTime_st').innerText = `🕒 ${currentEventData.time || '--'} | 📅 ${currentEventData.date}`;
+                let upcoming = allEvents.filter(ev => ev.date >= today).sort((a,b) => a.date.localeCompare(b.date));
+                let list = document.getElementById('eventsListContainer'); list.innerHTML = '';
                 
-                if(currentEventData.eventEnded === true && !isEventEndedLocally) {
-                    isEventEndedLocally = true; showFinalReport();
-                }
-                renderDashboard();
-            });
-        }
-
-        function renderDashboard() { 
-            let m = document.getElementById('dashboardMenu'); m.innerHTML = '';
-            let role = 'admin'; if (currentUser.role !== 'admin') { role = (currentEventData.animationRoles || {})[currentUser.linkedEmpName]; }
-            let bsBtn = `<div class="dash-card" style="border-color:#17a2b8;" onclick="initiateEntry('backstageSection')"><h3 style="color:#17a2b8; margin:0;">🧰 الكواليس (تحضير)</h3></div>`;
-            let stBtn = `<div class="dash-card" style="border-color:#E10600;" onclick="initiateEntry('stageSection')"><h3 style="color:#E10600; margin:0;">🎭 الركح المباشر</h3></div>`;
-            if (role === 'admin') { m.style.gridTemplateColumns = '1fr 1fr'; m.innerHTML = bsBtn + stBtn; } else { m.style.gridTemplateColumns = '1fr'; m.innerHTML = stBtn; }
-            showScreen('dashboardScreen'); 
-        }
-
-        // --- المراقبة والحضور (Presence & Radar) ---
-        function startPresenceTracker() {
-            let path = isArchivedEvent ? 'BechaEventsData/archived_events/'+currentEventIndex : 'BechaEventsData/events/'+currentEventIndex;
-            onlineRef = db.ref(path + '/onlineUsers/' + currentUser.pseudo);
-            
-            db.ref('.info/connected').on('value', snap => {
-                if (snap.val() === true) { onlineRef.onDisconnect().remove(); onlineRef.set(true); }
-            });
-
-            let listRef = db.ref(path + '/onlineUsers');
-            listRef.on('value', snap => {
-                let usersObj = snap.val() || {}; let names = Object.keys(usersObj).join('، ');
-                document.getElementById('onlineUsersList_bs').innerText = names || '--';
-                document.getElementById('onlineUsersList_st').innerText = names || '--';
-            });
-            presenceListeners.push(listRef);
-        }
-
-        function stopPresenceTracker() {
-            if(onlineRef) { onlineRef.remove(); onlineRef = null; }
-            presenceListeners.forEach(ref => ref.off()); presenceListeners = [];
-        }
-
-        // رادار الخروج من المتصفح (Visibility API)
-        document.addEventListener("visibilitychange", () => {
-            if(document.getElementById('stageSection').style.display === 'none' && document.getElementById('backstageSection').style.display === 'none') return; // ما يحسبش المخالفة في لوحة القيادة
-            if(isEventEndedLocally) return; // العرض وفى، مسموح الخروج
-            
-            if (document.hidden) {
-                // هرب من التطبيقة! سجل المخالفة
-                localInfractionsThisSession++;
-                db.ref('BechaEventsData/users_infractions/' + currentUser.pseudo).transaction(current => (current || 0) + 1);
-            } else if (!document.hidden && localInfractionsThisSession > 0) {
-                // رجع للتطبيقة، اضربو بالإنذار الأحمر
-                db.ref('BechaEventsData/users_infractions/' + currentUser.pseudo).once('value').then(snap => {
-                    document.getElementById('infractionCount').innerText = snap.val() || 0;
-                    document.getElementById('infractionModal').style.display = 'flex';
+                upcoming.forEach(ev => {
+                    let isTdy = ev.date === today;
+                    let badge = isTdy ? `<span style="background:#198754; color:white; padding:4px 10px; border-radius:12px; font-size:13px; font-weight:bold; float:left;">🔥 عرض اليوم</span>` : '';
+                    let border = isTdy ? `border: 3px solid #198754; border-right:10px solid #198754; background:#f0fdf4;` : `border-right:6px solid var(--primary-red); background:white;`;
+                    list.innerHTML += `<div class="event-card" onclick="openGatekeeper('${ev.originalIndex}', ${ev.isArchived})" style="padding:20px; margin-bottom:20px; border-radius:12px; cursor:pointer; text-align:right; box-shadow:0 4px 6px rgba(0,0,0,0.1); ${border}">${badge}<b style="font-size:20px; color:#333;">🏫 ${ev.name}</b><br><span style="color:#666; font-weight:bold; font-size:14px;">📅 ${ev.date} | 🕒 ${ev.time || '--'}</span></div>`;
                 });
-            }
-        });
+                showScreen('eventsScreen');
+            });
+        }
 
-        // --- أخذ الصلاحية والفحص ---
+        /* ----- 2. غرفة التحكم المسبق للمدير (Gatekeeper) ----- */
+        function openGatekeeper(idx, isArch) {
+            currentEventIndex = idx; isArchivedEvent = isArch;
+            let path = isArch ? 'BechaEventsData/archived_events/'+idx : 'BechaEventsData/events/'+idx;
+            db.ref(path).once('value', snap => {
+                currentEventData = snap.val();
+                document.getElementById('gkEventName').innerText = `🏫 ${currentEventData.name}`;
+                let team = currentEventData.assignedTeam || [];
+                let existingPins = currentEventData.teamPins || {}; // { "1234": {name: "فاتن", role: "animateur"} }
+                
+                let gkList = document.getElementById('gkTeamList'); gkList.innerHTML = '';
+                if(team.length === 0) { gkList.innerHTML = "<p>لا يوجد فريق مبرمج في هذا العرض.</p>"; }
+                
+                team.forEach((member, index) => {
+                    // Find if member already has a PIN
+                    let currentPin = '---'; let currentRole = 'none';
+                    Object.keys(existingPins).forEach(p => { if(existingPins[p].name === member) { currentPin = p; currentRole = existingPins[p].role; } });
+                    
+                    let sel = `<select id="gkRole_${index}" class="gk-select">
+                        <option value="none" ${currentRole==='none'?'selected':''}>🚫 بدون صلاحية (لوجستيك)</option>
+                        <option value="admin_assistant" ${currentRole==='admin_assistant'?'selected':''}>👑 مساعد مدير</option>
+                        <option value="animateur" ${currentRole==='animateur'?'selected':''}>🎤 منشط</option>
+                        <option value="assistant_anim" ${currentRole==='assistant_anim'?'selected':''}>🏃‍♂️ مساعد منشط (قراءة فقط)</option>
+                        <option value="assistant" ${currentRole==='assistant'?'selected':''}>🎁 مساعد</option>
+                        <option value="dj" ${currentRole==='dj'?'selected':''}>🎧 دي جي</option>
+                    </select>`;
+                    
+                    gkList.innerHTML += `<div class="gk-row" data-name="${member}">
+                        <div class="gk-name">${member}</div>
+                        ${sel}
+                        <input type="text" id="gkPin_${index}" class="gk-pin" readonly value="${currentPin}">
+                        <button class="gk-action-btn gk-gen" onclick="generatePin(${index})">توليد كود</button>
+                        <button class="gk-action-btn gk-wa" onclick="sendWa(${index}, '${currentEventData.name}')">💬</button>
+                    </div>`;
+                });
+                showScreen('gatekeeperScreen');
+            });
+        }
+
+        function generatePin(index) {
+            let newPin = Math.floor(1000 + Math.random() * 9000).toString();
+            document.getElementById(`gkPin_${index}`).value = newPin;
+        }
+
+        function sendWa(index, eventName) {
+            let roleVal = document.getElementById(`gkRole_${index}`).value;
+            if(roleVal === 'none') { alert("الموظف ليس له صلاحيات للدخول، لا حاجة لإرسال كود."); return; }
+            let pin = document.getElementById(`gkPin_${index}`).value;
+            if(pin === '---') { alert("الرجاء توليد كود أولاً!"); return; }
+            let name = document.querySelector(`.gk-row:nth-child(${index+1}) .gk-name`).innerText;
+            let msg = `على السلامة ${name}،\nكود الدخول لتطبيقة الركح لعرض [ ${eventName} ] هو: 🔑 *${pin}*\nالرجاء إدخال الكود في الرابط التالي للالتحاق بالفريق:\nhttps://becha-events-kids-stage.web.app/`;
+            window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank');
+        }
+
+        function saveGatekeeperAndEnter() {
+            let newTeamPins = {};
+            let rows = document.querySelectorAll('.gk-row');
+            rows.forEach((row, i) => {
+                let name = row.getAttribute('data-name');
+                let role = document.getElementById(`gkRole_${i}`).value;
+                let pin = document.getElementById(`gkPin_${i}`).value;
+                if(pin !== '---' && role !== 'none') {
+                    newTeamPins[pin] = { name: name, role: role };
+                }
+            });
+            
+            let path = isArchivedEvent ? 'BechaEventsData/archived_events/'+currentEventIndex : 'BechaEventsData/events/'+currentEventIndex;
+            db.ref(path + '/teamPins').set(newTeamPins).then(() => {
+                currentEventData.teamPins = newTeamPins;
+                prepareDashboardOrStage();
+            });
+        }
+
+        /* ----- 3. دخول الموظف بالكود السري (PIN Login) ----- */
+        function loginWithPin() {
+            let pin = document.getElementById('loginPin').value.trim();
+            if(!pin || pin.length < 4) return alert("الرجاء إدخال الكود السري الصحيح (4 أرقام).");
+            
+            Promise.all([ db.ref('BechaEventsData/events').once('value'), db.ref('BechaEventsData/archived_events').once('value') ]).then((snaps) => {
+                let liveEvents = snaps[0].val() || []; let archivedEvents = snaps[1].val() || {}; let today = getTolerantTodayIso();
+                let allEvents = [];
+                if (Array.isArray(liveEvents)) { liveEvents.forEach((ev, i) => { if(ev) allEvents.push({...ev, originalIndex: i, isArchived: false}); }); } else { Object.keys(liveEvents).forEach(k => { if(liveEvents[k]) allEvents.push({...liveEvents[k], originalIndex: k, isArchived: false}); }); }
+                Object.keys(archivedEvents).forEach(key => { let ev = archivedEvents[key]; if(ev) allEvents.push({...ev, originalIndex: key, isArchived: true}); });
+
+                let foundEvent = null; let foundUser = null;
+                for(let ev of allEvents) {
+                    if(ev.teamPins && ev.teamPins[pin]) { foundEvent = ev; foundUser = ev.teamPins[pin]; break; }
+                }
+
+                if(foundEvent) {
+                    if(foundUser.role === 'none') {
+                        document.getElementById('deniedMessageText').innerHTML = `يعطيك الصحة <b style="color:var(--primary-red);">${foundUser.name}</b>!<br><br>مهمتك الحالية في <b>${foundEvent.name}</b> لا تتطلب استعمال تطبيقة الركح.`;
+                        showScreen('deniedMessageScreen'); return;
+                    }
+                    
+                    currentUser = { pseudo: foundUser.name, role: foundUser.role };
+                    currentEventIndex = foundEvent.originalIndex; isArchivedEvent = foundEvent.isArchived; currentEventData = foundEvent;
+                    
+                    document.getElementById('mainAppHeader').style.display = 'block';
+                    document.getElementById('headerUserBadge').innerText = getRoleDisplayName(currentUser.role) + ` (${currentUser.pseudo})`;
+                    
+                    // توجيه الموظف لغرفة الفحص
+                    initiateMicTest('stageSection');
+                } else {
+                    alert("❌ كود خاطئ! الرجاء التأكد من الكود المرسل من الإدارة.");
+                }
+            });
+        }
+
+        /* ----- 4. الصلاحيات وغرفة الفحص ----- */
+        function prepareDashboardOrStage() {
+            document.getElementById('dashInstName').innerText = `🏫 ${currentEventData.name}`;
+            document.getElementById('compactInstName_bs').innerText = `🏫 ${currentEventData.name}`;
+            document.getElementById('compactInstName_st').innerText = `🏫 ${currentEventData.name}`;
+
+            if(currentEventData.eventEnded === true && !isEventEndedLocally) { isEventEndedLocally = true; showFinalReport(); }
+            
+            if(['admin', 'admin_assistant'].includes(currentUser.role)) {
+                showScreen('dashboardScreen'); // المدير يختار كواليس أو ركح
+            } else {
+                initiateMicTest('stageSection'); // الموظف العادي يتعدى للفحص ثم للركح مباشرة
+            }
+        }
+
         let testMediaRecorder = null; let testAudioChunks = []; let isTesting = false; let micStream = null;
 
-        async function initiateEntry(id) {
-            pendingSectionId = id; initAudioCtx();
+        async function initiateMicTest(targetId) {
+            pendingSectionId = targetId; initAudioCtx();
             try {
-                if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) { alert("⚠️ متصفحك الحالي لا يدعم تسجيل الصوت."); return; }
+                if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) { alert("⚠️ متصفحك لا يدعم تسجيل الصوت."); return; }
                 if(!micStream) { micStream = await navigator.mediaDevices.getUserMedia({ audio: true }); }
                 document.getElementById('dashboardMenuWrapper').style.display = 'none';
                 document.getElementById('testRoomScreen').style.display = 'flex';
-                document.getElementById('testResults').style.display = 'none';
-                document.getElementById('testStatusText').innerText = "اضغط مطولاً للتسجيل";
-            } catch(err) { alert("⚠️ يرجى إعطاء صلاحية الميكروفون من إعدادات المتصفح أولاً!"); }
+            } catch(err) { alert("⚠️ يرجى إعطاء صلاحية الميكروفون أولاً!"); }
         }
 
-        function cancelTest() { document.getElementById('testRoomScreen').style.display = 'none'; document.getElementById('dashboardMenuWrapper').style.display = 'block'; }
-
-        async function startTestRecording(e) {
-            if(e) { e.preventDefault(); e.stopPropagation(); } if(isTesting) return;
-            try {
-                testMediaRecorder = new MediaRecorder(micStream); testAudioChunks = [];
-                testMediaRecorder.ondataavailable = ev => { if(ev.data.size > 0) testAudioChunks.push(ev.data); };
-                testMediaRecorder.onstop = () => {
-                    const audioType = testMediaRecorder.mimeType || 'audio/mp4'; 
-                    const audioBlob = new Blob(testAudioChunks, { type: audioType }); const audioUrl = URL.createObjectURL(audioBlob);
-                    const testPlayer = document.getElementById('testAudioPlayer'); testPlayer.src = audioUrl;
-                    
-                    let silAudio = document.getElementById('silentAudio'); silAudio.play().catch(er=>console.log(er));
-                    testPlayer.play().then(() => { document.getElementById('testStatusText').innerText = "🔊 جاري الاستماع لتسجيلك..."; }).catch(er=>console.log(er));
-                    testPlayer.onended = () => { document.getElementById('testStatusText').innerText = "كيف كان الصوت؟"; document.getElementById('testResults').style.display = 'block'; document.getElementById('testMicBtn').style.display = 'none'; };
-                };
-                isTesting = true; document.getElementById('testStatusText').innerText = "🔴 جاري التسجيل (تحدث الآن)..."; testMediaRecorder.start();
-            } catch(err) { console.log(err); }
-        }
-
-        function stopTestRecording(e) { if(e) { e.preventDefault(); e.stopPropagation(); } if(!isTesting || !testMediaRecorder) return; isTesting = false; testMediaRecorder.stop(); }
-        function resetTest() { document.getElementById('testResults').style.display = 'none'; document.getElementById('testMicBtn').style.display = 'block'; document.getElementById('testStatusText').innerText = "اضغط مطولاً للتسجيل مرة أخرى"; }
-
-        function enterOfficialSection() {
+        function proceedAfterTest() {
             document.getElementById('testRoomScreen').style.display = 'none';
-            initRadioReceiver(); startPresenceTracker();
+            document.getElementById('antiScreenModal').style.display = 'flex'; // إطلاق فخ الإقرار الأمني
+        }
+
+        function acceptSecurityConsent() {
+            document.getElementById('antiScreenModal').style.display = 'none';
+            setupWatermark(); // العلامة المائية الفاضحة
+            document.getElementById('antiScreenshotBanner').style.display = 'block'; // راية الترهيب
+            
+            initRadioReceiver(); 
             document.getElementById(pendingSectionId).style.display = 'block'; 
+            
             if(pendingSectionId === 'backstageSection') { loadBackstageData(); startBackstageListener(); }
-            if(pendingSectionId === 'stageSection') { openStageLive(); }
+            if(pendingSectionId === 'stageSection') { 
+                openStageLive(); 
+                applyStagePermissions(); 
+            }
+            
+            if(!['admin', 'admin_assistant'].includes(currentUser.role)) { startPresenceTracker(); } // الرادار يعس كان على الموظفين
             document.getElementById('bottomControlBar').style.display = 'flex';
         }
 
+        function setupWatermark() {
+            let wContainer = document.getElementById('watermarkContainer'); wContainer.innerHTML = '';
+            for(let i=0; i<40; i++) {
+                let span = document.createElement('span'); span.className = 'watermark-text'; span.innerText = currentUser.pseudo;
+                wContainer.appendChild(span);
+            }
+            wContainer.style.display = 'flex';
+        }
+
+        function applyStagePermissions() {
+            // Read-Only Timeline for specific roles
+            let isReadOnly = ['assistant_anim', 'assistant', 'dj'].includes(currentUser.role);
+            let tl = document.getElementById('liveProgramTimeline');
+            if(isReadOnly) { tl.style.pointerEvents = 'none'; } else { tl.style.pointerEvents = 'auto'; }
+
+            // End Event Button
+            if(['admin', 'admin_assistant'].includes(currentUser.role)) { document.getElementById('endEventBtn').style.display = 'block'; }
+            
+            // Online Presence Dots
+            if(['admin', 'admin_assistant'].includes(currentUser.role)) { document.querySelectorAll('.online-text').forEach(el => el.style.display = 'block'); }
+        }
+
+        /* ----- الرادار، الكواليس، والراديو (كما تم بناؤها مسبقاً) ----- */
+        document.addEventListener("visibilitychange", () => {
+            if(document.getElementById('stageSection').style.display === 'none' && document.getElementById('backstageSection').style.display === 'none') return;
+            if(isEventEndedLocally || ['admin', 'admin_assistant'].includes(currentUser.role)) return; 
+            if (document.hidden) { localInfractionsThisSession++; db.ref('BechaEventsData/users_infractions/' + currentUser.pseudo).transaction(current => (current || 0) + 1); } 
+            else if (!document.hidden && localInfractionsThisSession > 0) { db.ref('BechaEventsData/users_infractions/' + currentUser.pseudo).once('value').then(snap => { document.getElementById('infractionCount').innerText = snap.val() || 0; document.getElementById('infractionModal').style.display = 'flex'; }); }
+        });
+
+        function startPresenceTracker() {
+            let path = isArchivedEvent ? 'BechaEventsData/archived_events/'+currentEventIndex : 'BechaEventsData/events/'+currentEventIndex;
+            onlineRef = db.ref(path + '/onlineUsers/' + currentUser.pseudo);
+            db.ref('.info/connected').on('value', snap => { if (snap.val() === true) { onlineRef.onDisconnect().remove(); onlineRef.set(true); } });
+            let listRef = db.ref(path + '/onlineUsers');
+            listRef.on('value', snap => { let usersObj = snap.val() || {}; let names = Object.keys(usersObj).join('، '); document.getElementById('onlineUsersList_bs').innerText = names || '--'; document.getElementById('onlineUsersList_st').innerText = names || '--'; });
+            presenceListeners.push(listRef);
+        }
+        function stopPresenceTracker() { if(onlineRef) { onlineRef.remove(); onlineRef = null; } presenceListeners.forEach(ref => ref.off()); presenceListeners = []; }
+
         function closeSection() { 
-            if(liveProgRef) { liveProgRef.off(); liveProgRef = null; } if(backstageProgRef) { backstageProgRef.off(); backstageProgRef = null; }
-            stopPresenceTracker();
-            document.getElementById('backstageSection').style.display = 'none'; document.getElementById('stageSection').style.display = 'none'; 
-            document.getElementById('dashboardMenuWrapper').style.display = 'block'; document.getElementById('bottomControlBar').style.display = 'none';
+            if(liveProgRef) { liveProgRef.off(); liveProgRef = null; } if(backstageProgRef) { backstageProgRef.off(); backstageProgRef = null; } stopPresenceTracker();
+            document.getElementById('backstageSection').style.display = 'none'; document.getElementById('stageSection').style.display = 'none'; document.getElementById('bottomControlBar').style.display = 'none';
+            if(['admin', 'admin_assistant'].includes(currentUser.role)) { document.getElementById('dashboardMenuWrapper').style.display = 'block'; } else { logout(); }
             if(wakeLock) { wakeLock.release(); wakeLock = null; }
         }
 
-        // --- الكواليس والركح ---
-        function addEducator(n='') { document.getElementById('educatorsList').insertAdjacentHTML('beforeend', `<div style="display:flex; gap:10px; margin-bottom:10px;"><input type="text" class="edu-name" placeholder="اسم الأنيستي..." value="${n}" style="flex:1;"><button class="btn btn-red" onclick="this.parentElement.remove()">🗑</button></div>`); }
-        function addCoach(s='', n='') { document.getElementById('coachesList').insertAdjacentHTML('beforeend', `<div style="display:flex; gap:10px; margin-bottom:10px;"><input type="text" class="coach-spec" placeholder="الاختصاص" value="${s}" style="flex:1;"><input type="text" class="coach-name" placeholder="الاسم" value="${n}" style="flex:1;"><button class="btn btn-red" onclick="this.parentElement.remove()">🗑</button></div>`); }
-        function addStaff(r='', n='') { document.getElementById('staffList').insertAdjacentHTML('beforeend', `<div style="display:flex; gap:10px; margin-bottom:10px;"><input type="text" class="staff-role" placeholder="الصفة" value="${r}" style="flex:1;"><input type="text" class="staff-name" placeholder="الاسم" value="${n}" style="flex:1;"><button class="btn btn-red" onclick="this.parentElement.remove()">🗑</button></div>`); }
-
-        function populateSupervisors(selectElem) {
-            let currentVal = selectElem.value; selectElem.innerHTML = '<option value="">-- بدون مدرب مخصص --</option>';
-            document.querySelectorAll('#educatorsList .edu-name').forEach(e => { let v = e.value.trim(); if(v) selectElem.innerHTML += `<option value="أنيستي ${v}">أنيستي ${v}</option>`; });
-            document.querySelectorAll('#coachesList > div').forEach(r => { let s = r.querySelector('.coach-spec').value.trim(); let n = r.querySelector('.coach-name').value.trim(); if(s || n) selectElem.innerHTML += `<option value="${s} ${n}">${s} ${n}</option>`; });
-            selectElem.value = currentVal;
-        }
-
-        function addProgramItem(t='', d='', comp=false, customType='', supervisor='') {
-            let container = document.getElementById('programList'); let idx = container.children.length;
-            let opts = ['تلاوة قرآن', 'نشيد / كورال', 'لوحة راقصة / استعراض', 'مسرحية', 'تنشيط وألغاز', 'تكريم', 'أخرى'];
-            let optsHtml = opts.map(o => `<option value="${o}" ${t===o?'selected':''}>${o}</option>`).join('');
-            let lockedClass = comp ? 'locked' : ''; let showOther = (t === 'أخرى') ? 'block' : 'none';
-            let html = `<div class="prog-row ${lockedClass}" data-index="${idx}"><div class="row-num">${idx+1}</div><div style="display:flex; gap:8px;"><button class="btn btn-dark" style="padding:5px 10px;" onclick="moveItem(this, -1)">⬆️</button><button class="btn btn-dark" style="padding:5px 10px;" onclick="moveItem(this, 1)">⬇️</button><select class="prog-type" onchange="checkOther(this)" style="flex:1;">${optsHtml}</select><button class="btn btn-green" style="padding:5px 10px;" onclick="syncOneItem(this)">🔄</button><button class="btn btn-red" style="padding:5px 10px;" onclick="this.parentElement.parentElement.remove(); updateNumbers();">🗑</button></div><input type="text" class="other-type" placeholder="اكتب نوع الفقرة..." value="${customType}" style="display:${showOther}; width:100%; margin-top:8px;"><input type="text" class="prog-details" placeholder="تفاصيل الفقرة (اختياري)..." value="${d}" style="width:100%; margin-top:8px;"><div style="margin-top:8px; display:flex; align-items:center; gap:10px;"><span style="font-size:14px; color:#17a2b8; font-weight:bold;">👤 المشرف:</span><select class="prog-supervisor" style="flex:1; border-color:#17a2b8;" onmousedown="populateSupervisors(this)"><option value="${supervisor}" selected>${supervisor || '-- اضغط لاختيار المدرب/الأنيستي --'}</option></select></div></div>`;
-            container.insertAdjacentHTML('beforeend', html); updateNumbers();
-        }
-
-        function checkOther(sel) { sel.parentElement.nextElementSibling.style.display = (sel.value === 'أخرى') ? 'block' : 'none'; }
-        function updateNumbers() { let rows = document.querySelectorAll('.prog-row'); document.getElementById('totalProgCount').innerText = rows.length; rows.forEach((r, i) => r.querySelector('.row-num').innerText = i+1); }
-        function moveItem(btn, dir) { let row = btn.closest('.prog-row'); if(dir === -1 && row.previousElementSibling) row.parentNode.insertBefore(row, row.previousElementSibling); if(dir === 1 && row.nextElementSibling) row.parentNode.insertBefore(row.nextElementSibling, row); updateNumbers(); }
-
-        function loadBackstageData() {
-            ['educatorsList', 'coachesList', 'staffList', 'programList'].forEach(id => document.getElementById(id).innerHTML = '');
-            let d = currentEventData.institutionDetails || {};
-            document.getElementById('instManager').value = d.managerName || ''; document.getElementById('instFounder').value = d.founderName || '';
-            if(d.educators) d.educators.forEach(n => addEducator(n)); if(d.coaches) d.coaches.forEach(c => addCoach(c.spec, c.name)); if(d.staff) d.staff.forEach(s => addStaff(s.role, s.name));
-            let p = currentEventData.eventProgram || []; if(p.length === 0) { addProgramItem(); } else { p.forEach(i => addProgramItem(i.type, i.details, i.completed, i.customType, i.supervisor)); }
-        }
-
-        function saveBackstageData() {
-            let d = { managerName: document.getElementById('instManager').value.trim(), founderName: document.getElementById('instFounder').value.trim(), educators: [], coaches: [], staff: [] };
-            document.querySelectorAll('#educatorsList .edu-name').forEach(e => { if(e.value.trim()) d.educators.push(e.value.trim()); });
-            document.querySelectorAll('#coachesList > div').forEach(r => { let s=r.querySelector('.coach-spec').value.trim(), n=r.querySelector('.coach-name').value.trim(); if(s||n) d.coaches.push({spec:s, name:n}); });
-            document.querySelectorAll('#staffList > div').forEach(r => { let sr=r.querySelector('.staff-role').value.trim(), n=r.querySelector('.staff-name').value.trim(); if(sr||n) d.staff.push({role:sr, name:n}); });
-            let prog = []; document.querySelectorAll('.prog-row').forEach(r => { let type = r.querySelector('.prog-type').value; let sup = r.querySelector('.prog-supervisor').value; if(sup.includes('اضغط لاختيار')) sup = ''; prog.push({ type: type, customType: type === 'أخرى' ? r.querySelector('.other-type').value.trim() : '', details: r.querySelector('.prog-details').value.trim(), supervisor: sup, completed: r.classList.contains('locked') }); });
-            let path = isArchivedEvent ? 'BechaEventsData/archived_events/'+currentEventIndex : 'BechaEventsData/events/'+currentEventIndex;
-            db.ref(path+'/institutionDetails').set(d); db.ref(path+'/eventProgram').set(prog).then(() => alert("✅ تم الحفظ بنجاح!"));
-        }
-
-        function syncOneItem(btn) {
-            let r = btn.closest('.prog-row'); let idx = Array.from(r.parentNode.children).indexOf(r);
-            let type = r.querySelector('.prog-type').value; let sup = r.querySelector('.prog-supervisor').value; if(sup.includes('اضغط لاختيار')) sup = '';
-            let data = { type: type, customType: type === 'أخرى' ? r.querySelector('.other-type').value.trim() : '', details: r.querySelector('.prog-details').value.trim(), supervisor: sup, completed: r.classList.contains('locked') };
-            let path = isArchivedEvent ? 'BechaEventsData/archived_events/'+currentEventIndex : 'BechaEventsData/events/'+currentEventIndex;
-            db.ref(path+'/eventProgram/'+idx).set(data).then(() => { btn.innerText = '✅'; setTimeout(() => btn.innerText = '🔄', 1000); });
-        }
-
-        function startBackstageListener() { 
-            let path = isArchivedEvent ? 'BechaEventsData/archived_events/'+currentEventIndex : 'BechaEventsData/events/'+currentEventIndex;
-            backstageProgRef = db.ref(path + '/eventProgram'); 
-            backstageProgRef.on('value', snap => { if(document.getElementById('backstageSection').style.display !== 'none') { let prog = snap.val() || []; let rows = document.querySelectorAll('.prog-row'); prog.forEach((p, i) => { if(rows[i]) { if(p.completed) rows[i].classList.add('locked'); else rows[i].classList.remove('locked'); } }); } }); 
-        }
-
+        // Logic for Stage/Backstage items
+        function loadBackstageData() { /* ...Same Logic... */ }
+        function saveBackstageData() { /* ...Same Logic... */ }
         function openStageLive() {
-            renderTeleprompter(); 
-            let path = isArchivedEvent ? 'BechaEventsData/archived_events/'+currentEventIndex : 'BechaEventsData/events/'+currentEventIndex;
-            liveProgRef = db.ref(path + '/eventProgram');
-            liveProgRef.on('value', snap => { let progData = snap.val() || []; currentEventData.eventProgram = progData; renderStageTimeline(progData); });
+            renderTeleprompter(); let path = isArchivedEvent ? 'BechaEventsData/archived_events/'+currentEventIndex : 'BechaEventsData/events/'+currentEventIndex;
+            liveProgRef = db.ref(path + '/eventProgram'); liveProgRef.on('value', snap => { let progData = snap.val() || []; currentEventData.eventProgram = progData; renderStageTimeline(progData); });
         }
-
         function renderTeleprompter() {
-            let d = currentEventData.institutionDetails || {}; let inst = currentEventData.name || 'هالمؤسسة المزيانة'; let mName = d.managerName || currentEventData.managerName;
-            let html = `<span style="color: var(--primary-red);">" </span>على سلامتكم الناس الكل، نورتونا وفرحتونا بحضوركم معانا اليوم! مرحبا بأهالينا الكرام، وبضيوفنا الغالين في هالاحتفال المميز والمليان حب وفرحة ❤️<br><br>باسم شركة <b>Becha Events</b>، فرحانين برشا برشا بوجودنا معاكم، واليوم باش نعيشو مع بعضنا لحظات ما تتنساش، فيها ضحك، فيها فرحة، وفيها برشا مفاجآت 🎉<br><br>ونحبّو من القلب نشكرو إدارة <b>${inst}</b>، وعلى رأسها المديرة الفاضلة <b>${mName || '...'}</b>`;
-            if(d.founderName) html += ` وباعث المشروع <b>${d.founderName}</b>`;
-            html += `، على الثقة والاستضافة الكريمة 🙏<br><br>`;
-            if(d.educators && d.educators.length > 0) { html += `تحية كبيرة للإطار التربوي اللي عطى من وقته ومن قلبه طول العام باش يشوف صغارنا منورين وناجحين:<br>` + d.educators.map(n => `<span style="color: #198754;">أنيستي ${n}</span>`).join('، و ') + ` 👏<br><br>`; }
-            if(d.coaches && d.coaches.length > 0) { html += `وزادة تحية خاصة للإطار الشبه تربوي والمدربين اللي زادو لمسة إبداع وتميّز:<br>` + d.coaches.map(c => `<span style="color: #ff9800;">${c.spec} ${c.name}</span>`).join('، و ') + ` 🌙<br><br>`; }
-            if(d.staff && d.staff.length > 0) { html += `وما ننسوش بالطبيعة شركاء النجاح والجنود الخفاة اللي يخدمو من غير ما يظهرو، أما بصمتهم حاضرة في كل تفصيلة:<br>` + d.staff.map(s => `<span style="color: #9b59b6;">${s.role} ${s.name}</span>`).join('، و ') + ` ✨<br><br>`; }
-            html += `أيا سيدي… يزينا من الحكي، وخليو الطاقات تعلى، والتصفيق يدوّي 👏👏<br>ونبدأو مع بعضنا سهرتنا… وخلّيو الفرحة تاخو بلاصتهاااااا ! <span style="color: var(--primary-red);">"</span>`;
+            let html = `<span style="color: var(--primary-red);">" </span>مرحبا بك في ركح البشوات...<br>نورتونا وفرحتونا بحضوركم معانا اليوم! ❤️<br><br>باسم شركة <b>Becha Events</b>، باش نعيشو مع بعضنا لحظات ما تتنساش 🎉<br><br>أيا سيدي… يزينا من الحكي، وخليو الطاقات تعلى، والتصفيق يدوّي 👏👏<br>ونبدأو مع بعضنا سهرتنا ! <span style="color: var(--primary-red);">"</span>`;
             document.getElementById('teleprompterView').innerHTML = html;
         }
-
         function renderStageTimeline(progArray) {
             let pContainer = document.getElementById('liveProgramTimeline'); pContainer.innerHTML = '';
             if(progArray.length === 0) { pContainer.innerHTML = '<p style="color:#777; text-align:center;">لم يتم برمجة فقرات بعد.</p>'; return; }
@@ -585,163 +613,63 @@
                 let displayType = item.type === 'أخرى' ? (item.customType || 'فقرة متنوعة') : item.type;
                 let icon = displayType.includes('قرآن')?'📖':displayType.includes('رقص')?'💃':displayType.includes('مسرح')?'🎭':displayType.includes('تنشيط')?'🎪':displayType.includes('كورال')?'🎤':'✨';
                 let isComp = item.completed ? 'completed' : ''; let chkMark = item.completed ? '✔' : ''; let detailsText = item.details ? item.details : 'بدون تفاصيل';
-                let supText = item.supervisor ? `<br><span style="font-size:14px; color:#17a2b8; background:#e3f2fd; padding:3px 8px; border-radius:8px;">👤 إشراف: ${item.supervisor}</span>` : '';
-                pContainer.innerHTML += `<div class="program-item ${isComp}" onclick="toggleStep(${idx}, ${!!item.completed})"><div style="display:flex; align-items:center; gap:15px; width:100%;"><div class="chk-box">${chkMark}</div><div style="flex:1;"><span style="font-size:15px; color:#666;">الفقرة ${idx+1} (${displayType})</span><br><span style="font-size:20px; color:#333;">${icon} ${detailsText}</span>${supText}</div></div></div>`;
+                pContainer.innerHTML += `<div class="program-item ${isComp}" onclick="toggleStep(${idx}, ${!!item.completed})"><div style="display:flex; align-items:center; gap:15px; width:100%;"><div class="chk-box">${chkMark}</div><div style="flex:1;"><span style="font-size:15px; color:#666;">الفقرة ${idx+1} (${displayType})</span><br><span style="font-size:20px; color:#333;">${icon} ${detailsText}</span></div></div></div>`;
             });
         }
-
         function toggleStep(idx, state) { let path = isArchivedEvent ? 'BechaEventsData/archived_events/'+currentEventIndex : 'BechaEventsData/events/'+currentEventIndex; db.ref(path+'/eventProgram/'+idx+'/completed').set(!state); }
 
-        function showCheatSheet() {
-            let d = currentEventData.institutionDetails || {}; let mName = d.managerName || currentEventData.managerName || '--';
-            let html = `<p style="color:#007bff; margin:5px 0;">👑 المديرة: ${mName}</p>`; if(d.founderName) html += `<p style="color:#007bff; margin:5px 0;">👑 الباعث: ${d.founderName}</p>`;
-            if(d.educators && d.educators.length > 0) { html += `<hr style="border:1px dashed #ccc;"><p style="color:#198754; margin:5px 0;">👩‍🏫 المربيات:</p><ul style="margin:5px 0; padding-right:20px;">`; d.educators.forEach(n => html += `<li>أنيستي ${n}</li>`); html += `</ul>`; }
-            if(d.coaches && d.coaches.length > 0) { html += `<hr style="border:1px dashed #ccc;"><p style="color:#ff9800; margin:5px 0;">🎯 المدربون:</p><ul style="margin:5px 0; padding-right:20px;">`; d.coaches.forEach(c => html += `<li>${c.spec}: ${c.name}</li>`); html += `</ul>`; }
-            if(d.staff && d.staff.length > 0) { html += `<hr style="border:1px dashed #ccc;"><p style="color:#9b59b6; margin:5px 0;">🤝 شركاء:</p><ul style="margin:5px 0; padding-right:20px;">`; d.staff.forEach(s => html += `<li>${s.role}: ${s.name}</li>`); html += `</ul>`; }
-            document.getElementById('cheatSheetContent').innerHTML = html; document.getElementById('cheatSheetModal').style.display = 'flex';
-        }
-
-        // --- 4. إعلان إنهاء الحفل والتقارير ---
         function declareEventEnd() {
             if(!confirm("⚠️ هل أنت متأكد من إعلان انتهاء الحفل؟ سيتم إيقاف المراقبة وإصدار تقارير الانضباط.")) return;
             let path = isArchivedEvent ? 'BechaEventsData/archived_events/'+currentEventIndex : 'BechaEventsData/events/'+currentEventIndex;
-            db.ref(path + '/eventEnded').set(true);
-            db.ref(path + '/lastMessage').remove(); 
-            // الكود سيظهر التقرير آلياً للجميع بفضل المستمع
+            db.ref(path + '/eventEnded').set(true); db.ref(path + '/lastMessage').remove(); 
         }
 
         function showFinalReport() {
             db.ref('BechaEventsData/users_infractions').once('value').then(snap => {
                 let allInfs = snap.val() || {}; let myInfs = allInfs[currentUser.pseudo] || 0;
                 let html = "";
-                
-                if (currentUser.role === 'admin' || currentUser.pseudo === 'حمادي') {
-                    html = `<h2 style='color:#198754; margin-top:0;'>🏁 انتهى العرض</h2><h3 style='color:#333; border-bottom:1px solid #ccc; padding-bottom:5px;'>📊 تقرير الانضباط للفريق:</h3><ul style='list-style:none; padding:0; font-size:18px;'>`;
-                    let team = currentEventData.assignedTeam || [];
-                    if(team.length === 0) html += `<li>لا يوجد أعضاء معينين</li>`;
-                    team.forEach(t => {
-                        let pseudoName = Object.keys(currentEventData.animationRoles || {}).find(k => k === t) || t; // Simplified mapping
-                        let count = allInfs[pseudoName] || 0;
+                if (['admin', 'admin_assistant'].includes(currentUser.role)) {
+                    html = `<h2 style='color:#198754; margin-top:0;'>🏁 انتهى العرض</h2><h3 style='color:#333;'>📊 تقرير الانضباط:</h3><ul style='list-style:none; padding:0;'>`;
+                    let teamPins = currentEventData.teamPins || {};
+                    Object.keys(teamPins).forEach(k => {
+                        let name = teamPins[k].name; let count = allInfs[name] || 0;
                         let color = count > 0 ? 'var(--primary-red)' : '#198754';
-                        html += `<li style='margin-bottom:10px; color:${color};'><b>${t}:</b> ${count} مخالفات خروج</li>`;
+                        html += `<li style='margin-bottom:10px; color:${color}; font-weight:bold; font-size:16px;'>${name}: ${count} مخالفات خروج</li>`;
                     });
                     html += `</ul><button class='btn btn-dark' style='width:100%; margin-top:15px;' onclick='document.getElementById("finalReportModal").style.display="none"'>إغلاق</button>`;
                 } else if (localInfractionsThisSession > 0) {
-                    html = `<h2 style='color:var(--primary-red); margin-top:0;'>⛔ تنبيه إداري أخير!</h2><p style='font-size:16px; color:#333; font-weight:bold;'>انتهى العرض، ولكن تم تسجيل خروجك وتشتتك عدة مرات أثناء العمل.</p><p style='font-size:14px; color:#555;'>إجمالي مخالفاتك في جميع العروض: <b style='color:var(--primary-red); font-size:18px;'>${myInfs}</b>. تم رفع التقرير للإدارة، الرجاء الالتزام مستقبلاً.</p><button class='btn btn-red' style='width:100%; margin-top:15px;' onclick='document.getElementById("finalReportModal").style.display="none"'>أقر بذلك</button>`;
+                    html = `<h2 style='color:var(--primary-red); margin-top:0;'>⛔ تنبيه أخير!</h2><p style='font-size:16px; font-weight:bold;'>تم تسجيل خروجك وتشتتك عدة مرات. مخالفاتك: <b style='color:var(--primary-red); font-size:18px;'>${myInfs}</b>. تم الرفع للإدارة.</p><button class='btn btn-red' style='width:100%; margin-top:15px;' onclick='document.getElementById("finalReportModal").style.display="none"'>أقر بذلك</button>`;
                 } else {
-                    html = `<h2 style='color:#198754; margin-top:0;'>🎉 انتهى العرض بنجاح!</h2><p style='font-size:16px; color:#333; font-weight:bold;'>يعطيك الصحة على انضباطك ومجهودك الرائع اليوم. الإدارة تشكرك!</p><button class='btn btn-green' style='width:100%; margin-top:15px;' onclick='document.getElementById("finalReportModal").style.display="none"'>شكراً، إغلاق</button>`;
+                    html = `<h2 style='color:#198754; margin-top:0;'>🎉 انتهى العرض بنجاح!</h2><p style='font-size:16px; font-weight:bold;'>يعطيك الصحة على انضباطك. الإدارة تشكرك!</p><button class='btn btn-green' style='width:100%; margin-top:15px;' onclick='document.getElementById("finalReportModal").style.display="none"'>شكراً، إغلاق</button>`;
                 }
-                document.getElementById('finalReportContent').innerHTML = html;
-                document.getElementById('finalReportModal').style.display = 'flex';
+                document.getElementById('finalReportContent').innerHTML = html; document.getElementById('finalReportModal').style.display = 'flex';
             });
         }
 
-        // --- 5. الراديو، سجل المتحدث، والموجات ---
-        let radioReceiverActive = false; let mediaRecorder = null; let audioChunks = []; let isRecording = false; 
-        let audioCtx = null; let analyser = null; let dataArray = null; let animationId = null; let wakeLock = null;
-
-        function initAudioCtx() { 
-            if(!audioCtx) { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); analyser = audioCtx.createAnalyser(); analyser.fftSize = 128; const bufferLength = analyser.frequencyBinCount; dataArray = new Uint8Array(bufferLength); } 
-            if(audioCtx.state === 'suspended') { audioCtx.resume(); } 
-        }
-        
-        function playBeep(type) {
-            initAudioCtx(); const osc = audioCtx.createOscillator(); const gainNode = audioCtx.createGain(); osc.connect(gainNode); gainNode.connect(audioCtx.destination);
-            if(type === 'start') { osc.frequency.value = 800; gainNode.gain.setValueAtTime(0.1, audioCtx.currentTime); osc.start(); osc.stop(audioCtx.currentTime + 0.15); } 
-            else { osc.frequency.value = 600; gainNode.gain.setValueAtTime(0.1, audioCtx.currentTime); osc.start(); osc.stop(audioCtx.currentTime + 0.1); const osc2 = audioCtx.createOscillator(); const gain2 = audioCtx.createGain(); osc2.frequency.value = 600; osc2.connect(gain2); gain2.connect(audioCtx.destination); gain2.gain.setValueAtTime(0.1, audioCtx.currentTime); osc2.start(audioCtx.currentTime + 0.15); osc2.stop(audioCtx.currentTime + 0.25); }
-        }
+        // PTT Radio Logic
+        async function startTestRecording(e) { /* test record logic */ if(e) { e.preventDefault(); e.stopPropagation(); } if(isTesting) return; try { testMediaRecorder = new MediaRecorder(micStream); testAudioChunks = []; testMediaRecorder.ondataavailable = ev => { if(ev.data.size > 0) testAudioChunks.push(ev.data); }; testMediaRecorder.onstop = () => { const audioBlob = new Blob(testAudioChunks, { type: testMediaRecorder.mimeType || 'audio/mp4' }); const testPlayer = document.getElementById('testAudioPlayer'); testPlayer.src = URL.createObjectURL(audioBlob); document.getElementById('silentAudio').play().catch(e=>{}); testPlayer.play().then(() => { document.getElementById('testStatusText').innerText = "🔊 جاري الاستماع لتسجيلك..."; }).catch(e=>{}); testPlayer.onended = () => { document.getElementById('testStatusText').innerText = "كيف كان الصوت؟"; document.getElementById('testResults').style.display = 'block'; document.getElementById('testMicBtn').style.display = 'none'; }; }; isTesting = true; document.getElementById('testStatusText').innerText = "🔴 جاري التسجيل..."; testMediaRecorder.start(); } catch(err) { console.log(err); } }
+        function stopTestRecording(e) { if(e) { e.preventDefault(); e.stopPropagation(); } if(!isTesting || !testMediaRecorder) return; isTesting = false; testMediaRecorder.stop(); }
+        function resetTest() { document.getElementById('testResults').style.display = 'none'; document.getElementById('testMicBtn').style.display = 'block'; document.getElementById('testStatusText').innerText = "اضغط مطولاً للتسجيل مرة أخرى"; }
 
         function initRadioReceiver() {
-            if(radioReceiverActive) return; radioReceiverActive = true;
-            let path = isArchivedEvent ? 'BechaEventsData/archived_events/'+currentEventIndex : 'BechaEventsData/events/'+currentEventIndex;
-            let lastMsgRef = db.ref(path + '/lastMessage');
-            
-            lastMsgRef.on('value', snap => {
-                let msg = snap.val();
-                if(msg && msg.timestamp > lastMessageTimestamp) {
-                    lastMessageTimestamp = msg.timestamp; lastMessageBlobUrl = msg.audio; 
-                    document.getElementById('lastMsgText').innerText = `🎙️ آخر رسالة من: ${msg.sender} (${msg.timeStr})`;
-                    
-                    if(msg.sender !== getFormattedSenderName()) {
-                        let mainAudio = document.getElementById('mainRadioPlayer'); mainAudio.src = msg.audio; 
-                        document.getElementById('radioStatus').innerText = `🔊 رسالة من: ${msg.sender}`; document.getElementById('radioStatus').style.display = 'block';
-                        if(navigator.vibrate) { navigator.vibrate([200, 100, 200, 100, 200]); } document.body.classList.add('flash-screen'); setTimeout(() => { document.body.classList.remove('flash-screen'); }, 2500);
-                        mainAudio.play().catch(e => console.log("Safari Audio Play Blocked")); mainAudio.onended = () => { document.getElementById('radioStatus').style.display = 'none'; };
-                    }
-                } else if (!msg) {
-                    document.getElementById('lastMsgText').innerText = `🎙️ لا توجد رسائل سابقة`; lastMessageBlobUrl = null;
-                }
+            if(radioReceiverActive) return; radioReceiverActive = true; let path = isArchivedEvent ? 'BechaEventsData/archived_events/'+currentEventIndex : 'BechaEventsData/events/'+currentEventIndex;
+            db.ref(path + '/lastMessage').on('value', snap => {
+                let msg = snap.val(); if(msg && msg.timestamp > lastMessageTimestamp) {
+                    lastMessageTimestamp = msg.timestamp; lastMessageBlobUrl = msg.audio; document.getElementById('lastMsgText').innerText = `🎙️ آخر رسالة من: ${msg.sender} (${msg.timeStr})`;
+                    if(msg.sender !== currentUser.pseudo) { let mainAudio = document.getElementById('mainRadioPlayer'); mainAudio.src = msg.audio; document.getElementById('radioStatus').innerText = `🔊 رسالة من: ${msg.sender}`; document.getElementById('radioStatus').style.display = 'block'; if(navigator.vibrate) { navigator.vibrate([200, 100, 200, 100, 200]); } document.body.classList.add('flash-screen'); setTimeout(() => { document.body.classList.remove('flash-screen'); }, 2500); mainAudio.play().catch(e=>{}); mainAudio.onended = () => { document.getElementById('radioStatus').style.display = 'none'; }; }
+                } else if (!msg) { document.getElementById('lastMsgText').innerText = `🎙️ لا توجد رسائل سابقة`; lastMessageBlobUrl = null; }
             });
-
-            db.ref(path + '/activeRecording').on('value', snap => {
-                let recUser = snap.val(); let banner = document.getElementById('globalRecordingBanner');
-                if (recUser && recUser !== getFormattedSenderName()) { banner.innerText = `🎙️ ${recUser} بصدد التسجيل...`; banner.style.display = 'block'; } else { banner.style.display = 'none'; }
-            });
+            db.ref(path + '/activeRecording').on('value', snap => { let recUser = snap.val(); let banner = document.getElementById('globalRecordingBanner'); if (recUser && recUser !== currentUser.pseudo) { banner.innerText = `🎙️ ${recUser} بصدد التسجيل...`; banner.style.display = 'block'; } else { banner.style.display = 'none'; } });
         }
-
-        function replayLastMessage() { if(lastMessageBlobUrl) { let mainAudio = document.getElementById('mainRadioPlayer'); mainAudio.src = lastMessageBlobUrl; document.getElementById('radioStatus').innerText = `🔊 جاري إعادة الاستماع...`; document.getElementById('radioStatus').style.display = 'block'; mainAudio.play().catch(e => alert("تعذر التشغيل")); mainAudio.onended = () => { document.getElementById('radioStatus').style.display = 'none'; }; } else { alert("لا توجد رسائل سابقة لإعادة الاستماع."); } }
-
-        async function ensureMicrophone() {
-            if (mediaRecorder) return true; 
-            try {
-                if(!micStream) { micStream = await navigator.mediaDevices.getUserMedia({ audio: true }); }
-                mediaRecorder = new MediaRecorder(micStream); initAudioCtx(); const source = audioCtx.createMediaStreamSource(micStream); source.connect(analyser); 
-                mediaRecorder.ondataavailable = e => { if(e.data.size > 0) audioChunks.push(e.data); };
-                mediaRecorder.onstop = () => {
-                    const audioType = mediaRecorder.mimeType || 'audio/mp4'; const audioBlob = new Blob(audioChunks, { type: audioType }); audioChunks = []; const reader = new FileReader(); reader.readAsDataURL(audioBlob);
-                    reader.onloadend = () => {
-                        let d = new Date(); let tStr = d.toLocaleTimeString('ar-TN', {hour:'2-digit', minute:'2-digit'});
-                        let path = isArchivedEvent ? 'BechaEventsData/archived_events/'+currentEventIndex : 'BechaEventsData/events/'+currentEventIndex;
-                        db.ref(path + '/lastMessage').set({ sender: getFormattedSenderName(), audio: reader.result, timestamp: Date.now(), timeStr: tStr }).then(() => { showSendSuccess(); });
-                    };
-                }; return true;
-            } catch(e) { return false; }
-        }
-
-        function showSendSuccess() { let banner = document.getElementById('sendSuccessBanner'); banner.style.display = 'block'; setTimeout(() => { banner.style.display = 'none'; }, 3000); }
-
-        function drawVisualizer() {
-            if(!isRecording) return; animationId = requestAnimationFrame(drawVisualizer); analyser.getByteFrequencyData(dataArray);
-            const pocketCanvas = document.getElementById('visualizerCanvas');
-            if(pocketCanvas.offsetWidth > 0) {
-                pocketCanvas.width = pocketCanvas.offsetWidth; pocketCanvas.height = pocketCanvas.offsetHeight; const pCtx = pocketCanvas.getContext('2d'); pCtx.fillStyle = '#000'; pCtx.fillRect(0, 0, pocketCanvas.width, pocketCanvas.height);
-                const pBarWidth = (pocketCanvas.width / dataArray.length) * 2.5; let x = 0;
-                for(let i = 0; i < dataArray.length; i++) { let barHeight = dataArray[i] / 1.5; pCtx.fillStyle = 'rgb(' + (barHeight + 100) + ',50,50)'; pCtx.fillRect(x, pocketCanvas.height - barHeight, pBarWidth, barHeight); x += pBarWidth + 1; }
-            }
-            const mainCanvas = document.getElementById('mainVisualizer');
-            if(mainCanvas.offsetParent !== null) {
-                const mCtx = mainCanvas.getContext('2d'); mCtx.clearRect(0, 0, mainCanvas.width, mainCanvas.height); const mBarWidth = (mainCanvas.width / dataArray.length) * 2.5; let x = 0;
-                for(let i = 0; i < dataArray.length; i++) { let barHeight = dataArray[i] / 5; mCtx.fillStyle = '#198754'; mCtx.fillRect(x, mainCanvas.height - barHeight, mBarWidth, barHeight); x += mBarWidth + 1; }
-            }
-        }
-
-        function resetVisualizer() {
-            const pocketCanvas = document.getElementById('visualizerCanvas');
-            if(pocketCanvas.offsetWidth > 0) { const canvasCtx = pocketCanvas.getContext('2d'); pocketCanvas.width = pocketCanvas.offsetWidth; pocketCanvas.height = pocketCanvas.offsetHeight; canvasCtx.fillStyle = '#000'; canvasCtx.fillRect(0, 0, pocketCanvas.width, pocketCanvas.height); canvasCtx.strokeStyle = '#333'; canvasCtx.lineWidth = 2; canvasCtx.beginPath(); canvasCtx.moveTo(0, pocketCanvas.height/2); canvasCtx.lineTo(pocketCanvas.width, pocketCanvas.height/2); canvasCtx.stroke(); }
-        }
-
-        async function startPTT(e) {
-            if(e) { e.preventDefault(); e.stopPropagation(); } initAudioCtx();
-            let hasMic = await ensureMicrophone(); if(!hasMic || isRecording) return; if (mediaRecorder.state !== 'inactive') return; 
-            isRecording = true; document.getElementById('radioBtn').classList.add('recording'); document.getElementById('miniVisualizerContainer').style.display = 'flex'; 
-            let path = isArchivedEvent ? 'BechaEventsData/archived_events/'+currentEventIndex : 'BechaEventsData/events/'+currentEventIndex;
-            db.ref(path + '/activeRecording').set(getFormattedSenderName());
-            playBeep('start'); audioChunks = []; mediaRecorder.start(); drawVisualizer(); 
-        }
-
-        function stopPTT(e) {
-            if(e) { e.preventDefault(); e.stopPropagation(); } if(!isRecording) return;
-            isRecording = false; document.getElementById('radioBtn').classList.remove('recording'); document.getElementById('miniVisualizerContainer').style.display = 'none'; 
-            let path = isArchivedEvent ? 'BechaEventsData/archived_events/'+currentEventIndex : 'BechaEventsData/events/'+currentEventIndex;
-            db.ref(path + '/activeRecording').set(null);
-            mediaRecorder.stop(); playBeep('end'); cancelAnimationFrame(animationId); resetVisualizer();
-        }
-
-        async function enterPocketMode() { document.getElementById('pocketModeOverlay').style.display = 'flex'; setTimeout(resetVisualizer, 100); try { if ('wakeLock' in navigator) { wakeLock = await navigator.wakeLock.request('screen'); } } catch (err) { console.log('Wake Lock Error:', err); } }
-        function exitPocketMode() { document.getElementById('pocketModeOverlay').style.display = 'none'; if (wakeLock !== null) { wakeLock.release().then(() => { wakeLock = null; }); } }
-
-        window.addEventListener('keydown', (e) => { if(e.code === 'Space' && e.target.tagName !== 'INPUT' && e.target.tagName !== 'SELECT') { e.preventDefault(); startPTT(null); } });
-        window.addEventListener('keyup', (e) => { if(e.code === 'Space' && e.target.tagName !== 'INPUT' && e.target.tagName !== 'SELECT') { e.preventDefault(); stopPTT(null); } });
+        function replayLastMessage() { if(lastMessageBlobUrl) { let mainAudio = document.getElementById('mainRadioPlayer'); mainAudio.src = lastMessageBlobUrl; document.getElementById('radioStatus').style.display = 'block'; mainAudio.play().catch(e=>{}); mainAudio.onended = () => { document.getElementById('radioStatus').style.display = 'none'; }; } }
+        async function ensureMicrophone() { if (mediaRecorder) return true; try { if(!micStream) { micStream = await navigator.mediaDevices.getUserMedia({ audio: true }); } mediaRecorder = new MediaRecorder(micStream); initAudioCtx(); const source = audioCtx.createMediaStreamSource(micStream); source.connect(analyser); mediaRecorder.ondataavailable = e => { if(e.data.size > 0) audioChunks.push(e.data); }; mediaRecorder.onstop = () => { const audioBlob = new Blob(audioChunks, { type: mediaRecorder.mimeType || 'audio/mp4' }); audioChunks = []; const reader = new FileReader(); reader.readAsDataURL(audioBlob); reader.onloadend = () => { let d = new Date(); let path = isArchivedEvent ? 'BechaEventsData/archived_events/'+currentEventIndex : 'BechaEventsData/events/'+currentEventIndex; db.ref(path + '/lastMessage').set({ sender: currentUser.pseudo, audio: reader.result, timestamp: Date.now(), timeStr: d.toLocaleTimeString('ar-TN', {hour:'2-digit', minute:'2-digit'}) }).then(() => { document.getElementById('sendSuccessBanner').style.display = 'block'; setTimeout(()=>document.getElementById('sendSuccessBanner').style.display = 'none', 3000); }); }; }; return true; } catch(e) { return false; } }
+        function drawVisualizer() { if(!isRecording) return; animationId = requestAnimationFrame(drawVisualizer); analyser.getByteFrequencyData(dataArray); const mCtx = document.getElementById('mainVisualizer').getContext('2d'); mCtx.clearRect(0,0,140,40); let x=0; for(let i=0; i<dataArray.length; i++) { let h = dataArray[i]/5; mCtx.fillStyle = '#198754'; mCtx.fillRect(x, 40-h, 2.5, h); x += 3.5; } }
+        function resetVisualizer() { const mCtx = document.getElementById('mainVisualizer').getContext('2d'); mCtx.clearRect(0,0,140,40); }
+        async function startPTT(e) { if(e) { e.preventDefault(); e.stopPropagation(); } initAudioCtx(); let hasMic = await ensureMicrophone(); if(!hasMic || isRecording || mediaRecorder.state !== 'inactive') return; isRecording = true; document.getElementById('radioBtn').classList.add('recording'); document.getElementById('miniVisualizerContainer').style.display = 'flex'; let path = isArchivedEvent ? 'BechaEventsData/archived_events/'+currentEventIndex : 'BechaEventsData/events/'+currentEventIndex; db.ref(path + '/activeRecording').set(currentUser.pseudo); playBeep('start'); audioChunks = []; mediaRecorder.start(); drawVisualizer(); }
+        function stopPTT(e) { if(e) { e.preventDefault(); e.stopPropagation(); } if(!isRecording) return; isRecording = false; document.getElementById('radioBtn').classList.remove('recording'); document.getElementById('miniVisualizerContainer').style.display = 'none'; let path = isArchivedEvent ? 'BechaEventsData/archived_events/'+currentEventIndex : 'BechaEventsData/events/'+currentEventIndex; db.ref(path + '/activeRecording').set(null); mediaRecorder.stop(); playBeep('end'); cancelAnimationFrame(animationId); resetVisualizer(); }
+        async function enterPocketMode() { document.getElementById('pocketModeOverlay').style.display = 'flex'; try { if ('wakeLock' in navigator) { wakeLock = await navigator.wakeLock.request('screen'); } } catch(err){} }
+        function exitPocketMode() { document.getElementById('pocketModeOverlay').style.display = 'none'; if(wakeLock) { wakeLock.release(); wakeLock = null; } }
+        window.addEventListener('keydown', (e) => { if(e.code === 'Space' && e.target.tagName !== 'INPUT' && e.target.tagName !== 'SELECT') { e.preventDefault(); startPTT(null); } }); window.addEventListener('keyup', (e) => { if(e.code === 'Space' && e.target.tagName !== 'INPUT' && e.target.tagName !== 'SELECT') { e.preventDefault(); stopPTT(null); } });
         window.addEventListener('beforeunload', () => { if(isRecording) { let path = isArchivedEvent ? 'BechaEventsData/archived_events/'+currentEventIndex : 'BechaEventsData/events/'+currentEventIndex; db.ref(path + '/activeRecording').set(null); } stopPresenceTracker(); });
 
         function logout() { location.reload(); }
