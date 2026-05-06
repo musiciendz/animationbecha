@@ -129,6 +129,7 @@
     <div id="watermarkContainer"></div>
     <div id="antiScreenshotBanner">🔴 نظام مراقبة الشاشة مفعل 🔴</div>
 
+    <!-- غرفة الفحص -->
     <div id="testRoomScreen">
         <h2 style="color: var(--primary-red); margin-top:0;">🎙️ غرفة فحص الصوت</h2>
         <p style="color: #555; font-weight: bold; margin-bottom: 5px;">يجب تجربة الميكروفون قبل الدخول</p>
@@ -141,6 +142,7 @@
         <button class="btn btn-dark" style="margin-top: 40px;" onclick="cancelMicTest()">رجوع</button>
     </div>
 
+    <!-- فخ الإقرار النفسي -->
     <div id="antiScreenModal" class="modal-overlay">
         <div class="modal-box danger">
             <h2 style="color: var(--primary-red); margin-top:0; text-align:center;">⚠️ تحذير أمني صارم!</h2>
@@ -162,6 +164,7 @@
 
     <div id="miniVisualizerContainer"><canvas id="mainVisualizer" width="140" height="40"></canvas></div>
 
+    <!-- الراديو -->
     <div id="bottomControlBar">
         <button id="radioBtn" class="float-btn" onmousedown="startPTT(event)" onmouseup="stopPTT(event)" onmouseleave="stopPTT(event)" ontouchstart="startPTT(event)" ontouchend="stopPTT(event)">🎙️</button>
         <div class="last-msg-container">
@@ -170,6 +173,7 @@
         </div>
     </div>
 
+    <!-- مودال الإنذار والتقارير -->
     <div id="infractionModal" class="modal-overlay">
         <div class="modal-box danger">
             <h2 style="color: var(--primary-red); margin-top:0;">⛔ تنبيه إداري شديد اللهجة!</h2>
@@ -198,6 +202,7 @@
         </div>
     </header>
 
+    <!-- شاشة الدخول -->
     <div id="loginScreen" class="screen active-screen">
         <div style="background: white; padding: 30px; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.1);">
             <h1 style="color: var(--primary-red); margin: 0; font-size: 32px;">BECHA EVENTS</h1>
@@ -227,11 +232,13 @@
         </div>
     </div>
 
+    <!-- العروض (للمدير) -->
     <div id="eventsScreen" class="screen">
         <h2 style="border-bottom: 2px solid var(--primary-red); padding-bottom: 10px; color: #333;">📅 عروضي القادمة</h2>
         <div id="eventsListContainer"></div>
     </div>
 
+    <!-- الإعدادات والصلاحيات التفصيلية (Gatekeeper) -->
     <div id="gatekeeperScreen" class="screen">
         <div style="background: white; padding: 20px; border-radius: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); text-align: right;">
             <h2 style="color: var(--primary-red); margin-top:0; border-bottom: 2px dashed #ccc; padding-bottom:10px;">⚙️ إعدادات وصلاحيات الفريق</h2>
@@ -245,6 +252,7 @@
         </div>
     </div>
 
+    <!-- لوحة القيادة -->
     <div id="dashboardScreen" class="screen">
         <div id="dashboardMenuWrapper">
             <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:2px dashed #ccc; padding-bottom:10px; margin-bottom:15px;">
@@ -260,6 +268,7 @@
             <button id="btnAdminSettings" class="btn btn-dark" style="width:100%; margin-top:20px; display:none;" onclick="openGatekeeper(currentEventIndex, isArchivedEvent, true)">⚙️ إعدادات وصلاحيات الفريق</button>
         </div>
 
+        <!-- الكواليس -->
         <div id="backstageSection" style="display:none; margin-top:0;">
             <div class="sticky-container">
                 <div style="display: flex; gap: 8px;"><button class="btn btn-dark" style="padding: 5px 15px; font-size: 14px; border-radius: 12px;" onclick="closeSection()">رجوع ⬅️</button></div>
@@ -289,6 +298,7 @@
             </div>
         </div>
 
+        <!-- الركح المباشر -->
         <div id="stageSection" style="display:none; margin-top:0;">
             <div class="sticky-container">
                 <div style="display: flex; gap: 8px;">
@@ -323,9 +333,8 @@
         let pendingSectionId = ''; let lastMessageBlobUrl = null; let lastMessageTimestamp = 0;
         let isEventEndedLocally = false; let localInfractionsThisSession = 0;
 
-        // المتغيرات الخاصة بالصوت (اللي كانت ناقصة وتم إرجاعها)
         let radioReceiverActive = false; let mediaRecorder = null; let audioChunks = []; let isRecording = false; 
-        let audioCtx = null; let analyser = null; let dataArray = null; let animationId = null; let wakeLock = null;
+        let audioCtx = null; let analyser = null; let dataArray = null; let animationId = null; let wakeLock = null; let testMediaRecorder = null; let testAudioChunks = []; let isTesting = false; let micStream = null;
 
         function initAudioCtx() { 
             if(!audioCtx) { 
@@ -448,12 +457,7 @@
         function applyQuickRole(selElem, index) {
             let role = selElem.value;
             let grid = document.getElementById(`gkPermsGrid_${index}`);
-            let cStage = document.getElementById(`perm_stage_${index}`);
-            let cTime = document.getElementById(`perm_timeline_${index}`);
-            let cBsView = document.getElementById(`perm_bs_view_${index}`);
-            let cBsEdit = document.getElementById(`perm_bs_edit_${index}`);
-            let cRadar = document.getElementById(`perm_radar_${index}`);
-            let cEnd = document.getElementById(`perm_end_${index}`);
+            let cStage = document.getElementById(`perm_stage_${index}`); let cTime = document.getElementById(`perm_timeline_${index}`); let cBsView = document.getElementById(`perm_bs_view_${index}`); let cBsEdit = document.getElementById(`perm_bs_edit_${index}`); let cRadar = document.getElementById(`perm_radar_${index}`); let cEnd = document.getElementById(`perm_end_${index}`);
 
             if(role === 'none') {
                 grid.style.opacity = '0.4'; grid.style.pointerEvents = 'none';
@@ -481,14 +485,7 @@
                 let role = document.getElementById(`gkRole_${i}`).value;
                 let pin = document.getElementById(`gkPin_${i}`).value;
                 
-                let perms = {
-                    stage: document.getElementById(`perm_stage_${i}`).checked,
-                    timeline: document.getElementById(`perm_timeline_${i}`).checked,
-                    bs_view: document.getElementById(`perm_bs_view_${i}`).checked,
-                    bs_edit: document.getElementById(`perm_bs_edit_${i}`).checked,
-                    radar: document.getElementById(`perm_radar_${i}`).checked,
-                    end_event: document.getElementById(`perm_end_${i}`).checked
-                };
+                let perms = { stage: document.getElementById(`perm_stage_${i}`).checked, timeline: document.getElementById(`perm_timeline_${i}`).checked, bs_view: document.getElementById(`perm_bs_view_${i}`).checked, bs_edit: document.getElementById(`perm_bs_edit_${i}`).checked, radar: document.getElementById(`perm_radar_${i}`).checked, end_event: document.getElementById(`perm_end_${i}`).checked };
 
                 if(role !== 'none') { newGlobalRoles[name] = { role: role, perms: perms }; }
                 if(pin && role !== 'none') { newTeamPins[pin] = { name: name, role: role, perms: perms }; }
@@ -532,7 +529,7 @@
             });
         }
 
-        /* ----- 4. الصلاحيات والتوجيه ----- */
+        /* ----- 4. الصلاحيات والتوجيه (الحل السحري لمشكلة البلوكاج) ----- */
         function prepareDashboardOrStage() {
             document.getElementById('dashInstName').innerText = `🏫 ${currentEventData.name}`;
             document.getElementById('dashEventTime').innerText = `📅 ${currentEventData.date} | 🕒 ${currentEventData.time || '--'}`;
@@ -556,18 +553,68 @@
             document.getElementById('btnAdminSettings').style.display = 'none';
 
             if(p.bs_view && p.stage) { showScreen('dashboardScreen'); }
-            else if (p.stage) { pendingSectionId = 'stageSection'; proceedAfterTest(); } 
-            else if (p.bs_view) { pendingSectionId = 'backstageSection'; proceedAfterTest(); } 
+            else if (p.stage) { initiateMicTest('stageSection'); } 
+            else if (p.bs_view) { initiateMicTest('backstageSection'); } 
         }
 
-        async function initiateMicTest(targetId) {
-            pendingSectionId = targetId; initAudioCtx();
-            try {
-                if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) { alert("⚠️ متصفحك لا يدعم تسجيل الصوت."); return; }
-                if(!micStream) { micStream = await navigator.mediaDevices.getUserMedia({ audio: true }); }
-                if(currentUser.role === 'admin' || (currentUser.perms && currentUser.perms.bs_view && currentUser.perms.stage)) { document.getElementById('dashboardMenuWrapper').style.display = 'none'; }
-                document.getElementById('testRoomScreen').style.display = 'flex';
-            } catch(err) { alert("⚠️ يرجى إعطاء صلاحية الميكروفون!"); }
+        // الحل السحري اللي حكينا عليه: تأجيل طلب الميكروفون
+        function initiateMicTest(targetId) {
+            pendingSectionId = targetId; 
+            
+            // إخفاء الـ Dashboard
+            if(currentUser.role === 'admin' || (currentUser.perms && currentUser.perms.bs_view && currentUser.perms.stage)) { 
+                document.getElementById('dashboardMenuWrapper').style.display = 'none'; 
+            }
+
+            // الإدارة تتخطى غرفة فحص الميكرو وتتعدى ديراكت
+            if(currentUser.role === 'admin') {
+                acceptSecurityConsent();
+                return;
+            }
+
+            // الموظفين يشوفوا الشاشة، وطلب الميكرو يصير لداخل وقت النزول
+            document.getElementById('testRoomScreen').style.display = 'flex';
+            document.getElementById('testResults').style.display = 'none';
+            document.getElementById('testMicBtn').style.display = 'block';
+            document.getElementById('testStatusText').innerText = "اضغط مطولاً للتسجيل";
+        }
+
+        // هنا يصير الطلب الفعلي للميكرو، بطريقة آمنة ما تبلونطيش متصفح الـ iOS
+        async function startTestRecording(e) { 
+            if(e) { e.preventDefault(); e.stopPropagation(); } 
+            if(isTesting) return; 
+            try { 
+                initAudioCtx();
+                if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) { 
+                    alert("⚠️ متصفحك لا يدعم تسجيل الصوت."); return; 
+                }
+                
+                if(!micStream) { 
+                    micStream = await navigator.mediaDevices.getUserMedia({ audio: true }); 
+                }
+                
+                testMediaRecorder = new MediaRecorder(micStream); 
+                testAudioChunks = []; 
+                testMediaRecorder.ondataavailable = ev => { if(ev.data.size > 0) testAudioChunks.push(ev.data); }; 
+                testMediaRecorder.onstop = () => { 
+                    const audioBlob = new Blob(testAudioChunks, { type: testMediaRecorder.mimeType || 'audio/mp4' }); 
+                    const testPlayer = document.getElementById('testAudioPlayer'); 
+                    testPlayer.src = URL.createObjectURL(audioBlob); 
+                    document.getElementById('silentAudio').play().catch(e=>{}); 
+                    testPlayer.play().then(() => { document.getElementById('testStatusText').innerText = "🔊 جاري الاستماع لتسجيلك..."; }).catch(e=>{}); 
+                    testPlayer.onended = () => { 
+                        document.getElementById('testStatusText').innerText = "كيف كان الصوت؟"; 
+                        document.getElementById('testResults').style.display = 'block'; 
+                        document.getElementById('testMicBtn').style.display = 'none'; 
+                    }; 
+                }; 
+                isTesting = true; 
+                document.getElementById('testStatusText').innerText = "🔴 جاري التسجيل..."; 
+                testMediaRecorder.start(); 
+            } catch(err) { 
+                console.log(err);
+                alert("⚠️ يرجى إعطاء صلاحية الميكروفون أولاً!"); 
+            } 
         }
 
         function cancelMicTest() {
@@ -575,6 +622,9 @@
             if(currentUser.role === 'admin' || (currentUser.perms && currentUser.perms.bs_view && currentUser.perms.stage)) { document.getElementById('dashboardMenuWrapper').style.display = 'block'; }
             else { logout(); }
         }
+
+        function stopTestRecording(e) { if(e) { e.preventDefault(); e.stopPropagation(); } if(!isTesting || !testMediaRecorder) return; isTesting = false; testMediaRecorder.stop(); }
+        function resetTest() { document.getElementById('testResults').style.display = 'none'; document.getElementById('testMicBtn').style.display = 'block'; document.getElementById('testStatusText').innerText = "اضغط مطولاً للتسجيل مرة أخرى"; }
 
         function proceedAfterTest() {
             document.getElementById('testRoomScreen').style.display = 'none';
@@ -687,10 +737,6 @@
         }
 
         // PTT Radio Logic
-        async function startTestRecording(e) { if(e) { e.preventDefault(); e.stopPropagation(); } if(isTesting) return; try { testMediaRecorder = new MediaRecorder(micStream); testAudioChunks = []; testMediaRecorder.ondataavailable = ev => { if(ev.data.size > 0) testAudioChunks.push(ev.data); }; testMediaRecorder.onstop = () => { const audioBlob = new Blob(testAudioChunks, { type: testMediaRecorder.mimeType || 'audio/mp4' }); const testPlayer = document.getElementById('testAudioPlayer'); testPlayer.src = URL.createObjectURL(audioBlob); document.getElementById('silentAudio').play().catch(e=>{}); testPlayer.play().then(() => { document.getElementById('testStatusText').innerText = "🔊 جاري الاستماع لتسجيلك..."; }).catch(e=>{}); testPlayer.onended = () => { document.getElementById('testStatusText').innerText = "كيف كان الصوت؟"; document.getElementById('testResults').style.display = 'block'; document.getElementById('testMicBtn').style.display = 'none'; }; }; isTesting = true; document.getElementById('testStatusText').innerText = "🔴 جاري التسجيل..."; testMediaRecorder.start(); } catch(err) { console.log(err); } }
-        function stopTestRecording(e) { if(e) { e.preventDefault(); e.stopPropagation(); } if(!isTesting || !testMediaRecorder) return; isTesting = false; testMediaRecorder.stop(); }
-        function resetTest() { document.getElementById('testResults').style.display = 'none'; document.getElementById('testMicBtn').style.display = 'block'; document.getElementById('testStatusText').innerText = "اضغط مطولاً للتسجيل مرة أخرى"; }
-
         function initRadioReceiver() {
             if(radioReceiverActive) return; radioReceiverActive = true; let path = isArchivedEvent ? 'BechaEventsData/archived_events/'+currentEventIndex : 'BechaEventsData/events/'+currentEventIndex;
             db.ref(path + '/lastMessage').on('value', snap => { let msg = snap.val(); if(msg && msg.timestamp > lastMessageTimestamp) { lastMessageTimestamp = msg.timestamp; lastMessageBlobUrl = msg.audio; document.getElementById('lastMsgText').innerText = `🎙️ آخر رسالة من: ${msg.sender} (${msg.timeStr})`; if(msg.sender !== currentUser.pseudo) { let mainAudio = document.getElementById('mainRadioPlayer'); mainAudio.src = msg.audio; document.getElementById('radioStatus').innerText = `🔊 رسالة من: ${msg.sender}`; document.getElementById('radioStatus').style.display = 'block'; if(navigator.vibrate) { navigator.vibrate([200, 100, 200, 100, 200]); } document.body.classList.add('flash-screen'); setTimeout(() => { document.body.classList.remove('flash-screen'); }, 2500); mainAudio.play().catch(e=>{}); mainAudio.onended = () => { document.getElementById('radioStatus').style.display = 'none'; }; } } else if (!msg) { document.getElementById('lastMsgText').innerText = `🎙️ لا توجد رسائل سابقة`; lastMessageBlobUrl = null; } });
