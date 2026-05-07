@@ -11,7 +11,6 @@
     <style>
         :root { --primary-red: #E10600; --dark-text: #2b2b2b; --light-bg: #f8f9fa; }
         
-        /* Anti-Copy Shield */
         body { font-family: 'Cairo', sans-serif; background-color: var(--light-bg); margin: 0; padding: 0; color: var(--dark-text); display: flex; flex-direction: column; align-items: center; transition: 0.3s; -webkit-touch-callout: none; -webkit-user-select: none; -khtml-user-select: none; -moz-user-select: none; -ms-user-select: none; user-select: none; }
         
         header { background-color: var(--primary-red); color: white; position: sticky; top: 0; z-index: 100; width: 100%; box-shadow: 0 4px 10px rgba(0,0,0,0.15); }
@@ -53,7 +52,6 @@
         .chk-box { width: 30px; height: 30px; border-radius: 8px; border: 2px solid #ccc; display: flex; align-items: center; justify-content: center; color: white; font-size: 18px;}
         .completed .chk-box { background: #198754; border-color: #198754; }
 
-        /* شريط التحكم السفلي */
         #bottomControlBar { position: fixed; bottom: 0; right: 0; width: 100%; background: rgba(255,255,255,0.98); border-top: 2px solid #ddd; z-index: 900; display: none; padding: 10px 20px; box-sizing: border-box; box-shadow: 0 -4px 15px rgba(0,0,0,0.08); align-items: center; justify-content: flex-start; gap: 15px; }
         .float-btn { width: 60px; height: 60px; border-radius: 50%; color: white; font-size: 26px; border: none; box-shadow: 0 4px 10px rgba(0,0,0,0.3); cursor: pointer; display: flex; align-items: center; justify-content: center; transition: 0.2s; background: var(--primary-red); flex-shrink: 0;}
         .float-btn.recording { background: #198754; animation: pulse 1s infinite; box-shadow: 0 0 20px #198754; }
@@ -66,7 +64,6 @@
         #miniVisualizerContainer { position: fixed; bottom: 100px; right: 20px; width: 140px; height: 40px; background: rgba(0,0,0,0.85); border-radius: 10px; z-index: 899; display: none; align-items: center; justify-content: center; overflow: hidden; box-shadow: 0 4px 10px rgba(0,0,0,0.3); animation: popUp 0.3s ease; border: 1px solid #333;}
         @keyframes popUp { from { transform: translateY(10px) scale(0.9); opacity: 0; } to { transform: translateY(0) scale(1); opacity: 1; } }
 
-        /* الإشعارات والمودال */
         #radioStatus { position: fixed; top: 65px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.8); color: #fff; padding: 5px 15px; border-radius: 20px; font-size: 12px; z-index: 10000; display: none; font-weight: bold; }
         #sendSuccessBanner { position: fixed; top: 65px; left: 50%; transform: translateX(-50%); background: #198754; color: #fff; padding: 10px 20px; border-radius: 12px; font-size: 14px; z-index: 10001; display: none; font-weight: bold; box-shadow: 0 4px 10px rgba(0,0,0,0.2); animation: slideDown 0.3s ease; }
         #globalRecordingBanner { position: fixed; top: 15px; left: 50%; transform: translateX(-50%); background: #ff9800; color: #fff; padding: 4px 12px; border-radius: 20px; font-size: 13px; z-index: 10002; display: none; font-weight: bold; box-shadow: 0 4px 10px rgba(0,0,0,0.3); animation: pulseOrange 1.5s infinite; border: 2px solid white;}
@@ -129,7 +126,6 @@
     <div id="watermarkContainer"></div>
     <div id="antiScreenshotBanner">🔴 نظام مراقبة الشاشة مفعل 🔴</div>
 
-    <!-- غرفة الفحص -->
     <div id="testRoomScreen">
         <h2 style="color: var(--primary-red); margin-top:0;">🎙️ غرفة فحص الصوت</h2>
         <p style="color: #555; font-weight: bold; margin-bottom: 5px;">يجب تجربة الميكروفون قبل الدخول</p>
@@ -142,13 +138,24 @@
         <button class="btn btn-dark" style="margin-top: 40px;" onclick="cancelMicTest()">رجوع</button>
     </div>
 
-    <!-- فخ الإقرار النفسي -->
     <div id="antiScreenModal" class="modal-overlay">
         <div class="modal-box danger">
             <h2 style="color: var(--primary-red); margin-top:0; text-align:center;">⚠️ تحذير أمني صارم!</h2>
             <p style="font-size:16px; font-weight:bold; color:#333;">هذه التطبيقة محمية ومراقبة بالكامل.</p>
-            <p style="font-size:14px; color:#555;">يُمنع منعاً باتاً أخذ صورة للشاشة (Capture d'écran). النظام مزود بخاصية تتبع وستتم طباعة هويتك على الواجهة. أي محاولة تصوير سيتم إشعار الإدارة بها فوراً.</p>
+            <p style="font-size:14px; color:#555;">يُمنع منعاً باتاً أخذ صورة للشاشة (Capture d'écran). النظام مزود بخاصية تتبع وستتم طباعة هويتك على الواجهة.</p>
             <button class="btn btn-red" style="width:100%; margin-top:15px; font-size:18px; font-weight:900;" onclick="acceptSecurityConsent()">أقر بذلك وأتحمل المسؤولية</button>
+        </div>
+    </div>
+
+    <div id="clientThankYouScreen" class="screen">
+        <div style="background: white; padding: 40px; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); border-top: 8px solid var(--primary-red);">
+            <h1 style="color: var(--primary-red); font-size: 40px; margin: 0;">Becha Events</h1>
+            <h2 style="color: #333; margin-top: 10px;">انتهى العرض بنجاح 🎉</h2>
+            <p style="font-size: 18px; color: #555; line-height: 1.8; font-weight: bold; margin-top: 20px;">
+                شكراً لثقتكم في مؤسسة <b>Becha Events Kids</b>.<br>
+                لقد استمتعنا بصنع ذكريات لا تُنسى معكم اليوم! نتمنى لكم التوفيق، وإلى لقاء قريب في عروضنا القادمة. ❤️
+            </p>
+            <button class="btn btn-dark" style="width: 100%; margin-top: 30px; padding: 15px; font-size: 18px;" onclick="logout()">خروج</button>
         </div>
     </div>
 
@@ -164,7 +171,6 @@
 
     <div id="miniVisualizerContainer"><canvas id="mainVisualizer" width="140" height="40"></canvas></div>
 
-    <!-- الراديو -->
     <div id="bottomControlBar">
         <button id="radioBtn" class="float-btn" onmousedown="startPTT(event)" onmouseup="stopPTT(event)" onmouseleave="stopPTT(event)" ontouchstart="startPTT(event)" ontouchend="stopPTT(event)">🎙️</button>
         <div class="last-msg-container">
@@ -173,7 +179,6 @@
         </div>
     </div>
 
-    <!-- مودال الإنذار والتقارير -->
     <div id="infractionModal" class="modal-overlay">
         <div class="modal-box danger">
             <h2 style="color: var(--primary-red); margin-top:0;">⛔ تنبيه إداري شديد اللهجة!</h2>
@@ -202,15 +207,14 @@
         </div>
     </header>
 
-    <!-- شاشة الدخول -->
     <div id="loginScreen" class="screen active-screen">
         <div style="background: white; padding: 30px; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.1);">
             <h1 style="color: var(--primary-red); margin: 0; font-size: 32px;">BECHA EVENTS</h1>
-            <p style="font-weight: bold; color: #666; margin-bottom: 25px;">دخول فريق البشوات 🎭</p>
+            <p style="font-weight: bold; color: #666; margin-bottom: 25px;">دخول فريق البشوات والعملاء 🎭</p>
             
             <div id="pinLoginBox">
                 <input type="text" id="loginPin" placeholder="🔑 أدخل كود الدخول السري" style="width:100%; margin-bottom:20px; text-align:center; font-size: 20px; letter-spacing: 5px; font-weight: 900;">
-                <button class="btn btn-red" style="width: 100%; font-size: 18px; padding: 12px; margin-bottom: 15px;" onclick="loginWithPin()">دخول للركح</button>
+                <button class="btn btn-red" style="width: 100%; font-size: 18px; padding: 12px; margin-bottom: 15px;" onclick="loginWithPin()">دخول</button>
             </div>
 
             <div id="adminLoginBox" style="display:none;">
@@ -232,13 +236,11 @@
         </div>
     </div>
 
-    <!-- العروض (للمدير) -->
     <div id="eventsScreen" class="screen">
         <h2 style="border-bottom: 2px solid var(--primary-red); padding-bottom: 10px; color: #333;">📅 عروضي القادمة</h2>
         <div id="eventsListContainer"></div>
     </div>
 
-    <!-- الإعدادات والصلاحيات التفصيلية (Gatekeeper) -->
     <div id="gatekeeperScreen" class="screen">
         <div style="background: white; padding: 20px; border-radius: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); text-align: right;">
             <h2 style="color: var(--primary-red); margin-top:0; border-bottom: 2px dashed #ccc; padding-bottom:10px;">⚙️ إعدادات وصلاحيات الفريق</h2>
@@ -252,7 +254,6 @@
         </div>
     </div>
 
-    <!-- لوحة القيادة -->
     <div id="dashboardScreen" class="screen">
         <div id="dashboardMenuWrapper">
             <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:2px dashed #ccc; padding-bottom:10px; margin-bottom:15px;">
@@ -268,15 +269,15 @@
             <button id="btnAdminSettings" class="btn btn-dark" style="width:100%; margin-top:20px; display:none;" onclick="openGatekeeper(currentEventIndex, isArchivedEvent, true)">⚙️ إعدادات وصلاحيات الفريق</button>
         </div>
 
-        <!-- الكواليس -->
         <div id="backstageSection" style="display:none; margin-top:0;">
             <div class="sticky-container">
-                <div style="display: flex; gap: 8px;"><button class="btn btn-dark" style="padding: 5px 15px; font-size: 14px; border-radius: 12px;" onclick="closeSection()">رجوع ⬅️</button></div>
+                <div style="display: flex; gap: 8px;"><button id="btnBackBackstage" class="btn btn-dark" style="padding: 5px 15px; font-size: 14px; border-radius: 12px;" onclick="closeSection()">رجوع ⬅️</button></div>
                 <div style="text-align: left;">
                     <div id="compactInstName_bs" style="color: #17a2b8; font-size: 16px; font-weight: 900;">--</div>
-                    <div class="online-text">🟢 متصل: <span id="onlineUsersList_bs">--</span></div>
+                    <div class="online-text" id="bsOnlineText">🟢 متصل: <span id="onlineUsersList_bs">--</span></div>
                 </div>
             </div>
+            <div id="clientBackstageNotice" style="display:none; background:#e3f2fd; color:#0275d8; padding:10px; border-radius:8px; margin-bottom:15px; font-weight:bold; font-size:14px; text-align:right;">ℹ️ يمكنك تعديل البرنامج بحرية. سيتم إغلاق التعديل أوتوماتيكياً ساعة قبل موعد الحفل.</div>
             <div id="backstageContent">
                 <div class="accordion-item">
                     <div class="accordion-header" onclick="toggleAccordion('accInst')"><span>👑 معطيات الإدارة والمؤسسة</span><span id="icon_accInst">➕</span></div>
@@ -298,20 +299,22 @@
             </div>
         </div>
 
-        <!-- الركح المباشر -->
         <div id="stageSection" style="display:none; margin-top:0;">
             <div class="sticky-container">
                 <div style="display: flex; gap: 8px;">
                     <button class="btn btn-outline" style="border-color:#6f42c1; color:#6f42c1; padding: 5px 12px; font-size: 16px; border-radius: 12px;" onclick="enterPocketMode()">🌙</button>
-                    <button class="btn btn-dark" style="padding: 5px 15px; font-size: 14px; border-radius: 12px;" onclick="closeSection()">رجوع ⬅️</button>
+                    <button id="btnBackStage" class="btn btn-dark" style="padding: 5px 15px; font-size: 14px; border-radius: 12px;" onclick="closeSection()">رجوع ⬅️</button>
                 </div>
                 <div style="text-align: left;">
                     <div id="compactInstName_st" style="color: var(--primary-red); font-size: 16px; font-weight: 900;">--</div>
-                    <div class="online-text"><span class="online-dot">🟢</span> متصل: <span id="onlineUsersList_st">--</span></div>
+                    <div class="online-text" id="stOnlineText"><span class="online-dot">🟢</span> متصل: <span id="onlineUsersList_st">--</span></div>
                 </div>
             </div>
+            
+            <div id="clientStageNotice" style="display:none; background:#f0fdf4; color:#198754; padding:10px; border-radius:8px; margin-bottom:15px; font-weight:bold; font-size:14px; text-align:right;">🎬 الحفل على وشك البداية أو بدأ بالفعل! يمكنك متابعة إنجاز الفقرات مباشرة من هنا.</div>
+
             <div id="stageContent">
-                <div style="background: #fffdf5; border: 3px solid #ffc107; border-radius: 15px; margin-bottom: 25px;">
+                <div id="teleprompterWrapper" style="background: #fffdf5; border: 3px solid #ffc107; border-radius: 15px; margin-bottom: 25px;">
                     <div style="padding:15px; background:#ffc107; color:#333; font-weight:900; font-size:18px; cursor:pointer; display:flex; justify-content:space-between; border-radius: 11px 11px 0 0;" onclick="toggleTeleprompter()">
                         <span>🎤 الكلمة الترحيبية</span> <span id="teleIcon">➖</span>
                     </div>
@@ -332,21 +335,15 @@
         let liveProgRef = null; let backstageProgRef = null; let onlineRef = null; let presenceListeners = [];
         let pendingSectionId = ''; let lastMessageBlobUrl = null; let lastMessageTimestamp = 0;
         let isEventEndedLocally = false; let localInfractionsThisSession = 0;
+        let clientPhaseInterval = null;
 
         let radioReceiverActive = false; let mediaRecorder = null; let audioChunks = []; let isRecording = false; 
         let audioCtx = null; let analyser = null; let dataArray = null; let animationId = null; let wakeLock = null; let testMediaRecorder = null; let testAudioChunks = []; let isTesting = false; let micStream = null;
 
         function initAudioCtx() { 
-            if(!audioCtx) { 
-                audioCtx = new (window.AudioContext || window.webkitAudioContext)(); 
-                analyser = audioCtx.createAnalyser(); 
-                analyser.fftSize = 128; 
-                const bufferLength = analyser.frequencyBinCount; 
-                dataArray = new Uint8Array(bufferLength); 
-            } 
+            if(!audioCtx) { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); analyser = audioCtx.createAnalyser(); analyser.fftSize = 128; const bufferLength = analyser.frequencyBinCount; dataArray = new Uint8Array(bufferLength); } 
             if(audioCtx.state === 'suspended') { audioCtx.resume(); } 
         }
-        
         function playBeep(type) {
             initAudioCtx(); const osc = audioCtx.createOscillator(); const gainNode = audioCtx.createGain(); osc.connect(gainNode); gainNode.connect(audioCtx.destination);
             if(type === 'start') { osc.frequency.value = 800; gainNode.gain.setValueAtTime(0.1, audioCtx.currentTime); osc.start(); osc.stop(audioCtx.currentTime + 0.15); } 
@@ -421,13 +418,17 @@
                         }
                         
                         let sel = `<select id="gkRole_${index}" class="gk-select" onchange="applyQuickRole(this, ${index})">
-                            <option value="none" ${currentRole==='none'?'selected':''}>🚫 بدون صلاحية (لوجستيك)</option>
+                            <option value="none" ${currentRole==='none'?'selected':''}>🚫 بدون صلاحية</option>
+                            <option value="client" ${currentRole==='client'?'selected':''}>🏢 مديرة الروضة (عميل)</option>
                             <option value="admin_assistant" ${currentRole==='admin_assistant'?'selected':''}>👑 مساعد مدير</option>
                             <option value="animateur" ${currentRole==='animateur'?'selected':''}>🎤 منشط</option>
                             <option value="assistant_anim" ${currentRole==='assistant_anim'?'selected':''}>🏃‍♂️ مساعد منشط</option>
                             <option value="assistant" ${currentRole==='assistant'?'selected':''}>🎁 مساعد</option>
                             <option value="dj" ${currentRole==='dj'?'selected':''}>🎧 دي جي</option>
                         </select>`;
+
+                        let opacity = (currentRole==='none' || currentRole==='client') ? '0.4' : '1';
+                        let pointerEvents = (currentRole==='none' || currentRole==='client') ? 'none' : 'auto';
 
                         let chks = `
                             <label class="gk-perm-label"><input type="checkbox" id="perm_stage_${index}" ${perms.stage?'checked':''}> الدخول للركح 🎭</label>
@@ -446,7 +447,7 @@
                                 <button class="gk-action-btn gk-wa" onclick="sendWa(${index}, '${currentEventData.name}')" title="واتساب">💬</button>
                                 <button class="gk-action-btn gk-copy" onclick="copyPin(${index}, '${currentEventData.name}')" title="نسخ">📋</button>
                             </div>
-                            <div class="gk-perms-grid" id="gkPermsGrid_${index}" style="${currentRole==='none'?'opacity:0.4; pointer-events:none;':''}">${chks}</div>
+                            <div class="gk-perms-grid" id="gkPermsGrid_${index}" style="opacity:${opacity}; pointer-events:${pointerEvents};">${chks}</div>
                         </div>`;
                     });
                     showScreen('gatekeeperScreen');
@@ -459,7 +460,7 @@
             let grid = document.getElementById(`gkPermsGrid_${index}`);
             let cStage = document.getElementById(`perm_stage_${index}`); let cTime = document.getElementById(`perm_timeline_${index}`); let cBsView = document.getElementById(`perm_bs_view_${index}`); let cBsEdit = document.getElementById(`perm_bs_edit_${index}`); let cRadar = document.getElementById(`perm_radar_${index}`); let cEnd = document.getElementById(`perm_end_${index}`);
 
-            if(role === 'none') {
+            if(role === 'none' || role === 'client') {
                 grid.style.opacity = '0.4'; grid.style.pointerEvents = 'none';
                 cStage.checked=false; cTime.checked=false; cBsView.checked=false; cBsEdit.checked=false; cRadar.checked=false; cEnd.checked=false;
             } else {
@@ -472,7 +473,16 @@
         }
 
         function generatePin(index) { document.getElementById(`gkPin_${index}`).value = Math.floor(1000 + Math.random() * 9000).toString(); }
-        function getMsgText(index, eventName) { let roleVal = document.getElementById(`gkRole_${index}`).value; if(roleVal === 'none') return null; let pin = document.getElementById(`gkPin_${index}`).value; let name = document.querySelector(`.gk-row:nth-child(${index+1}) .gk-name`).innerText; return `على السلامة ${name}،\nكود الدخول لتطبيقة الركح لعرض [ ${eventName} ] هو: 🔑 *${pin}*\nالرابط:\nhttps://becha-events-kids-stage.web.app/`; }
+        function getMsgText(index, eventName) { 
+            let roleVal = document.getElementById(`gkRole_${index}`).value; 
+            if(roleVal === 'none') return null; 
+            let pin = document.getElementById(`gkPin_${index}`).value; 
+            let name = document.querySelector(`.gk-row:nth-child(${index+1}) .gk-name`).innerText; 
+            if (roleVal === 'client') {
+                return `مرحباً بكِ سيدتي مديرة روضة [ ${eventName} ]،\nهذا هو رابط بوابتك الخاصة لإدخال برنامج الحفل ومتابعته مباشرة:\nhttps://becha-events-kids-stage.web.app/\n\n🔑 كود الدخول الخاص بكِ: *${pin}*`;
+            }
+            return `على السلامة ${name}،\nكود الدخول لتطبيقة الركح لعرض [ ${eventName} ] هو: 🔑 *${pin}*\nالرابط:\nhttps://becha-events-kids-stage.web.app/`; 
+        }
         function sendWa(index, evName) { let msg = getMsgText(index, evName); if(!msg) { alert("الموظف ليس له صلاحيات."); return; } window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank'); }
         function copyPin(index, evName) { let msg = getMsgText(index, evName); if(!msg) { alert("الموظف ليس له صلاحيات."); return; } navigator.clipboard.writeText(msg).then(() => { alert("✅ تم النسخ!"); }); }
 
@@ -512,8 +522,8 @@
                 for(let ev of allEvents) { if(ev.teamPins && ev.teamPins[pin]) { foundEvent = ev; foundUser = ev.teamPins[pin]; break; } }
 
                 if(foundEvent) {
-                    if(foundUser.role === 'none' || (!foundUser.perms.stage && !foundUser.perms.bs_view)) {
-                        document.getElementById('deniedMessageText').innerHTML = `يعطيك الصحة <b style="color:var(--primary-red);">${foundUser.name}</b>!<br><br>ليس لديك صلاحيات للدخول إلى تطبيقة <b>${foundEvent.name}</b>.`;
+                    if(foundUser.role === 'none' || (foundUser.role !== 'client' && !foundUser.perms.stage && !foundUser.perms.bs_view)) {
+                        document.getElementById('deniedMessageText').innerHTML = `يعطيك الصحة <b style="color:var(--primary-red);">${foundUser.name}</b>!<br><br>ليس لديك صلاحيات للدخول.`;
                         showScreen('deniedMessageScreen'); return;
                     }
                     
@@ -521,15 +531,82 @@
                     currentEventIndex = foundEvent.originalIndex; isArchivedEvent = foundEvent.isArchived; currentEventData = foundEvent;
                     
                     document.getElementById('mainAppHeader').style.display = 'block';
-                    let roleName = currentUser.role === 'admin_assistant' ? '👑 م.مدير' : currentUser.role === 'animateur' ? '🎤 منشط' : '🎭 الفريق';
-                    document.getElementById('headerUserBadge').innerText = `${roleName} (${currentUser.pseudo})`;
                     
-                    initiateMicTest('route_based_on_perms');
+                    if(currentUser.role === 'client') {
+                        document.getElementById('headerUserBadge').innerText = `🏢 العميل (${currentUser.pseudo})`;
+                        handleClientFlow(); // مسار المديرة الخاص
+                    } else {
+                        let roleName = currentUser.role === 'admin_assistant' ? '👑 م.مدير' : currentUser.role === 'animateur' ? '🎤 منشط' : '🎭 الفريق';
+                        document.getElementById('headerUserBadge').innerText = `${roleName} (${currentUser.pseudo})`;
+                        initiateMicTest('route_based_on_perms');
+                    }
                 } else { alert("❌ كود خاطئ! الرجاء التأكد من الكود."); }
             });
         }
 
-        /* ----- 4. الصلاحيات والتوجيه (الحل السحري لمشكلة البلوكاج) ----- */
+        /* ----- 4. مسار العميل (المديرة) : دورة حياة الرابط ----- */
+        function handleClientFlow() {
+            document.getElementById('bottomControlBar').style.display = 'none'; // لا راديو
+            document.getElementById('teleprompterWrapper').style.display = 'none'; // لا كلمة ترحيبية
+            document.getElementById('btnBackBackstage').style.display = 'none'; // لا أزرار رجوع
+            document.getElementById('btnBackStage').style.display = 'none';
+            document.getElementById('bsOnlineText').style.display = 'none'; // لا رادار
+            document.getElementById('stOnlineText').style.display = 'none';
+
+            let path = isArchivedEvent ? 'BechaEventsData/archived_events/'+currentEventIndex : 'BechaEventsData/events/'+currentEventIndex;
+            
+            // استماع مستمر لنهاية الحفل
+            db.ref(path + '/eventEnded').on('value', snap => {
+                if(snap.val() === true) {
+                    if(clientPhaseInterval) clearInterval(clientPhaseInterval);
+                    showScreen('clientThankYouScreen');
+                } else {
+                    evaluateClientPhase();
+                    if(!clientPhaseInterval) { clientPhaseInterval = setInterval(evaluateClientPhase, 30000); } // فحص كل 30 ثانية
+                }
+            });
+        }
+
+        function evaluateClientPhase() {
+            if(currentEventData.eventEnded) return;
+
+            let evDateStr = currentEventData.date;
+            let evTimeStr = currentEventData.time || "00:00";
+            let evDateTime = new Date(`${evDateStr}T${evTimeStr}:00`);
+            let now = new Date();
+            let diffMs = evDateTime - now;
+            let diffMins = diffMs / 60000;
+
+            document.getElementById('dashInstName').innerText = `🏫 ${currentEventData.name}`;
+            document.getElementById('compactInstName_bs').innerText = `🏫 ${currentEventData.name}`;
+            document.getElementById('compactInstName_st').innerText = `🏫 ${currentEventData.name}`;
+            
+            showScreen('dashboardScreen');
+            document.getElementById('dashboardMenuWrapper').style.display = 'none'; // تجاوز القائمة للمديرة
+
+            if (diffMins > 60) {
+                // المرحلة الأولى: التحضير المفتوح
+                currentUser.perms = { bs_view: true, bs_edit: true, stage: false, timeline: false, radar: false, end_event: false };
+                document.getElementById('backstageSection').style.display = 'block';
+                document.getElementById('stageSection').style.display = 'none';
+                document.getElementById('clientBackstageNotice').style.display = 'block';
+                
+                loadBackstageData(); 
+                if(!backstageProgRef) startBackstageListener(); 
+                applyBackstagePermissions();
+            } else {
+                // المرحلة الثانية: التجميد والمتابعة المباشرة
+                currentUser.perms = { bs_view: false, bs_edit: false, stage: true, timeline: false, radar: false, end_event: false };
+                document.getElementById('backstageSection').style.display = 'none';
+                document.getElementById('stageSection').style.display = 'block';
+                document.getElementById('clientStageNotice').style.display = 'block';
+                
+                if(!liveProgRef) openStageLive(); 
+                applyStagePermissions();
+            }
+        }
+
+        /* ----- 5. مسار الفريق والإدارة ----- */
         function prepareDashboardOrStage() {
             document.getElementById('dashInstName').innerText = `🏫 ${currentEventData.name}`;
             document.getElementById('dashEventTime').innerText = `📅 ${currentEventData.date} | 🕒 ${currentEventData.time || '--'}`;
@@ -557,64 +634,31 @@
             else if (p.bs_view) { initiateMicTest('backstageSection'); } 
         }
 
-        // الحل السحري اللي حكينا عليه: تأجيل طلب الميكروفون
         function initiateMicTest(targetId) {
             pendingSectionId = targetId; 
-            
-            // إخفاء الـ Dashboard
-            if(currentUser.role === 'admin' || (currentUser.perms && currentUser.perms.bs_view && currentUser.perms.stage)) { 
-                document.getElementById('dashboardMenuWrapper').style.display = 'none'; 
-            }
-
-            // الإدارة تتخطى غرفة فحص الميكرو وتتعدى ديراكت
-            if(currentUser.role === 'admin') {
-                acceptSecurityConsent();
-                return;
-            }
-
-            // الموظفين يشوفوا الشاشة، وطلب الميكرو يصير لداخل وقت النزول
+            if(currentUser.role === 'admin' || (currentUser.perms && currentUser.perms.bs_view && currentUser.perms.stage)) { document.getElementById('dashboardMenuWrapper').style.display = 'none'; }
+            if(currentUser.role === 'admin') { acceptSecurityConsent(); return; }
             document.getElementById('testRoomScreen').style.display = 'flex';
             document.getElementById('testResults').style.display = 'none';
             document.getElementById('testMicBtn').style.display = 'block';
             document.getElementById('testStatusText').innerText = "اضغط مطولاً للتسجيل";
         }
 
-        // هنا يصير الطلب الفعلي للميكرو، بطريقة آمنة ما تبلونطيش متصفح الـ iOS
         async function startTestRecording(e) { 
             if(e) { e.preventDefault(); e.stopPropagation(); } 
             if(isTesting) return; 
             try { 
                 initAudioCtx();
-                if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) { 
-                    alert("⚠️ متصفحك لا يدعم تسجيل الصوت."); return; 
-                }
-                
-                if(!micStream) { 
-                    micStream = await navigator.mediaDevices.getUserMedia({ audio: true }); 
-                }
-                
-                testMediaRecorder = new MediaRecorder(micStream); 
-                testAudioChunks = []; 
-                testMediaRecorder.ondataavailable = ev => { if(ev.data.size > 0) testAudioChunks.push(ev.data); }; 
+                if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) { alert("⚠️ متصفحك لا يدعم تسجيل الصوت."); return; }
+                if(!micStream) { micStream = await navigator.mediaDevices.getUserMedia({ audio: true }); }
+                testMediaRecorder = new MediaRecorder(micStream); testAudioChunks = []; testMediaRecorder.ondataavailable = ev => { if(ev.data.size > 0) testAudioChunks.push(ev.data); }; 
                 testMediaRecorder.onstop = () => { 
-                    const audioBlob = new Blob(testAudioChunks, { type: testMediaRecorder.mimeType || 'audio/mp4' }); 
-                    const testPlayer = document.getElementById('testAudioPlayer'); 
-                    testPlayer.src = URL.createObjectURL(audioBlob); 
-                    document.getElementById('silentAudio').play().catch(e=>{}); 
-                    testPlayer.play().then(() => { document.getElementById('testStatusText').innerText = "🔊 جاري الاستماع لتسجيلك..."; }).catch(e=>{}); 
-                    testPlayer.onended = () => { 
-                        document.getElementById('testStatusText').innerText = "كيف كان الصوت؟"; 
-                        document.getElementById('testResults').style.display = 'block'; 
-                        document.getElementById('testMicBtn').style.display = 'none'; 
-                    }; 
+                    const audioBlob = new Blob(testAudioChunks, { type: testMediaRecorder.mimeType || 'audio/mp4' }); const testPlayer = document.getElementById('testAudioPlayer'); testPlayer.src = URL.createObjectURL(audioBlob); 
+                    document.getElementById('silentAudio').play().catch(e=>{}); testPlayer.play().then(() => { document.getElementById('testStatusText').innerText = "🔊 جاري الاستماع لتسجيلك..."; }).catch(e=>{}); 
+                    testPlayer.onended = () => { document.getElementById('testStatusText').innerText = "كيف كان الصوت؟"; document.getElementById('testResults').style.display = 'block'; document.getElementById('testMicBtn').style.display = 'none'; }; 
                 }; 
-                isTesting = true; 
-                document.getElementById('testStatusText').innerText = "🔴 جاري التسجيل..."; 
-                testMediaRecorder.start(); 
-            } catch(err) { 
-                console.log(err);
-                alert("⚠️ يرجى إعطاء صلاحية الميكروفون أولاً!"); 
-            } 
+                isTesting = true; document.getElementById('testStatusText').innerText = "🔴 جاري التسجيل..."; testMediaRecorder.start(); 
+            } catch(err) { console.log(err); alert("⚠️ يرجى إعطاء صلاحية الميكروفون أولاً!"); } 
         }
 
         function cancelMicTest() {
@@ -663,7 +707,7 @@
 
         document.addEventListener("visibilitychange", () => {
             if(document.getElementById('stageSection').style.display === 'none' && document.getElementById('backstageSection').style.display === 'none') return;
-            if(isEventEndedLocally || currentUser.role === 'admin') return; 
+            if(isEventEndedLocally || currentUser.role === 'admin' || currentUser.role === 'client') return; 
             if (document.hidden) { localInfractionsThisSession++; db.ref('BechaEventsData/users_infractions/' + currentUser.pseudo).transaction(current => (current || 0) + 1); } 
             else if (!document.hidden && localInfractionsThisSession > 0) { db.ref('BechaEventsData/users_infractions/' + currentUser.pseudo).once('value').then(snap => { document.getElementById('infractionCount').innerText = snap.val() || 0; document.getElementById('infractionModal').style.display = 'flex'; }); }
         });
@@ -678,7 +722,6 @@
             if(wakeLock) { wakeLock.release(); wakeLock = null; }
         }
 
-        // Backstage Logic
         function addEducator(n='') { let d = !currentUser.perms.bs_edit ? 'disabled' : ''; let del = currentUser.perms.bs_edit ? `<button class="btn btn-red" onclick="this.parentElement.remove()">🗑</button>` : ''; document.getElementById('educatorsList').insertAdjacentHTML('beforeend', `<div style="display:flex; gap:10px; margin-bottom:10px;"><input type="text" class="edu-name" placeholder="اسم الأنيستي..." value="${n}" style="flex:1;" ${d}>${del}</div>`); }
         function addCoach(s='', n='') { let d = !currentUser.perms.bs_edit ? 'disabled' : ''; let del = currentUser.perms.bs_edit ? `<button class="btn btn-red" onclick="this.parentElement.remove()">🗑</button>` : ''; document.getElementById('coachesList').insertAdjacentHTML('beforeend', `<div style="display:flex; gap:10px; margin-bottom:10px;"><input type="text" class="coach-spec" placeholder="الاختصاص" value="${s}" style="flex:1;" ${d}><input type="text" class="coach-name" placeholder="الاسم" value="${n}" style="flex:1;" ${d}>${del}</div>`); }
         function addStaff(r='', n='') { let d = !currentUser.perms.bs_edit ? 'disabled' : ''; let del = currentUser.perms.bs_edit ? `<button class="btn btn-red" onclick="this.parentElement.remove()">🗑</button>` : ''; document.getElementById('staffList').insertAdjacentHTML('beforeend', `<div style="display:flex; gap:10px; margin-bottom:10px;"><input type="text" class="staff-role" placeholder="الصفة" value="${r}" style="flex:1;" ${d}><input type="text" class="staff-name" placeholder="الاسم" value="${n}" style="flex:1;" ${d}>${del}</div>`); }
@@ -701,7 +744,7 @@
             let d = { managerName: document.getElementById('instManager').value.trim(), founderName: document.getElementById('instFounder').value.trim(), educators: [], coaches: [], staff: [] };
             document.querySelectorAll('#educatorsList .edu-name').forEach(e => { if(e.value.trim()) d.educators.push(e.value.trim()); }); document.querySelectorAll('#coachesList > div').forEach(r => { let s=r.querySelector('.coach-spec').value.trim(), n=r.querySelector('.coach-name').value.trim(); if(s||n) d.coaches.push({spec:s, name:n}); }); document.querySelectorAll('#staffList > div').forEach(r => { let sr=r.querySelector('.staff-role').value.trim(), n=r.querySelector('.staff-name').value.trim(); if(sr||n) d.staff.push({role:sr, name:n}); });
             let prog = []; document.querySelectorAll('.prog-row').forEach(r => { let type = r.querySelector('.prog-type').value; prog.push({ type: type, customType: type === 'أخرى' ? r.querySelector('.other-type').value.trim() : '', details: r.querySelector('.prog-details').value.trim(), completed: r.classList.contains('locked') }); });
-            let path = isArchivedEvent ? 'BechaEventsData/archived_events/'+currentEventIndex : 'BechaEventsData/events/'+currentEventIndex; db.ref(path+'/institutionDetails').set(d); db.ref(path+'/eventProgram').set(prog).then(() => alert("✅ تم الحفظ!"));
+            let path = isArchivedEvent ? 'BechaEventsData/archived_events/'+currentEventIndex : 'BechaEventsData/events/'+currentEventIndex; db.ref(path+'/institutionDetails').set(d); db.ref(path+'/eventProgram').set(prog).then(() => alert("✅ تم الحفظ بنجاح!"));
         }
         function startBackstageListener() { let path = isArchivedEvent ? 'BechaEventsData/archived_events/'+currentEventIndex : 'BechaEventsData/events/'+currentEventIndex; backstageProgRef = db.ref(path + '/eventProgram'); backstageProgRef.on('value', snap => { if(document.getElementById('backstageSection').style.display !== 'none') { let prog = snap.val() || []; let rows = document.querySelectorAll('.prog-row'); prog.forEach((p, i) => { if(rows[i]) { if(p.completed) rows[i].classList.add('locked'); else rows[i].classList.remove('locked'); } }); } }); }
 
@@ -736,7 +779,6 @@
             });
         }
 
-        // PTT Radio Logic
         function initRadioReceiver() {
             if(radioReceiverActive) return; radioReceiverActive = true; let path = isArchivedEvent ? 'BechaEventsData/archived_events/'+currentEventIndex : 'BechaEventsData/events/'+currentEventIndex;
             db.ref(path + '/lastMessage').on('value', snap => { let msg = snap.val(); if(msg && msg.timestamp > lastMessageTimestamp) { lastMessageTimestamp = msg.timestamp; lastMessageBlobUrl = msg.audio; document.getElementById('lastMsgText').innerText = `🎙️ آخر رسالة من: ${msg.sender} (${msg.timeStr})`; if(msg.sender !== currentUser.pseudo) { let mainAudio = document.getElementById('mainRadioPlayer'); mainAudio.src = msg.audio; document.getElementById('radioStatus').innerText = `🔊 رسالة من: ${msg.sender}`; document.getElementById('radioStatus').style.display = 'block'; if(navigator.vibrate) { navigator.vibrate([200, 100, 200, 100, 200]); } document.body.classList.add('flash-screen'); setTimeout(() => { document.body.classList.remove('flash-screen'); }, 2500); mainAudio.play().catch(e=>{}); mainAudio.onended = () => { document.getElementById('radioStatus').style.display = 'none'; }; } } else if (!msg) { document.getElementById('lastMsgText').innerText = `🎙️ لا توجد رسائل سابقة`; lastMessageBlobUrl = null; } });
