@@ -4,6 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Becha Events - Animation Stage</title>
+    
+    <meta property="og:title" content="🎪 بوابة العملاء - Becha Events Kids">
+    <meta property="og:description" content="متابعة وإدارة برامج الحفلات التنشيطية مباشرة | الدخول الآمن للمؤسسات">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://musiciendz.github.io/animationbecha/">
+    <meta property="og:image" content="https://i.ibb.co/ExampleLogo/becha.png"> 
+
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@600;800;900&display=swap" rel="stylesheet">
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
@@ -95,6 +102,9 @@
         .modal-box { background: white; padding: 30px; border-radius: 15px; max-width: 400px; width: 100%; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
         .modal-box.danger { border: 4px solid var(--primary-red); }
 
+        /* شاشة شكر العميل (المرحلة الثالثة) */
+        #clientThankYouScreen { display: none; width: 95%; max-width: 650px; margin-top: 20px; text-align: center; margin-bottom: 50px; }
+        
         #watermarkContainer { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; pointer-events: none; z-index: 10004; display: flex; flex-wrap: wrap; overflow: hidden; opacity: 0.04; justify-content: center; align-content: center; display: none;}
         .watermark-text { font-size: 24px; font-weight: 900; color: #000; transform: rotate(-30deg); margin: 30px; }
 
@@ -484,14 +494,15 @@
 
         function generatePin(index) { document.getElementById(`gkPin_${index}`).value = Math.floor(1000 + Math.random() * 9000).toString(); }
         
-        // التعديل الذكي للرابط الديناميكي
+        // التعديل الذكي للرابط الديناميكي وتثبيت رابط الـ GitHub
         function getMsgText(index, eventName) { 
             let roleVal = document.getElementById(`gkRole_${index}`).value; 
             if(roleVal === 'none') return null; 
             let pin = document.getElementById(`gkPin_${index}`).value; 
             let name = document.querySelector(`.gk-row:nth-child(${index+1}) .gk-name`).innerText; 
             
-            let appLink = window.location.origin + window.location.pathname;
+            // رابطك الأصلي الثابت
+            let appLink = "https://musiciendz.github.io/animationbecha/";
             
             if (roleVal === 'client') {
                 return `مرحباً بكِ سيدتي مديرة روضة [ ${eventName} ]،\nهذا هو رابط بوابتك الخاصة لإدخال برنامج الحفل ومتابعته مباشرة:\n${appLink}\n\n🔑 كود الدخول الخاص بكِ: *${pin}*`;
