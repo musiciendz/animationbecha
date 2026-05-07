@@ -399,11 +399,14 @@
                 db.ref('BechaEventsData/global_roles').once('value', rolesSnap => {
                     let globalRoles = rolesSnap.val() || {};
                     document.getElementById('gkEventName').innerText = `🏫 ${currentEventData.name}`;
-                    let team = currentEventData.assignedTeam || [];
+                    
+                    // الحل السحري: إضافة المديرة كأول شخص في القائمة ديما
+                    let originalTeam = currentEventData.assignedTeam || [];
+                    let team = ["مديرة المؤسسة", ...originalTeam.filter(n => n !== "مديرة المؤسسة")];
+                    
                     let existingPins = currentEventData.teamPins || {}; 
                     
                     let gkList = document.getElementById('gkTeamList'); gkList.innerHTML = '';
-                    if(team.length === 0) { gkList.innerHTML = "<p>لا يوجد فريق مبرمج.</p>"; }
                     
                     team.forEach((member, index) => {
                         let currentPin = ''; let currentRole = 'none'; let perms = {};
@@ -413,8 +416,15 @@
                             currentPin = uKey; currentRole = existingPins[uKey].role; perms = existingPins[uKey].perms || {};
                         } else {
                             currentPin = Math.floor(1000 + Math.random() * 9000).toString();
-                            let savedMemory = globalRoles[member] || { role: 'animateur', perms: { stage: true, timeline: true } };
-                            currentRole = savedMemory.role; perms = savedMemory.perms || {};
+                            
+                            // إعطاء صفة "عميل" أوتوماتيكياً للمديرة
+                            if(member === "مديرة المؤسسة") {
+                                currentRole = 'client';
+                                perms = { stage: false, timeline: false, bs_view: false, bs_edit: false, radar: false, end_event: false };
+                            } else {
+                                let savedMemory = globalRoles[member] || { role: 'animateur', perms: { stage: true, timeline: true } };
+                                currentRole = savedMemory.role; perms = savedMemory.perms || {};
+                            }
                         }
                         
                         let sel = `<select id="gkRole_${index}" class="gk-select" onchange="applyQuickRole(this, ${index})">
@@ -439,8 +449,10 @@
                             <label class="gk-perm-label"><input type="checkbox" id="perm_end_${index}" ${perms.end_event?'checked':''}> إنهاء العرض 🏁</label>
                         `;
                         
+                        let displayMemberName = member === "مديرة المؤسسة" ? `🏢 إدارة ${currentEventData.name}` : member;
+
                         gkList.innerHTML += `<div class="gk-row" data-name="${member}">
-                            <div class="gk-header"><span class="gk-name">${member}</span>${sel}</div>
+                            <div class="gk-header"><span class="gk-name">${displayMemberName}</span>${sel}</div>
                             <div class="gk-pin-group">
                                 🔑 <input type="text" id="gkPin_${index}" class="gk-pin" readonly value="${currentPin}">
                                 <button class="gk-action-btn gk-gen" onclick="generatePin(${index})" title="تجديد">🔄</button>
@@ -473,16 +485,19 @@
         }
 
         function generatePin(index) { document.getElementById(`gkPin_${index}`).value = Math.floor(1000 + Math.random() * 9000).toString(); }
+        
         function getMsgText(index, eventName) { 
             let roleVal = document.getElementById(`gkRole_${index}`).value; 
             if(roleVal === 'none') return null; 
             let pin = document.getElementById(`gkPin_${index}`).value; 
             let name = document.querySelector(`.gk-row:nth-child(${index+1}) .gk-name`).innerText; 
+            
             if (roleVal === 'client') {
                 return `مرحباً بكِ سيدتي مديرة روضة [ ${eventName} ]،\nهذا هو رابط بوابتك الخاصة لإدخال برنامج الحفل ومتابعته مباشرة:\nhttps://becha-events-kids-stage.web.app/\n\n🔑 كود الدخول الخاص بكِ: *${pin}*`;
             }
             return `على السلامة ${name}،\nكود الدخول لتطبيقة الركح لعرض [ ${eventName} ] هو: 🔑 *${pin}*\nالرابط:\nhttps://becha-events-kids-stage.web.app/`; 
         }
+
         function sendWa(index, evName) { let msg = getMsgText(index, evName); if(!msg) { alert("الموظف ليس له صلاحيات."); return; } window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank'); }
         function copyPin(index, evName) { let msg = getMsgText(index, evName); if(!msg) { alert("الموظف ليس له صلاحيات."); return; } navigator.clipboard.writeText(msg).then(() => { alert("✅ تم النسخ!"); }); }
 
@@ -497,7 +512,7 @@
                 
                 let perms = { stage: document.getElementById(`perm_stage_${i}`).checked, timeline: document.getElementById(`perm_timeline_${i}`).checked, bs_view: document.getElementById(`perm_bs_view_${i}`).checked, bs_edit: document.getElementById(`perm_bs_edit_${i}`).checked, radar: document.getElementById(`perm_radar_${i}`).checked, end_event: document.getElementById(`perm_end_${i}`).checked };
 
-                if(role !== 'none') { newGlobalRoles[name] = { role: role, perms: perms }; }
+                if(role !== 'none' && role !== 'client') { newGlobalRoles[name] = { role: role, perms: perms }; }
                 if(pin && role !== 'none') { newTeamPins[pin] = { name: name, role: role, perms: perms }; }
             });
             
@@ -533,7 +548,7 @@
                     document.getElementById('mainAppHeader').style.display = 'block';
                     
                     if(currentUser.role === 'client') {
-                        document.getElementById('headerUserBadge').innerText = `🏢 العميل (${currentUser.pseudo})`;
+                        document.getElementById('headerUserBadge').innerText = `🏢 العميل (الإدارة)`;
                         handleClientFlow(); // مسار المديرة الخاص
                     } else {
                         let roleName = currentUser.role === 'admin_assistant' ? '👑 م.مدير' : currentUser.role === 'animateur' ? '🎤 منشط' : '🎭 الفريق';
