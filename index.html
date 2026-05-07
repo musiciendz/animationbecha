@@ -400,7 +400,6 @@
                     let globalRoles = rolesSnap.val() || {};
                     document.getElementById('gkEventName').innerText = `🏫 ${currentEventData.name}`;
                     
-                    // الحل السحري: إضافة المديرة كأول شخص في القائمة ديما
                     let originalTeam = currentEventData.assignedTeam || [];
                     let team = ["مديرة المؤسسة", ...originalTeam.filter(n => n !== "مديرة المؤسسة")];
                     
@@ -417,7 +416,6 @@
                         } else {
                             currentPin = Math.floor(1000 + Math.random() * 9000).toString();
                             
-                            // إعطاء صفة "عميل" أوتوماتيكياً للمديرة
                             if(member === "مديرة المؤسسة") {
                                 currentRole = 'client';
                                 perms = { stage: false, timeline: false, bs_view: false, bs_edit: false, radar: false, end_event: false };
@@ -486,16 +484,19 @@
 
         function generatePin(index) { document.getElementById(`gkPin_${index}`).value = Math.floor(1000 + Math.random() * 9000).toString(); }
         
+        // التعديل الذكي للرابط الديناميكي
         function getMsgText(index, eventName) { 
             let roleVal = document.getElementById(`gkRole_${index}`).value; 
             if(roleVal === 'none') return null; 
             let pin = document.getElementById(`gkPin_${index}`).value; 
             let name = document.querySelector(`.gk-row:nth-child(${index+1}) .gk-name`).innerText; 
             
+            let appLink = window.location.origin + window.location.pathname;
+            
             if (roleVal === 'client') {
-                return `مرحباً بكِ سيدتي مديرة روضة [ ${eventName} ]،\nهذا هو رابط بوابتك الخاصة لإدخال برنامج الحفل ومتابعته مباشرة:\nhttps://becha-events-kids-stage.web.app/\n\n🔑 كود الدخول الخاص بكِ: *${pin}*`;
+                return `مرحباً بكِ سيدتي مديرة روضة [ ${eventName} ]،\nهذا هو رابط بوابتك الخاصة لإدخال برنامج الحفل ومتابعته مباشرة:\n${appLink}\n\n🔑 كود الدخول الخاص بكِ: *${pin}*`;
             }
-            return `على السلامة ${name}،\nكود الدخول لتطبيقة الركح لعرض [ ${eventName} ] هو: 🔑 *${pin}*\nالرابط:\nhttps://becha-events-kids-stage.web.app/`; 
+            return `على السلامة ${name}،\nكود الدخول لتطبيقة الركح لعرض [ ${eventName} ] هو: 🔑 *${pin}*\nالرابط:\n${appLink}`; 
         }
 
         function sendWa(index, evName) { let msg = getMsgText(index, evName); if(!msg) { alert("الموظف ليس له صلاحيات."); return; } window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank'); }
@@ -549,7 +550,7 @@
                     
                     if(currentUser.role === 'client') {
                         document.getElementById('headerUserBadge').innerText = `🏢 العميل (الإدارة)`;
-                        handleClientFlow(); // مسار المديرة الخاص
+                        handleClientFlow(); 
                     } else {
                         let roleName = currentUser.role === 'admin_assistant' ? '👑 م.مدير' : currentUser.role === 'animateur' ? '🎤 منشط' : '🎭 الفريق';
                         document.getElementById('headerUserBadge').innerText = `${roleName} (${currentUser.pseudo})`;
@@ -559,25 +560,24 @@
             });
         }
 
-        /* ----- 4. مسار العميل (المديرة) : دورة حياة الرابط ----- */
+        /* ----- 4. مسار العميل (المديرة) ----- */
         function handleClientFlow() {
-            document.getElementById('bottomControlBar').style.display = 'none'; // لا راديو
-            document.getElementById('teleprompterWrapper').style.display = 'none'; // لا كلمة ترحيبية
-            document.getElementById('btnBackBackstage').style.display = 'none'; // لا أزرار رجوع
+            document.getElementById('bottomControlBar').style.display = 'none'; 
+            document.getElementById('teleprompterWrapper').style.display = 'none'; 
+            document.getElementById('btnBackBackstage').style.display = 'none'; 
             document.getElementById('btnBackStage').style.display = 'none';
-            document.getElementById('bsOnlineText').style.display = 'none'; // لا رادار
+            document.getElementById('bsOnlineText').style.display = 'none'; 
             document.getElementById('stOnlineText').style.display = 'none';
 
             let path = isArchivedEvent ? 'BechaEventsData/archived_events/'+currentEventIndex : 'BechaEventsData/events/'+currentEventIndex;
             
-            // استماع مستمر لنهاية الحفل
             db.ref(path + '/eventEnded').on('value', snap => {
                 if(snap.val() === true) {
                     if(clientPhaseInterval) clearInterval(clientPhaseInterval);
                     showScreen('clientThankYouScreen');
                 } else {
                     evaluateClientPhase();
-                    if(!clientPhaseInterval) { clientPhaseInterval = setInterval(evaluateClientPhase, 30000); } // فحص كل 30 ثانية
+                    if(!clientPhaseInterval) { clientPhaseInterval = setInterval(evaluateClientPhase, 30000); } 
                 }
             });
         }
@@ -597,10 +597,9 @@
             document.getElementById('compactInstName_st').innerText = `🏫 ${currentEventData.name}`;
             
             showScreen('dashboardScreen');
-            document.getElementById('dashboardMenuWrapper').style.display = 'none'; // تجاوز القائمة للمديرة
+            document.getElementById('dashboardMenuWrapper').style.display = 'none'; 
 
             if (diffMins > 60) {
-                // المرحلة الأولى: التحضير المفتوح
                 currentUser.perms = { bs_view: true, bs_edit: true, stage: false, timeline: false, radar: false, end_event: false };
                 document.getElementById('backstageSection').style.display = 'block';
                 document.getElementById('stageSection').style.display = 'none';
@@ -610,7 +609,6 @@
                 if(!backstageProgRef) startBackstageListener(); 
                 applyBackstagePermissions();
             } else {
-                // المرحلة الثانية: التجميد والمتابعة المباشرة
                 currentUser.perms = { bs_view: false, bs_edit: false, stage: true, timeline: false, radar: false, end_event: false };
                 document.getElementById('backstageSection').style.display = 'none';
                 document.getElementById('stageSection').style.display = 'block';
