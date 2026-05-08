@@ -63,7 +63,7 @@
         .chk-box { width: 30px; height: 30px; border-radius: 8px; border: 2px solid #ccc; display: flex; align-items: center; justify-content: center; color: white; font-size: 18px;}
         .completed .chk-box { background: #198754; border-color: #198754; }
 
-        #bottomControlBar { position: fixed; bottom: 0; right: 0; width: 100%; background: rgba(255,255,255,0.98); border-top: 2px solid #ddd; z-index: 900; display: none; padding: 10px 20px; box-sizing: border-box; box-shadow: 0 -4px 15px rgba(0,0,0,0.08); align-items: center; justify-content: flex-start; gap: 15px; }
+        #bottomControlBar { position: fixed; bottom: 0; right: 0; width: 100%; background: rgba(255,255,255,0.98); border-top: 2px solid #ddd; z-index: 10000; display: none; padding: 10px 20px; box-sizing: border-box; box-shadow: 0 -4px 15px rgba(0,0,0,0.08); align-items: center; justify-content: flex-start; gap: 15px; }
         .float-btn { width: 60px; height: 60px; border-radius: 50%; color: white; font-size: 26px; border: none; box-shadow: 0 4px 10px rgba(0,0,0,0.3); cursor: pointer; display: flex; align-items: center; justify-content: center; transition: 0.2s; background: var(--primary-red); flex-shrink: 0;}
         .float-btn.recording { background: #198754; animation: pulse 1s infinite; box-shadow: 0 0 20px #198754; }
         @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.1); } 100% { transform: scale(1); } }
@@ -930,11 +930,11 @@
         }
         function replayLastMessage() { if(lastMessageBlobUrl) { let mainAudio = document.getElementById('mainRadioPlayer'); mainAudio.src = lastMessageBlobUrl; document.getElementById('radioStatus').style.display = 'block'; mainAudio.play().catch(e=>{}); mainAudio.onended = () => { document.getElementById('radioStatus').style.display = 'none'; }; } }
         
-        // 🔴 دالة تسجيل المايك الخاصة بالراديو المعدلة لإغلاق الميكرو بعد التسجيل
-        async function ensureMicrophone() { 
+       async function ensureMicrophone() { 
             try { 
                 if(!micStream) { 
-                    micStream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false } }); 
+                    // 🔴 إرجاع فلاتر الآيفون (الصوت الصافي) خاطرنا ولينا نقتلو الميكرو بعد التسجيل
+                    micStream = await navigator.mediaDevices.getUserMedia({ audio: true }); 
                 } 
                 mediaRecorder = new MediaRecorder(micStream); 
                 initAudioCtx(); 
@@ -956,7 +956,6 @@
                 return true; 
             } catch(e) { return false; } 
         }
-
         function drawVisualizer() { if(!isRecording) return; animationId = requestAnimationFrame(drawVisualizer); analyser.getByteFrequencyData(dataArray); const mCtx = document.getElementById('mainVisualizer').getContext('2d'); mCtx.clearRect(0,0,140,40); let x=0; for(let i=0; i<dataArray.length; i++) { let h = dataArray[i]/5; mCtx.fillStyle = '#198754'; mCtx.fillRect(x, 40-h, 2.5, h); x += 3.5; } }
         function resetVisualizer() { const mCtx = document.getElementById('mainVisualizer').getContext('2d'); mCtx.clearRect(0,0,140,40); }
         async function startPTT(e) { if(e) { e.preventDefault(); e.stopPropagation(); } initAudioCtx(); let hasMic = await ensureMicrophone(); if(!hasMic || isRecording || mediaRecorder.state !== 'inactive') return; isRecording = true; document.getElementById('radioBtn').classList.add('recording'); document.getElementById('miniVisualizerContainer').style.display = 'flex'; let path = isArchivedEvent ? 'BechaEventsData/archived_events/'+currentEventIndex : 'BechaEventsData/events/'+currentEventIndex; db.ref(path + '/activeRecording').set(currentUser.pseudo); playBeep('start'); audioChunks = []; mediaRecorder.start(); drawVisualizer(); }
