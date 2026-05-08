@@ -648,7 +648,19 @@
 
         async function startTestRecording(e) { if(e) { e.preventDefault(); e.stopPropagation(); } if(isTesting) return; try { initAudioCtx(); if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) { alert("⚠️ متصفحك لا يدعم تسجيل الصوت."); return; } if(!micStream) { micStream = await navigator.mediaDevices.getUserMedia({ audio: true }); } testMediaRecorder = new MediaRecorder(micStream); testAudioChunks = []; testMediaRecorder.ondataavailable = ev => { if(ev.data.size > 0) testAudioChunks.push(ev.data); }; testMediaRecorder.onstop = () => { const audioBlob = new Blob(testAudioChunks, { type: testMediaRecorder.mimeType || 'audio/mp4' }); const testPlayer = document.getElementById('testAudioPlayer'); testPlayer.src = URL.createObjectURL(audioBlob); document.getElementById('silentAudio').play().catch(e=>{}); testPlayer.play().then(() => { document.getElementById('testStatusText').innerText = "🔊 جاري الاستماع لتسجيلك..."; }).catch(e=>{}); testPlayer.onended = () => { document.getElementById('testStatusText').innerText = "كيف كان الصوت؟"; document.getElementById('testResults').style.display = 'block'; document.getElementById('testMicBtn').style.display = 'none'; }; }; isTesting = true; document.getElementById('testStatusText').innerText = "🔴 جاري التسجيل..."; testMediaRecorder.start(); } catch(err) { console.log(err); alert("⚠️ يرجى إعطاء صلاحية الميكروفون أولاً!"); } }
         function cancelMicTest() { document.getElementById('testRoomScreen').style.display = 'none'; if(currentUser.role === 'admin' || (currentUser.perms && currentUser.perms.bs_view && currentUser.perms.stage)) { document.getElementById('dashboardMenuWrapper').style.display = 'block'; } else { logout(); } }
-        function stopTestRecording(e) { if(e) { e.preventDefault(); e.stopPropagation(); } if(!isTesting || !testMediaRecorder) return; isTesting = false; testMediaRecorder.stop(); }
+        function stopTestRecording(e) { 
+            if(e) { e.preventDefault(); e.stopPropagation(); } 
+            if(!isTesting || !testMediaRecorder) return; 
+            isTesting = false; 
+            testMediaRecorder.stop(); 
+
+            // 🔴 إغلاق الميكرو في غرفة الفحص زادا
+            if (micStream) {
+                micStream.getTracks().forEach(track => track.stop());
+                micStream = null;
+                testMediaRecorder = null;
+            }
+        }
         function resetTest() { document.getElementById('testResults').style.display = 'none'; document.getElementById('testMicBtn').style.display = 'block'; document.getElementById('testStatusText').innerText = "اضغط مطولاً للتسجيل مرة أخرى"; }
         function proceedAfterTest() { document.getElementById('testRoomScreen').style.display = 'none'; if(currentUser.role === 'admin') { acceptSecurityConsent(); } else { document.getElementById('antiScreenModal').style.display = 'flex'; } }
         
@@ -849,12 +861,65 @@
             db.ref(path + '/activeRecording').on('value', snap => { let recUser = snap.val(); let banner = document.getElementById('globalRecordingBanner'); if (recUser && recUser !== currentUser.pseudo) { banner.innerText = `🎙️ ${recUser} بصدد التسجيل...`; banner.style.display = 'block'; } else { banner.style.display = 'none'; } });
         }
         function replayLastMessage() { if(lastMessageBlobUrl) { let mainAudio = document.getElementById('mainRadioPlayer'); mainAudio.src = lastMessageBlobUrl; document.getElementById('radioStatus').style.display = 'block'; mainAudio.play().catch(e=>{}); mainAudio.onended = () => { document.getElementById('radioStatus').style.display = 'none'; }; } }
-        async function ensureMicrophone() { if (mediaRecorder) return true; try { if(!micStream) { micStream = await navigator.mediaDevices.getUserMedia({ audio: true }); } mediaRecorder = new MediaRecorder(micStream); initAudioCtx(); const source = audioCtx.createMediaStreamSource(micStream); source.connect(analyser); mediaRecorder.ondataavailable = e => { if(e.data.size > 0) audioChunks.push(e.data); }; mediaRecorder.onstop = () => { const audioBlob = new Blob(audioChunks, { type: mediaRecorder.mimeType || 'audio/mp4' }); audioChunks = []; const reader = new FileReader(); reader.readAsDataURL(audioBlob); reader.onloadend = () => { let d = new Date(); let path = isArchivedEvent ? 'BechaEventsData/archived_events/'+currentEventIndex : 'BechaEventsData/events/'+currentEventIndex; db.ref(path + '/lastMessage').set({ sender: currentUser.pseudo, audio: reader.result, timestamp: Date.now(), timeStr: d.toLocaleTimeString('ar-TN', {hour:'2-digit', minute:'2-digit'}) }).then(() => { document.getElementById('sendSuccessBanner').style.display = 'block'; setTimeout(()=>document.getElementById('sendSuccessBanner').style.display = 'none', 3000); }); }; }; return true; } catch(e) { return false; } }
+       async function ensureMicrophone() { 
+            // نحينا الشرط القديم باش يعاود يكونكتي ديما
+            try { 
+                if(!micStream) { 
+                    // 🔴 إيقاف فلاتر الصدى والضجيج اللي تقص البلوتوث
+                    micStream = await navigator.mediaDevices.getUserMedia({ 
+                        audio: {
+                            echoCancellation: false,
+                            noiseSuppression: false,
+                            autoGainControl: false
+                        } 
+                    }); 
+                } 
+                mediaRecorder = new MediaRecorder(micStream); 
+                initAudioCtx(); 
+                const source = audioCtx.createMediaStreamSource(micStream); 
+                source.connect(analyser); 
+                mediaRecorder.ondataavailable = e => { if(e.data.size > 0) audioChunks.push(e.data); }; 
+                mediaRecorder.onstop = () => { 
+                    const audioBlob = new Blob(audioChunks, { type: mediaRecorder.mimeType || 'audio/mp4' }); 
+                    audioChunks = []; 
+                    const reader = new FileReader(); 
+                    reader.readAsDataURL(audioBlob); 
+                    reader.onloadend = () => { 
+                        let d = new Date(); let path = isArchivedEvent ? 'BechaEventsData/archived_events/'+currentEventIndex : 'BechaEventsData/events/'+currentEventIndex; 
+                        db.ref(path + '/lastMessage').set({ sender: currentUser.pseudo, audio: reader.result, timestamp: Date.now(), timeStr: d.toLocaleTimeString('ar-TN', {hour:'2-digit', minute:'2-digit'}) }).then(() => { 
+                            document.getElementById('sendSuccessBanner').style.display = 'block'; setTimeout(()=>document.getElementById('sendSuccessBanner').style.display = 'none', 3000); 
+                        }); 
+                    }; 
+                }; 
+                return true; 
+            } catch(e) { return false; } 
+        }
         function drawVisualizer() { if(!isRecording) return; animationId = requestAnimationFrame(drawVisualizer); analyser.getByteFrequencyData(dataArray); const mCtx = document.getElementById('mainVisualizer').getContext('2d'); mCtx.clearRect(0,0,140,40); let x=0; for(let i=0; i<dataArray.length; i++) { let h = dataArray[i]/5; mCtx.fillStyle = '#198754'; mCtx.fillRect(x, 40-h, 2.5, h); x += 3.5; } }
         function resetVisualizer() { const mCtx = document.getElementById('mainVisualizer').getContext('2d'); mCtx.clearRect(0,0,140,40); }
         async function startPTT(e) { if(e) { e.preventDefault(); e.stopPropagation(); } initAudioCtx(); let hasMic = await ensureMicrophone(); if(!hasMic || isRecording || mediaRecorder.state !== 'inactive') return; isRecording = true; document.getElementById('radioBtn').classList.add('recording'); document.getElementById('miniVisualizerContainer').style.display = 'flex'; let path = isArchivedEvent ? 'BechaEventsData/archived_events/'+currentEventIndex : 'BechaEventsData/events/'+currentEventIndex; db.ref(path + '/activeRecording').set(currentUser.pseudo); playBeep('start'); audioChunks = []; mediaRecorder.start(); drawVisualizer(); }
-        function stopPTT(e) { if(e) { e.preventDefault(); e.stopPropagation(); } if(!isRecording) return; isRecording = false; document.getElementById('radioBtn').classList.remove('recording'); document.getElementById('miniVisualizerContainer').style.display = 'none'; let path = isArchivedEvent ? 'BechaEventsData/archived_events/'+currentEventIndex : 'BechaEventsData/events/'+currentEventIndex; db.ref(path + '/activeRecording').set(null); mediaRecorder.stop(); playBeep('end'); cancelAnimationFrame(animationId); resetVisualizer(); }
-        async function enterPocketMode() { document.getElementById('pocketModeOverlay').style.display = 'flex'; try { if ('wakeLock' in navigator) { wakeLock = await navigator.wakeLock.request('screen'); } } catch(err){} }
+        function stopPTT(e) { 
+            if(e) { e.preventDefault(); e.stopPropagation(); } 
+            if(!isRecording) return; 
+            isRecording = false; 
+            document.getElementById('radioBtn').classList.remove('recording'); 
+            document.getElementById('miniVisualizerContainer').style.display = 'none'; 
+            let path = isArchivedEvent ? 'BechaEventsData/archived_events/'+currentEventIndex : 'BechaEventsData/events/'+currentEventIndex; 
+            db.ref(path + '/activeRecording').set(null); 
+            
+            if(mediaRecorder && mediaRecorder.state !== 'inactive') {
+                mediaRecorder.stop(); 
+            }
+            playBeep('end'); 
+            cancelAnimationFrame(animationId); 
+            resetVisualizer(); 
+
+            // 🔴 السر هوني: إعدام الميكروفون بالكامل لإرجاع الصوت للبلوتوث
+            if (micStream) {
+                micStream.getTracks().forEach(track => track.stop());
+                micStream = null;
+                mediaRecorder = null; // تفريغ الذاكرة باش المرة الجاية يطلبو من جديد
+            }
+        }
         function exitPocketMode() { document.getElementById('pocketModeOverlay').style.display = 'none'; if(wakeLock) { wakeLock.release(); wakeLock = null; } }
         window.addEventListener('keydown', (e) => { if(e.code === 'Space' && e.target.tagName !== 'INPUT' && e.target.tagName !== 'SELECT' && e.target.tagName !== 'TEXTAREA') { e.preventDefault(); startPTT(null); } }); window.addEventListener('keyup', (e) => { if(e.code === 'Space' && e.target.tagName !== 'INPUT' && e.target.tagName !== 'SELECT' && e.target.tagName !== 'TEXTAREA') { e.preventDefault(); stopPTT(null); } });
         window.addEventListener('beforeunload', () => { if(isRecording) { let path = isArchivedEvent ? 'BechaEventsData/archived_events/'+currentEventIndex : 'BechaEventsData/events/'+currentEventIndex; db.ref(path + '/activeRecording').set(null); } stopPresenceTracker(); });
