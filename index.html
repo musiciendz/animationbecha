@@ -153,6 +153,19 @@
     <audio id="testAudioPlayer" playsinline></audio> 
 
     <div id="watermarkContainer"></div>
+    <!-- 🔴 شاشة الانتظار الفاخرة (The VIP Waiting Lounge) 🔴 -->
+    <div id="waitingRoomScreen" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #111; z-index: 12005; flex-direction: column; align-items: center; justify-content: center; padding: 30px; box-sizing: border-box; text-align: center;">
+        <h1 style="color: white; font-size: 40px; margin: 0; letter-spacing: 2px;">BECHA</h1>
+        <h2 style="color: var(--primary-red); margin-top: -10px; margin-bottom: 30px;">EVENTS</h2>
+        <div style="background: rgba(255,255,255,0.1); padding: 25px; border-radius: 15px; border: 2px solid #555; width: 100%;">
+            <h3 style="color: #ff9800; margin-top: 0;">⏳ يرجى الانتظار في الكواليس...</h3>
+            <p style="color: #ccc; font-size: 16px; margin-bottom: 5px;">🏫 العرض الخاص بـ:</p>
+            <h3 id="waitingInstName" style="color: white; margin-top: 0; font-size: 22px;">--</h3>
+            <p style="color: #ccc; font-size: 16px; margin-bottom: 5px;">🕒 مبرمج الانطلاق على الساعة:</p>
+            <h3 id="waitingEventTime" style="color: white; margin-top: 0; font-size: 22px;">--</h3>
+        </div>
+        <p style="color: #888; font-size: 14px; margin-top: 30px; font-weight: bold;">🔒 الرجاء انتظار إشارة الإدارة لفتح النظام.</p>
+    </div>
     <div id="antiScreenshotBanner">🔴 نظام مراقبة الشاشة مفعل 🔴</div>
 
     <!-- نافذة الإشعارات الذكية -->
@@ -354,6 +367,9 @@
             </div>
             <button id="btnAdminSettings" class="btn btn-dark" style="width:100%; margin-top:20px; display:none;" onclick="openGatekeeper(currentEventIndex, isArchivedEvent, true)">⚙️ إعدادات وصلاحيات الفريق</button>
         </div>
+        <!-- 🔴 زر المايسترو (إعطاء شارة الانطلاق) 🔴 -->
+            <button id="btnStartEvent" class="btn btn-green" style="width:100%; margin-top:20px; font-size: 18px; padding: 15px; display: none; box-shadow: 0 4px 15px rgba(25, 135, 84, 0.4); animation: pulse 2s infinite;" onclick="startEventNow()">🎬 إعطاء شارة الانطلاق (فتح النظام)</button>
+        
 
         <!-- الكواليس -->
         <div id="backstageSection" style="display:none; margin-top:0;">
@@ -587,19 +603,33 @@
 
                 if(foundEvent) {
                     if(foundUser.role === 'none' || (foundUser.role !== 'client' && !foundUser.perms.stage && !foundUser.perms.bs_view)) { document.getElementById('deniedMessageText').innerHTML = `يعطيك الصحة <b style="color:var(--primary-red);">${foundUser.name}</b>!<br><br>ليس لديك صلاحيات للدخول.`; showScreen('deniedMessageScreen'); return; }
-                    currentUser = { pseudo: foundUser.name, role: foundUser.role, perms: foundUser.perms }; currentEventIndex = foundEvent.originalIndex; isArchivedEvent = foundEvent.isArchived; currentEventData = foundEvent;
-                    document.getElementById('mainAppHeader').style.display = 'block';
                     
-                    if(currentUser.role === 'client') { 
-                        document.getElementById('headerUserBadge').innerText = `🏢 العميل (الإدارة)`; 
-                        handleClientFlow(); 
-                    } else { 
-                        let roleName = currentUser.role === 'admin_assistant' ? '👑 م.مدير' : currentUser.role === 'animateur' ? '🎤 منشط' : '🎭 الفريق'; 
-                        document.getElementById('headerUserBadge').innerText = `${roleName} (${currentUser.pseudo})`; 
+                    // 🔴 رادار التواجد المزدوج (Anti-Double Login)
+                    let evPath = foundEvent.isArchived ? 'BechaEventsData/archived_events/'+foundEvent.originalIndex : 'BechaEventsData/events/'+foundEvent.originalIndex;
+                    db.ref(evPath + '/onlineUsers/' + foundUser.name).once('value').then(onlineSnap => {
+                        if (onlineSnap.exists() && onlineSnap.val() === true) {
+                            document.getElementById('deniedMessageText').innerHTML = `عفواً <b style="color:var(--primary-red);">${foundUser.name}</b>! 🚨<br><br>هذا الحساب متصل حالياً من جهاز آخر.<br>لا يمكن الدخول مرتين حمايةً لسرية العرض.`;
+                            showScreen('deniedMessageScreen');
+                            return; 
+                        }
+
+                        // إذا كان غير متصل، نسمح له بالدخول
+                        currentUser = { pseudo: foundUser.name, role: foundUser.role, perms: foundUser.perms }; currentEventIndex = foundEvent.originalIndex; isArchivedEvent = foundEvent.isArchived; currentEventData = foundEvent;
+                        document.getElementById('mainAppHeader').style.display = 'block';
                         
-                        showScreen('dashboardScreen');
-                        routeBasedOnPerms(); 
-                    }
+                        // 🔴 تشغيل رادار صالة الانتظار
+                        monitorEventStart();
+
+                        if(currentUser.role === 'client') { 
+                            document.getElementById('headerUserBadge').innerText = `🏢 العميل (الإدارة)`; 
+                            handleClientFlow(); 
+                        } else { 
+                            let roleName = currentUser.role === 'admin_assistant' ? '👑 م.مدير' : currentUser.role === 'animateur' ? '🎤 منشط' : '🎭 الفريق'; 
+                            document.getElementById('headerUserBadge').innerText = `${roleName} (${currentUser.pseudo})`; 
+                            showScreen('dashboardScreen');
+                            routeBasedOnPerms(); 
+                        }
+                    });
                 } else { alert("❌ كود خاطئ! الرجاء التأكد من الكود."); }
             });
         }
@@ -926,7 +956,24 @@
         function initRadioReceiver() {
             if(radioReceiverActive) return; radioReceiverActive = true; let path = isArchivedEvent ? 'BechaEventsData/archived_events/'+currentEventIndex : 'BechaEventsData/events/'+currentEventIndex;
             db.ref(path + '/lastMessage').on('value', snap => { let msg = snap.val(); if(msg && msg.timestamp > lastMessageTimestamp) { lastMessageTimestamp = msg.timestamp; lastMessageBlobUrl = msg.audio; document.getElementById('lastMsgText').innerText = `🎙️ آخر رسالة من: ${msg.sender} (${msg.timeStr})`; if(msg.sender !== currentUser.pseudo) { let mainAudio = document.getElementById('mainRadioPlayer'); mainAudio.src = msg.audio; document.getElementById('radioStatus').innerText = `🔊 رسالة من: ${msg.sender}`; document.getElementById('radioStatus').style.display = 'block'; if(navigator.vibrate) { navigator.vibrate([200, 100, 200, 100, 200]); } document.body.classList.add('flash-screen'); setTimeout(() => { document.body.classList.remove('flash-screen'); }, 2500); mainAudio.play().catch(e=>{}); mainAudio.onended = () => { document.getElementById('radioStatus').style.display = 'none'; }; } } else if (!msg) { document.getElementById('lastMsgText').innerText = `🎙️ لا توجد رسائل سابقة`; lastMessageBlobUrl = null; } });
-            db.ref(path + '/activeRecording').on('value', snap => { let recUser = snap.val(); let banner = document.getElementById('globalRecordingBanner'); if (recUser && recUser !== currentUser.pseudo) { banner.innerText = `🎙️ ${recUser} بصدد التسجيل...`; banner.style.display = 'block'; } else { banner.style.display = 'none'; } });
+            
+            // 🔴 قانون المايك الواحد: إغلاق الزر عند البقية
+            db.ref(path + '/activeRecording').on('value', snap => { 
+                let recUser = snap.val(); 
+                let banner = document.getElementById('globalRecordingBanner'); 
+                let radioBtn = document.getElementById('radioBtn');
+                
+                if (recUser && recUser !== currentUser.pseudo) { 
+                    banner.innerText = `🎙️ ${recUser} بصدد التسجيل...`; 
+                    banner.style.display = 'block'; 
+                    // تعطيل الزر
+                    radioBtn.style.opacity = '0.4'; radioBtn.style.pointerEvents = 'none';
+                } else { 
+                    banner.style.display = 'none'; 
+                    // تفعيل الزر
+                    radioBtn.style.opacity = '1'; radioBtn.style.pointerEvents = 'auto';
+                } 
+            });
         }
         function replayLastMessage() { if(lastMessageBlobUrl) { let mainAudio = document.getElementById('mainRadioPlayer'); mainAudio.src = lastMessageBlobUrl; document.getElementById('radioStatus').style.display = 'block'; mainAudio.play().catch(e=>{}); mainAudio.onended = () => { document.getElementById('radioStatus').style.display = 'none'; }; } }
         
@@ -993,7 +1040,53 @@
         function logout() { location.reload(); }
         function showScreen(id) { document.querySelectorAll('.screen').forEach(s => s.classList.remove('active-screen')); document.getElementById(id).classList.add('active-screen'); }
 window.addEventListener('mouseup', (e) => { if(isTesting) stopTestRecording(e); });
-window.addEventListener('touchend', (e) => { if(isTesting) stopTestRecording(e); });        
+window.addEventListener('touchend', (e) => { if(isTesting) stopTestRecording(e); });
+        // 🔴 محرك الستار وصالة الانتظار
+        let eventStartListener = null;
+        function monitorEventStart() {
+            if(currentUser.role === 'client' || currentUser.role === 'admin') return; 
+            
+            let path = isArchivedEvent ? 'BechaEventsData/archived_events/'+currentEventIndex : 'BechaEventsData/events/'+currentEventIndex;
+            if(eventStartListener) db.ref(path + '/eventStarted').off('value', eventStartListener);
+            
+            eventStartListener = db.ref(path + '/eventStarted').on('value', snap => {
+                let started = snap.val();
+                let isMaestro = (currentUser.role === 'admin_assistant');
+                
+                // إظهار زر المايسترو لمساعد المدير أو الإدارة
+                if(isMaestro) { document.getElementById('btnStartEvent').style.display = started ? 'none' : 'block'; }
+                
+                if(!started && !isMaestro) {
+                    // حجز الموظف في صالة الانتظار
+                    document.getElementById('waitingInstName').innerText = currentEventData.name;
+                    document.getElementById('waitingEventTime').innerText = currentEventData.time || '--:--';
+                    document.getElementById('waitingRoomScreen').style.display = 'flex';
+                    document.getElementById('bottomControlBar').style.display = 'none';
+                } else {
+                    // رفع الستار وإخفاء صالة الانتظار
+                    document.getElementById('waitingRoomScreen').style.display = 'none';
+                    if(document.getElementById('stageSection').style.display !== 'none' || document.getElementById('backstageSection').style.display !== 'none'){
+                        document.getElementById('bottomControlBar').style.display = 'flex';
+                    }
+                }
+            });
+        }
+
+        function startEventNow() {
+            if(!confirm("⚠️ هل أنت متأكد من إعطاء شارة الانطلاق للفريق؟ سيتم فتح النظام لديهم.")) return;
+            let path = isArchivedEvent ? 'BechaEventsData/archived_events/'+currentEventIndex : 'BechaEventsData/events/'+currentEventIndex;
+            db.ref(path + '/eventStarted').set(true);
+        }
+
+        // 🔴 دالة الدخول الذكي (Auto-Login) عبر الرابط من Becha Pro
+        window.addEventListener('DOMContentLoaded', (event) => {
+            const urlParams = new URLSearchParams(window.location.search);
+            const autoPin = urlParams.get('pin');
+            if(autoPin) {
+                document.getElementById('loginPin').value = autoPin;
+                setTimeout(() => { loginWithPin(); }, 500); 
+            }
+        });
     </script>
 </body>
 </html>
