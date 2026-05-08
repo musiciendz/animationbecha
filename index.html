@@ -399,6 +399,7 @@
         let pendingSectionId = ''; let lastMessageBlobUrl = null; let lastMessageTimestamp = 0;
         let isEventEndedLocally = false; let localInfractionsThisSession = 0;
         let clientPhaseInterval = null; let countdownInterval = null; let currentEditCount = 0;
+        let hasShownSmartNotification = false; let currentActivePhase = "";
 
         let radioReceiverActive = false; let mediaRecorder = null; let audioChunks = []; let isRecording = false; 
         let audioCtx = null; let analyser = null; let dataArray = null; let animationId = null; let wakeLock = null; let testMediaRecorder = null; let testAudioChunks = []; let isTesting = false; let micStream = null;
@@ -551,16 +552,22 @@
 
         function evaluateClientPhase() {
             if(currentEventData.eventEnded) return;
-            let evDateStr = currentEventData.date; let evTimeStr = currentEventData.time || "00:00"; let evDateTime = new Date(`${evDateStr}T${evTimeStr}:00`); let now = new Date(); let diffMs = evDateTime - now; let diffMins = diffMs / 60000;
+            let evDateStr = currentEventData.date; let evTimeStr = currentEventData.time || "00:00"; let evDateTime = new Date(`${evDateStr}T${evTimeStr}:00`); let diffMins = (evDateTime - new Date()) / 60000;
             document.getElementById('dashInstName').innerText = `🏫 ${currentEventData.name}`; document.getElementById('compactInstName_bs').innerText = `🏫 ${currentEventData.name}`; document.getElementById('compactInstName_st').innerText = `🏫 ${currentEventData.name}`;
             showScreen('dashboardScreen'); document.getElementById('dashboardMenuWrapper').style.display = 'none'; 
 
-            if (diffMins > 60) {
-                currentUser.perms = { bs_view: true, bs_edit: true, stage: false, timeline: false, radar: false, end_event: false }; document.getElementById('backstageSection').style.display = 'block'; document.getElementById('stageSection').style.display = 'none'; document.getElementById('clientBackstageNotice').style.display = 'block';
-                loadBackstageData(); if(!backstageProgRef) startBackstageListener(); applyBackstagePermissions();
-            } else {
-                currentUser.perms = { bs_view: false, bs_edit: false, stage: true, timeline: false, radar: false, end_event: false }; document.getElementById('backstageSection').style.display = 'none'; document.getElementById('stageSection').style.display = 'block'; document.getElementById('clientStageNotice').style.display = 'block';
-                if(!liveProgRef) openStageLive(); applyStagePermissions();
+            let newPhase = diffMins > 60 ? 'editable' : 'locked';
+            
+            // فقط كي تتبدل المرحلة نبدلو الشاشات (باش ما تتفسخش الخدمة كل 30 ثانية)
+            if (currentActivePhase !== newPhase) {
+                currentActivePhase = newPhase;
+                if (newPhase === 'editable') {
+                    currentUser.perms = { bs_view: true, bs_edit: true, stage: false, timeline: false, radar: false, end_event: false }; document.getElementById('backstageSection').style.display = 'block'; document.getElementById('stageSection').style.display = 'none'; document.getElementById('clientBackstageNotice').style.display = 'block';
+                    loadBackstageData(); if(!backstageProgRef) startBackstageListener(); applyBackstagePermissions();
+                } else {
+                    currentUser.perms = { bs_view: false, bs_edit: false, stage: true, timeline: false, radar: false, end_event: false }; document.getElementById('backstageSection').style.display = 'none'; document.getElementById('stageSection').style.display = 'block'; document.getElementById('clientStageNotice').style.display = 'block';
+                    if(!liveProgRef) openStageLive(); applyStagePermissions();
+                }
             }
         }
 
@@ -621,22 +628,24 @@
         function updateNumbers() { let rows = document.querySelectorAll('.prog-row'); document.getElementById('totalProgCount').innerText = rows.length; rows.forEach((r, i) => r.querySelector('.row-num').innerText = i+1); }
         function moveItem(btn, dir) { let row = btn.closest('.prog-row'); if(dir === -1 && row.previousElementSibling) row.parentNode.insertBefore(row, row.previousElementSibling); if(dir === 1 && row.nextElementSibling) row.parentNode.insertBefore(row.nextElementSibling, row); updateNumbers(); }
 
-        // تحميل البيانات وتشغيل العدادات
         function loadBackstageData() {
             ['educatorsList', 'coachesList', 'staffList', 'programList'].forEach(id => document.getElementById(id).innerHTML = '');
             let d = currentEventData.institutionDetails || {}; document.getElementById('instManager').value = d.managerName || ''; document.getElementById('instFounder').value = d.founderName || '';
             if(d.educators) d.educators.forEach(n => addEducator(n)); if(d.coaches) d.coaches.forEach(c => addCoach(c.spec, c.name)); if(d.staff) d.staff.forEach(s => addStaff(s.role, s.name));
-            let p = currentEventData.eventProgram || []; if(p.length === 0 && currentUser.perms.bs_edit) { addProgramItem(); } else { p.forEach(i => addProgramItem(i.type, i.details, i.completed, i.customType)); }
+            let p = currentEventData.eventProgram || []; 
+            p.forEach(i => addProgramItem(i.type, i.details, i.completed, i.customType));
             
-            // قراءة آخر تحديث
-            let info = currentEventData.lastEditInfo || { count: 0 };
-            currentEditCount = info.count;
+            // الإشعار الذكي والعدادات (بدون Refresh للشاشة)
+            let info = currentEventData.lastEditInfo || { count: 0, by: '', role: '', time: 0 };
+            currentEditCount = info.count || 0;
             document.getElementById('editCountDisplay').innerText = currentEditCount;
 
-            // إشعار ذكي
-            if(info.role && info.role !== currentUser.role) {
-                let timeStr = new Date(info.time).toLocaleTimeString('ar-TN', {hour:'2-digit', minute:'2-digit'});
-                let msg = currentUser.role === 'client' ? `تم ضبط وتحيين برنامجكم من طرف فريق Becha Events على الساعة ${timeStr}.` : `قامت إدارة المؤسسة بإدخال/تعديل البرنامج على الساعة ${timeStr}.`;
+            if(info.role && info.role !== currentUser.role && info.time > 0 && !hasShownSmartNotification) {
+                hasShownSmartNotification = true;
+                let timeObj = new Date(info.time);
+                let timeStr = timeObj.toLocaleTimeString('ar-TN', {hour:'2-digit', minute:'2-digit'});
+                let dateStr = timeObj.toLocaleDateString('ar-TN');
+                let msg = currentUser.role === 'client' ? `تم ضبط وتحيين برنامجكم من طرف فريق Becha Events يوم ${dateStr} على الساعة ${timeStr}.` : `قامت إدارة المؤسسة بإدخال/تعديل البرنامج يوم ${dateStr} على الساعة ${timeStr}.`;
                 document.getElementById('smartNotificationText').innerText = msg;
                 document.getElementById('smartNotificationModal').style.display = 'flex';
             }
@@ -648,11 +657,15 @@
         function updateCountdown() {
             let evDateStr = currentEventData.date; let evTimeStr = currentEventData.time || "00:00"; let evDateTime = new Date(`${evDateStr}T${evTimeStr}:00`);
             let diffMins = (evDateTime - new Date()) / 60000; let diffToLock = diffMins - 60;
-            if(diffToLock <= 0) { document.getElementById('countdownDisplay').innerText = "تم إغلاق التعديل"; if(currentUser.role === 'client') evaluateClientPhase(); } 
-            else { let hrs = Math.floor(diffToLock / 60); let mins = Math.floor(diffToLock % 60); document.getElementById('countdownDisplay').innerText = `${hrs} س و ${mins} دق`; }
+            if(diffToLock <= 0) { 
+                document.getElementById('countdownDisplay').innerText = "تم إغلاق التعديل"; 
+                if(currentUser.role === 'client') evaluateClientPhase(); 
+            } else { 
+                let hrs = Math.floor(diffToLock / 60); let mins = Math.floor(diffToLock % 60); 
+                document.getElementById('countdownDisplay').innerText = `${hrs} س و ${mins} دق`; 
+            }
         }
 
-        // مسار الحفظ الجديد (فحص + معاينة + تحميل)
         function triggerSaveFlow() {
             let progRows = document.querySelectorAll('.prog-row');
             if(progRows.length === 0) { alert("🚫 عفواً، لا يمكن حفظ برنامج فارغ! الرجاء إضافة فقرة واحدة على الأقل."); return; }
@@ -680,18 +693,15 @@
             let path = isArchivedEvent ? 'BechaEventsData/archived_events/'+currentEventIndex : 'BechaEventsData/events/'+currentEventIndex;
             Promise.all([ db.ref(path+'/institutionDetails').set(d), db.ref(path+'/eventProgram').set(prog), db.ref(path+'/lastEditInfo').set(editInfo) ]).then(() => {
                 currentEditCount++; document.getElementById('editCountDisplay').innerText = currentEditCount;
-                document.getElementById('downloadPromptModal').style.display = 'flex'; // نافذة طلب التحميل
+                currentEventData.lastEditInfo = editInfo; currentEventData.institutionDetails = d; currentEventData.eventProgram = prog;
+                document.getElementById('downloadPromptModal').style.display = 'flex'; 
             });
         }
 
         function downloadA4Image() {
-            // استعمال html2canvas لتصوير الـ div
             let element = document.getElementById('a4Paper');
             html2canvas(element, { scale: 2 }).then(canvas => {
-                let link = document.createElement('a');
-                link.download = `Program_${currentEventData.name.replace(/\s+/g, '_')}.png`;
-                link.href = canvas.toDataURL('image/png');
-                link.click();
+                let link = document.createElement('a'); link.download = `Program_${currentEventData.name.replace(/\s+/g, '_')}.png`; link.href = canvas.toDataURL('image/png'); link.click();
                 document.getElementById('downloadPromptModal').style.display='none';
             });
         }
