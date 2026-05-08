@@ -133,6 +133,17 @@
         .a4-table { width: 100%; border-collapse: collapse; margin-top: 20px; font-size: 16px; text-align: right; }
         .a4-table th, .a4-table td { border: 2px solid #ccc; padding: 10px; }
         .a4-table th { background: #f8f9fa; color: var(--primary-red); font-weight: 900; text-align: center;}
+        .test-mic-btn { 
+    width: 100px; height: 100px; border-radius: 50%; 
+    background: var(--primary-red); color: white; font-size: 40px; 
+    border: none; box-shadow: 0 4px 15px rgba(225,6,0,0.4); 
+    margin: 20px 0; transition: 0.2s; 
+    -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; 
+}
+.test-mic-btn:active { 
+    transform: scale(0.9); background: #198754; 
+    box-shadow: 0 4px 15px rgba(25,135,84,0.4); 
+}
     </style>
 </head>
 <body>
@@ -984,6 +995,8 @@
 
         function logout() { location.reload(); }
         function showScreen(id) { document.querySelectorAll('.screen').forEach(s => s.classList.remove('active-screen')); document.getElementById(id).classList.add('active-screen'); }
+window.addEventListener('mouseup', (e) => { if(isTesting) stopTestRecording(e); });
+window.addEventListener('touchend', (e) => { if(isTesting) stopTestRecording(e); });        
     </script>
 </body>
 </html>
