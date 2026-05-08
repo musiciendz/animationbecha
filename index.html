@@ -537,14 +537,24 @@
                     if(foundUser.role === 'none' || (foundUser.role !== 'client' && !foundUser.perms.stage && !foundUser.perms.bs_view)) { document.getElementById('deniedMessageText').innerHTML = `يعطيك الصحة <b style="color:var(--primary-red);">${foundUser.name}</b>!<br><br>ليس لديك صلاحيات للدخول.`; showScreen('deniedMessageScreen'); return; }
                     currentUser = { pseudo: foundUser.name, role: foundUser.role, perms: foundUser.perms }; currentEventIndex = foundEvent.originalIndex; isArchivedEvent = foundEvent.isArchived; currentEventData = foundEvent;
                     document.getElementById('mainAppHeader').style.display = 'block';
-                    if(currentUser.role === 'client') { document.getElementById('headerUserBadge').innerText = `🏢 العميل (الإدارة)`; handleClientFlow(); } 
-                    else { let roleName = currentUser.role === 'admin_assistant' ? '👑 م.مدير' : currentUser.role === 'animateur' ? '🎤 منشط' : '🎭 الفريق'; document.getElementById('headerUserBadge').innerText = `${roleName} (${currentUser.pseudo})`; initiateMicTest('route_based_on_perms'); }
+                    
+                    if(currentUser.role === 'client') { 
+                        document.getElementById('headerUserBadge').innerText = `🏢 العميل (الإدارة)`; 
+                        handleClientFlow(); 
+                    } else { 
+                        let roleName = currentUser.role === 'admin_assistant' ? '👑 م.مدير' : currentUser.role === 'animateur' ? '🎤 منشط' : '🎭 الفريق'; 
+                        document.getElementById('headerUserBadge').innerText = `${roleName} (${currentUser.pseudo})`; 
+                        
+                        showScreen('dashboardScreen'); // 🔴 إخفاء شاشة الدخول أولا
+                        routeBasedOnPerms(); // 🔴 التوجيه المباشر
+                    }
                 } else { alert("❌ كود خاطئ! الرجاء التأكد من الكود."); }
             });
         }
 
         /* ----- 4. مسار العميل (المديرة) ----- */
         function handleClientFlow() {
+            showScreen('dashboardScreen'); 
             document.getElementById('bottomControlBar').style.display = 'none'; document.getElementById('teleprompterWrapper').style.display = 'none'; document.getElementById('btnBackBackstage').style.display = 'none'; document.getElementById('btnBackStage').style.display = 'none'; document.getElementById('bsOnlineText').style.display = 'none'; document.getElementById('stOnlineText').style.display = 'none';
             let path = isArchivedEvent ? 'BechaEventsData/archived_events/'+currentEventIndex : 'BechaEventsData/events/'+currentEventIndex;
             db.ref(path + '/eventEnded').on('value', snap => { if(snap.val() === true) { if(clientPhaseInterval) clearInterval(clientPhaseInterval); showScreen('clientThankYouScreen'); } else { evaluateClientPhase(); if(!clientPhaseInterval) { clientPhaseInterval = setInterval(evaluateClientPhase, 30000); } } });
@@ -554,11 +564,11 @@
             if(currentEventData.eventEnded) return;
             let evDateStr = currentEventData.date; let evTimeStr = currentEventData.time || "00:00"; let evDateTime = new Date(`${evDateStr}T${evTimeStr}:00`); let diffMins = (evDateTime - new Date()) / 60000;
             document.getElementById('dashInstName').innerText = `🏫 ${currentEventData.name}`; document.getElementById('compactInstName_bs').innerText = `🏫 ${currentEventData.name}`; document.getElementById('compactInstName_st').innerText = `🏫 ${currentEventData.name}`;
-            showScreen('dashboardScreen'); document.getElementById('dashboardMenuWrapper').style.display = 'none'; 
+            
+            document.getElementById('dashboardMenuWrapper').style.display = 'none'; 
 
             let newPhase = diffMins > 60 ? 'editable' : 'locked';
             
-            // فقط كي تتبدل المرحلة نبدلو الشاشات (باش ما تتفسخش الخدمة كل 30 ثانية)
             if (currentActivePhase !== newPhase) {
                 currentActivePhase = newPhase;
                 if (newPhase === 'editable') {
@@ -575,20 +585,42 @@
         function prepareDashboardOrStage() {
             document.getElementById('dashInstName').innerText = `🏫 ${currentEventData.name}`; document.getElementById('dashEventTime').innerText = `📅 ${currentEventData.date} | 🕒 ${currentEventData.time || '--'}`; document.getElementById('compactInstName_bs').innerText = `🏫 ${currentEventData.name}`; document.getElementById('compactInstName_st').innerText = `🏫 ${currentEventData.name}`;
             if(currentEventData.eventEnded === true && !isEventEndedLocally) { isEventEndedLocally = true; showFinalReport(); }
-            if(currentUser.role === 'admin') { document.getElementById('btnAdminSettings').style.display = 'block'; showScreen('dashboardScreen'); } else { routeBasedOnPerms(); }
+            
+            showScreen('dashboardScreen'); // 🔴 التأكد من إظهار الغرفة الكبيرة وإخفاء الدخول
+            
+            if(currentUser.role === 'admin') { 
+                document.getElementById('btnAdminSettings').style.display = 'block'; 
+                document.getElementById('dashboardMenuWrapper').style.display = 'block';
+            } else { 
+                routeBasedOnPerms(); 
+            }
         }
 
         function routeBasedOnPerms() {
             let p = currentUser.perms;
             document.getElementById('btnGoBackstage').style.display = p.bs_view ? 'block' : 'none'; document.getElementById('btnGoStage').style.display = p.stage ? 'block' : 'none'; document.getElementById('dashBackBtn').style.display = 'none'; document.getElementById('btnAdminSettings').style.display = 'none';
-            if(p.bs_view && p.stage) { showScreen('dashboardScreen'); } else if (p.stage) { initiateMicTest('stageSection'); } else if (p.bs_view) { initiateMicTest('backstageSection'); } 
+            
+            if(p.bs_view && p.stage) { 
+                document.getElementById('dashboardMenuWrapper').style.display = 'block'; 
+            } else if (p.stage) { 
+                document.getElementById('dashboardMenuWrapper').style.display = 'none';
+                initiateMicTest('stageSection'); 
+            } else if (p.bs_view) { 
+                document.getElementById('dashboardMenuWrapper').style.display = 'none';
+                initiateMicTest('backstageSection'); 
+            } 
         }
 
         function initiateMicTest(targetId) {
             pendingSectionId = targetId; 
-            if(currentUser.role === 'admin' || (currentUser.perms && currentUser.perms.bs_view && currentUser.perms.stage)) { document.getElementById('dashboardMenuWrapper').style.display = 'none'; }
+            document.getElementById('dashboardMenuWrapper').style.display = 'none';
+            
             if(currentUser.role === 'admin') { acceptSecurityConsent(); return; }
-            document.getElementById('testRoomScreen').style.display = 'flex'; document.getElementById('testResults').style.display = 'none'; document.getElementById('testMicBtn').style.display = 'block'; document.getElementById('testStatusText').innerText = "اضغط مطولاً للتسجيل";
+            
+            document.getElementById('testRoomScreen').style.display = 'flex'; 
+            document.getElementById('testResults').style.display = 'none'; 
+            document.getElementById('testMicBtn').style.display = 'block'; 
+            document.getElementById('testStatusText').innerText = "اضغط مطولاً للتسجيل";
         }
 
         async function startTestRecording(e) { if(e) { e.preventDefault(); e.stopPropagation(); } if(isTesting) return; try { initAudioCtx(); if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) { alert("⚠️ متصفحك لا يدعم تسجيل الصوت."); return; } if(!micStream) { micStream = await navigator.mediaDevices.getUserMedia({ audio: true }); } testMediaRecorder = new MediaRecorder(micStream); testAudioChunks = []; testMediaRecorder.ondataavailable = ev => { if(ev.data.size > 0) testAudioChunks.push(ev.data); }; testMediaRecorder.onstop = () => { const audioBlob = new Blob(testAudioChunks, { type: testMediaRecorder.mimeType || 'audio/mp4' }); const testPlayer = document.getElementById('testAudioPlayer'); testPlayer.src = URL.createObjectURL(audioBlob); document.getElementById('silentAudio').play().catch(e=>{}); testPlayer.play().then(() => { document.getElementById('testStatusText').innerText = "🔊 جاري الاستماع لتسجيلك..."; }).catch(e=>{}); testPlayer.onended = () => { document.getElementById('testStatusText').innerText = "كيف كان الصوت؟"; document.getElementById('testResults').style.display = 'block'; document.getElementById('testMicBtn').style.display = 'none'; }; }; isTesting = true; document.getElementById('testStatusText').innerText = "🔴 جاري التسجيل..."; testMediaRecorder.start(); } catch(err) { console.log(err); alert("⚠️ يرجى إعطاء صلاحية الميكروفون أولاً!"); } }
@@ -600,7 +632,9 @@
         function acceptSecurityConsent() {
             document.getElementById('antiScreenModal').style.display = 'none';
             if(currentUser.role !== 'admin') { setupWatermark(); document.getElementById('antiScreenshotBanner').style.display = 'block'; startPresenceTracker(); }
-            initRadioReceiver(); if(pendingSectionId === 'route_based_on_perms') { routeBasedOnPerms(); return; }
+            
+            initRadioReceiver(); 
+            
             document.getElementById(pendingSectionId).style.display = 'block'; 
             if(pendingSectionId === 'backstageSection') { loadBackstageData(); startBackstageListener(); applyBackstagePermissions(); }
             if(pendingSectionId === 'stageSection') { openStageLive(); applyStagePermissions(); }
@@ -635,7 +669,6 @@
             let p = currentEventData.eventProgram || []; 
             p.forEach(i => addProgramItem(i.type, i.details, i.completed, i.customType));
             
-            // الإشعار الذكي والعدادات (بدون Refresh للشاشة)
             let info = currentEventData.lastEditInfo || { count: 0, by: '', role: '', time: 0 };
             currentEditCount = info.count || 0;
             document.getElementById('editCountDisplay').innerText = currentEditCount;
