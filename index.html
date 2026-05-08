@@ -14,6 +14,8 @@
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@600;800;900&display=swap" rel="stylesheet">
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 
     <style>
         :root { --primary-red: #E10600; --dark-text: #2b2b2b; --light-bg: #f8f9fa; }
@@ -98,7 +100,7 @@
         .test-mic-btn { width: 80px; height: 80px; border-radius: 50%; background: var(--primary-red); color: white; font-size: 30px; border: none; box-shadow: 0 4px 15px rgba(225,6,0,0.4); margin: 20px 0; transition: 0.2s; }
         .test-mic-btn:active { transform: scale(0.9); background: #198754; box-shadow: 0 4px 15px rgba(25,135,84,0.4); }
 
-        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 11000; flex-direction: column; align-items: center; justify-content: center; padding: 20px; box-sizing: border-box; text-align: right; }
+        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 11000; flex-direction: column; align-items: center; justify-content: center; padding: 20px; box-sizing: border-box; text-align: right; overflow-y: auto;}
         .modal-box { background: white; padding: 30px; border-radius: 15px; max-width: 400px; width: 100%; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
         .modal-box.danger { border: 4px solid var(--primary-red); }
 
@@ -113,7 +115,6 @@
         .gk-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; border-bottom: 1px dashed #ccc; padding-bottom: 10px; flex-wrap: wrap; gap: 5px;}
         .gk-name { font-weight: 900; font-size: 18px; color: var(--primary-red); }
         .gk-select { padding: 6px 12px; border-radius: 8px; border: 1px solid #17a2b8; font-family: 'Cairo'; font-size: 14px; font-weight: bold; background: #e3f2fd; color: #0275d8;}
-        
         .gk-pin-group { display: flex; gap: 5px; align-items: center; background: #f8f9fa; padding: 10px; border-radius: 8px; margin-bottom: 10px;}
         .gk-pin { width: 80px; text-align: center; font-weight: 900; font-size: 18px; background: white; border: 2px solid #ccc; border-radius: 6px; padding: 6px; color: #333; letter-spacing: 2px;}
         .gk-action-btn { padding: 8px 12px; border-radius: 6px; font-weight: bold; cursor: pointer; border: none; font-size: 14px; display: flex; align-items: center; justify-content: center; transition: 0.2s;}
@@ -121,10 +122,19 @@
         .gk-gen { background: #17a2b8; color: white; }
         .gk-wa { background: #25D366; color: white; }
         .gk-copy { background: #6f42c1; color: white; }
-
         .gk-perms-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; background: #fffdf5; padding: 10px; border-radius: 8px; border: 1px solid #ffc107;}
         .gk-perm-label { font-size: 13px; font-weight: bold; color: #555; display: flex; align-items: center; gap: 5px; cursor: pointer;}
         .gk-perm-label input { width: 16px; height: 16px; cursor: pointer; margin:0;}
+
+        /* العدادات الذكية */
+        .smart-stats-bar { display: flex; justify-content: space-between; background: #fff; padding: 10px 15px; border-radius: 10px; border: 2px solid #ddd; margin-bottom: 15px; font-size: 13px; font-weight: bold; }
+        .stat-item { display: flex; align-items: center; gap: 5px; }
+
+        /* ستايل ورقة الـ A4 */
+        #a4Paper { background: white; width: 100%; max-width: 700px; padding: 30px; box-sizing: border-box; text-align: center; color: black; border-bottom: 5px solid var(--primary-red); }
+        .a4-table { width: 100%; border-collapse: collapse; margin-top: 20px; font-size: 16px; text-align: right; }
+        .a4-table th, .a4-table td { border: 2px solid #ccc; padding: 10px; }
+        .a4-table th { background: #f8f9fa; color: var(--primary-red); font-weight: 900; text-align: center;}
     </style>
 </head>
 <body>
@@ -135,6 +145,43 @@
 
     <div id="watermarkContainer"></div>
     <div id="antiScreenshotBanner">🔴 نظام مراقبة الشاشة مفعل 🔴</div>
+
+    <div id="smartNotificationModal" class="modal-overlay">
+        <div class="modal-box">
+            <h3 style="color:#17a2b8; margin-top:0;">🔔 إشعار تحديث البيانات</h3>
+            <p id="smartNotificationText" style="font-size:15px; font-weight:bold; color:#444; line-height:1.6;"></p>
+            <button class="btn btn-dark" style="width:100%; margin-top:20px;" onclick="document.getElementById('smartNotificationModal').style.display='none'">حسناً، فهمت</button>
+        </div>
+    </div>
+
+    <div id="a4PreviewModal" class="modal-overlay" style="z-index: 12000;">
+        <div style="background: white; border-radius: 10px; overflow: hidden; max-width: 700px; width: 95%;">
+            <div id="a4Paper">
+                <h1 style="color: var(--primary-red); margin: 0; font-size: 28px;">BECHA EVENTS KIDS</h1>
+                <h3 style="margin: 5px 0 20px 0; color: #555; border-bottom: 2px dashed #ccc; padding-bottom: 10px;" id="a4InstName">برنامج حفل: --</h3>
+                
+                <div id="a4TableContainer"></div>
+                
+                <p style="margin-top: 30px; font-size: 13px; color: #777; font-weight: bold;">تم إعداد واعتماد هذا البرنامج بواسطة منظومة Becha Events Kids</p>
+            </div>
+            
+            <div style="padding: 15px; display: flex; gap: 10px; background: #f8f9fa; border-top: 1px solid #ddd;">
+                <button class="btn btn-green" style="flex: 1; font-size: 16px;" onclick="confirmSaveAndShowDownload()">نعم، اعتماد وحفظ ✅</button>
+                <button class="btn btn-red" style="flex: 1; font-size: 16px;" onclick="document.getElementById('a4PreviewModal').style.display='none'">عودة للتعديل ✏️</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="downloadPromptModal" class="modal-overlay" style="z-index: 12001;">
+        <div class="modal-box">
+            <h3 style="color:#198754; margin-top:0; text-align:center;">✅ تم الحفظ بنجاح!</h3>
+            <p style="font-weight:bold; color:#444; font-size:15px; text-align:center;">هل تود/تودين تحميل نسخة من البرنامج كصورة (للاحتفاظ بها أو مشاركتها)؟</p>
+            <div style="display:flex; gap:10px; margin-top:20px;">
+                <button class="btn btn-info" style="flex:1;" onclick="downloadA4Image()">📥 نعم، تحميل</button>
+                <button class="btn btn-dark" style="flex:1;" onclick="document.getElementById('downloadPromptModal').style.display='none'">✖️ لا، شكراً</button>
+            </div>
+        </div>
+    </div>
 
     <div id="testRoomScreen">
         <h2 style="color: var(--primary-red); margin-top:0;">🎙️ غرفة فحص الصوت</h2>
@@ -287,6 +334,12 @@
                     <div class="online-text" id="bsOnlineText">🟢 متصل: <span id="onlineUsersList_bs">--</span></div>
                 </div>
             </div>
+
+            <div class="smart-stats-bar">
+                <div class="stat-item" style="color: var(--primary-red);">⏳ <span id="countdownDisplay">يتم الحساب...</span></div>
+                <div class="stat-item" style="color: #17a2b8;">🔄 التحديثات: <span id="editCountDisplay">0</span></div>
+            </div>
+
             <div id="clientBackstageNotice" style="display:none; background:#e3f2fd; color:#0275d8; padding:10px; border-radius:8px; margin-bottom:15px; font-weight:bold; font-size:14px; text-align:right;">ℹ️ يمكنك تعديل البرنامج بحرية. سيتم إغلاق التعديل أوتوماتيكياً ساعة قبل موعد الحفل.</div>
             <div id="backstageContent">
                 <div class="accordion-item">
@@ -305,7 +358,7 @@
                         <div id="programList"></div><button class="btn btn-outline bs-edit-btn" style="width:100%; margin-top:10px; border-color:var(--primary-red); color:var(--primary-red); border-style: dashed;" onclick="addProgramItem()">+ فقرة جديدة</button>
                     </div>
                 </div>
-                <button class="btn btn-green bs-edit-btn" id="saveBackstageBtn" style="width:100%; margin-top:25px; font-size: 20px; padding: 15px;" onclick="saveBackstageData()">💾 حفظ التعديلات كاملة</button>
+                <button class="btn btn-green bs-edit-btn" id="saveBackstageBtn" style="width:100%; margin-top:25px; font-size: 20px; padding: 15px;" onclick="triggerSaveFlow()">💾 معاينة واعتماد البرنامج</button>
             </div>
         </div>
 
@@ -345,7 +398,7 @@
         let liveProgRef = null; let backstageProgRef = null; let onlineRef = null; let presenceListeners = [];
         let pendingSectionId = ''; let lastMessageBlobUrl = null; let lastMessageTimestamp = 0;
         let isEventEndedLocally = false; let localInfractionsThisSession = 0;
-        let clientPhaseInterval = null;
+        let clientPhaseInterval = null; let countdownInterval = null; let currentEditCount = 0;
 
         let radioReceiverActive = false; let mediaRecorder = null; let audioChunks = []; let isRecording = false; 
         let audioCtx = null; let analyser = null; let dataArray = null; let animationId = null; let wakeLock = null; let testMediaRecorder = null; let testAudioChunks = []; let isTesting = false; let micStream = null;
@@ -412,27 +465,18 @@
                     
                     let originalTeam = currentEventData.assignedTeam || [];
                     let team = ["مديرة المؤسسة", ...originalTeam.filter(n => n !== "مديرة المؤسسة")];
-                    
                     let existingPins = currentEventData.teamPins || {}; 
-                    
                     let gkList = document.getElementById('gkTeamList'); gkList.innerHTML = '';
                     
                     team.forEach((member, index) => {
                         let currentPin = ''; let currentRole = 'none'; let perms = {};
-                        
                         if(existingPins && Object.values(existingPins).find(u => u.name === member)) {
                             let uKey = Object.keys(existingPins).find(k => existingPins[k].name === member);
                             currentPin = uKey; currentRole = existingPins[uKey].role; perms = existingPins[uKey].perms || {};
                         } else {
                             currentPin = Math.floor(1000 + Math.random() * 9000).toString();
-                            
-                            if(member === "مديرة المؤسسة") {
-                                currentRole = 'client';
-                                perms = { stage: false, timeline: false, bs_view: false, bs_edit: false, radar: false, end_event: false };
-                            } else {
-                                let savedMemory = globalRoles[member] || { role: 'animateur', perms: { stage: true, timeline: true } };
-                                currentRole = savedMemory.role; perms = savedMemory.perms || {};
-                            }
+                            if(member === "مديرة المؤسسة") { currentRole = 'client'; perms = { stage: false, timeline: false, bs_view: false, bs_edit: false, radar: false, end_event: false }; } 
+                            else { let savedMemory = globalRoles[member] || { role: 'animateur', perms: { stage: true, timeline: true } }; currentRole = savedMemory.role; perms = savedMemory.perms || {}; }
                         }
                         
                         let sel = `<select id="gkRole_${index}" class="gk-select" onchange="applyQuickRole(this, ${index})">
@@ -445,30 +489,11 @@
                             <option value="dj" ${currentRole==='dj'?'selected':''}>🎧 دي جي</option>
                         </select>`;
 
-                        let opacity = (currentRole==='none' || currentRole==='client') ? '0.4' : '1';
-                        let pointerEvents = (currentRole==='none' || currentRole==='client') ? 'none' : 'auto';
-
-                        let chks = `
-                            <label class="gk-perm-label"><input type="checkbox" id="perm_stage_${index}" ${perms.stage?'checked':''}> الدخول للركح 🎭</label>
-                            <label class="gk-perm-label"><input type="checkbox" id="perm_timeline_${index}" ${perms.timeline?'checked':''}> التحكم بالفقرات 📜</label>
-                            <label class="gk-perm-label"><input type="checkbox" id="perm_bs_view_${index}" ${perms.bs_view?'checked':''}> دخول الكواليس 🧰</label>
-                            <label class="gk-perm-label"><input type="checkbox" id="perm_bs_edit_${index}" ${perms.bs_edit?'checked':''}> تعديل الكواليس ✍️</label>
-                            <label class="gk-perm-label"><input type="checkbox" id="perm_radar_${index}" ${perms.radar?'checked':''}> رادار المراقبة 👁️‍🗨️</label>
-                            <label class="gk-perm-label"><input type="checkbox" id="perm_end_${index}" ${perms.end_event?'checked':''}> إنهاء العرض 🏁</label>
-                        `;
-                        
+                        let opacity = (currentRole==='none' || currentRole==='client') ? '0.4' : '1'; let pointerEvents = (currentRole==='none' || currentRole==='client') ? 'none' : 'auto';
+                        let chks = `<label class="gk-perm-label"><input type="checkbox" id="perm_stage_${index}" ${perms.stage?'checked':''}> الدخول للركح 🎭</label><label class="gk-perm-label"><input type="checkbox" id="perm_timeline_${index}" ${perms.timeline?'checked':''}> التحكم بالفقرات 📜</label><label class="gk-perm-label"><input type="checkbox" id="perm_bs_view_${index}" ${perms.bs_view?'checked':''}> دخول الكواليس 🧰</label><label class="gk-perm-label"><input type="checkbox" id="perm_bs_edit_${index}" ${perms.bs_edit?'checked':''}> تعديل الكواليس ✍️</label><label class="gk-perm-label"><input type="checkbox" id="perm_radar_${index}" ${perms.radar?'checked':''}> رادار المراقبة 👁️‍🗨️</label><label class="gk-perm-label"><input type="checkbox" id="perm_end_${index}" ${perms.end_event?'checked':''}> إنهاء العرض 🏁</label>`;
                         let displayMemberName = member === "مديرة المؤسسة" ? `🏢 إدارة ${currentEventData.name}` : member;
 
-                        gkList.innerHTML += `<div class="gk-row" data-name="${member}">
-                            <div class="gk-header"><span class="gk-name">${displayMemberName}</span>${sel}</div>
-                            <div class="gk-pin-group">
-                                🔑 <input type="text" id="gkPin_${index}" class="gk-pin" readonly value="${currentPin}">
-                                <button class="gk-action-btn gk-gen" onclick="generatePin(${index})" title="تجديد">🔄</button>
-                                <button class="gk-action-btn gk-wa" onclick="sendWa(${index}, '${currentEventData.name}')" title="واتساب">💬</button>
-                                <button class="gk-action-btn gk-copy" onclick="copyPin(${index}, '${currentEventData.name}')" title="نسخ">📋</button>
-                            </div>
-                            <div class="gk-perms-grid" id="gkPermsGrid_${index}" style="opacity:${opacity}; pointer-events:${pointerEvents};">${chks}</div>
-                        </div>`;
+                        gkList.innerHTML += `<div class="gk-row" data-name="${member}"><div class="gk-header"><span class="gk-name">${displayMemberName}</span>${sel}</div><div class="gk-pin-group">🔑 <input type="text" id="gkPin_${index}" class="gk-pin" readonly value="${currentPin}"><button class="gk-action-btn gk-gen" onclick="generatePin(${index})" title="تجديد">🔄</button><button class="gk-action-btn gk-wa" onclick="sendWa(${index}, '${currentEventData.name}')" title="واتساب">💬</button><button class="gk-action-btn gk-copy" onclick="copyPin(${index}, '${currentEventData.name}')" title="نسخ">📋</button></div><div class="gk-perms-grid" id="gkPermsGrid_${index}" style="opacity:${opacity}; pointer-events:${pointerEvents};">${chks}</div></div>`;
                     });
                     showScreen('gatekeeperScreen');
                 });
@@ -476,62 +501,22 @@
         }
 
         function applyQuickRole(selElem, index) {
-            let role = selElem.value;
-            let grid = document.getElementById(`gkPermsGrid_${index}`);
+            let role = selElem.value; let grid = document.getElementById(`gkPermsGrid_${index}`);
             let cStage = document.getElementById(`perm_stage_${index}`); let cTime = document.getElementById(`perm_timeline_${index}`); let cBsView = document.getElementById(`perm_bs_view_${index}`); let cBsEdit = document.getElementById(`perm_bs_edit_${index}`); let cRadar = document.getElementById(`perm_radar_${index}`); let cEnd = document.getElementById(`perm_end_${index}`);
-
-            if(role === 'none' || role === 'client') {
-                grid.style.opacity = '0.4'; grid.style.pointerEvents = 'none';
-                cStage.checked=false; cTime.checked=false; cBsView.checked=false; cBsEdit.checked=false; cRadar.checked=false; cEnd.checked=false;
-            } else {
-                grid.style.opacity = '1'; grid.style.pointerEvents = 'auto';
-                cStage.checked=true; 
-                if(role === 'admin_assistant') { cTime.checked=true; cBsView.checked=true; cBsEdit.checked=true; cRadar.checked=true; cEnd.checked=true; } 
-                else if(role === 'animateur') { cTime.checked=true; cBsView.checked=false; cBsEdit.checked=false; cRadar.checked=false; cEnd.checked=false; } 
-                else { cTime.checked=false; cBsView.checked=false; cBsEdit.checked=false; cRadar.checked=false; cEnd.checked=false; }
-            }
+            if(role === 'none' || role === 'client') { grid.style.opacity = '0.4'; grid.style.pointerEvents = 'none'; cStage.checked=false; cTime.checked=false; cBsView.checked=false; cBsEdit.checked=false; cRadar.checked=false; cEnd.checked=false; } 
+            else { grid.style.opacity = '1'; grid.style.pointerEvents = 'auto'; cStage.checked=true; if(role === 'admin_assistant') { cTime.checked=true; cBsView.checked=true; cBsEdit.checked=true; cRadar.checked=true; cEnd.checked=true; } else if(role === 'animateur') { cTime.checked=true; cBsView.checked=false; cBsEdit.checked=false; cRadar.checked=false; cEnd.checked=false; } else { cTime.checked=false; cBsView.checked=false; cBsEdit.checked=false; cRadar.checked=false; cEnd.checked=false; } }
         }
 
         function generatePin(index) { document.getElementById(`gkPin_${index}`).value = Math.floor(1000 + Math.random() * 9000).toString(); }
-        
-        // التعديل الذكي للرابط الديناميكي وتثبيت رابط الـ GitHub
-        function getMsgText(index, eventName) { 
-            let roleVal = document.getElementById(`gkRole_${index}`).value; 
-            if(roleVal === 'none') return null; 
-            let pin = document.getElementById(`gkPin_${index}`).value; 
-            let name = document.querySelector(`.gk-row:nth-child(${index+1}) .gk-name`).innerText; 
-            
-            // رابطك الأصلي الثابت
-            let appLink = "https://musiciendz.github.io/animationbecha/";
-            
-            if (roleVal === 'client') {
-                return `مرحباً بكِ سيدتي مديرة روضة [ ${eventName} ]،\nهذا هو رابط بوابتك الخاصة لإدخال برنامج الحفل ومتابعته مباشرة:\n${appLink}\n\n🔑 كود الدخول الخاص بكِ: *${pin}*`;
-            }
-            return `على السلامة ${name}،\nكود الدخول لتطبيقة الركح لعرض [ ${eventName} ] هو: 🔑 *${pin}*\nالرابط:\n${appLink}`; 
-        }
-
+        function getMsgText(index, eventName) { let roleVal = document.getElementById(`gkRole_${index}`).value; if(roleVal === 'none') return null; let pin = document.getElementById(`gkPin_${index}`).value; let name = document.querySelector(`.gk-row:nth-child(${index+1}) .gk-name`).innerText; let appLink = "https://musiciendz.github.io/animationbecha/"; if (roleVal === 'client') { return `مرحباً بكِ سيدتي مديرة روضة [ ${eventName} ]،\nهذا هو رابط بوابتك الخاصة لإدخال برنامج الحفل ومتابعته مباشرة:\n${appLink}\n\n🔑 كود الدخول الخاص بكِ: *${pin}*`; } return `على السلامة ${name}،\nكود الدخول لتطبيقة الركح لعرض [ ${eventName} ] هو: 🔑 *${pin}*\nالرابط:\n${appLink}`; }
         function sendWa(index, evName) { let msg = getMsgText(index, evName); if(!msg) { alert("الموظف ليس له صلاحيات."); return; } window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank'); }
         function copyPin(index, evName) { let msg = getMsgText(index, evName); if(!msg) { alert("الموظف ليس له صلاحيات."); return; } navigator.clipboard.writeText(msg).then(() => { alert("✅ تم النسخ!"); }); }
 
         function saveGatekeeperAndEnter() {
-            let newTeamPins = {}; let newGlobalRoles = {};
-            let rows = document.querySelectorAll('.gk-row');
-            
-            rows.forEach((row, i) => {
-                let name = row.getAttribute('data-name');
-                let role = document.getElementById(`gkRole_${i}`).value;
-                let pin = document.getElementById(`gkPin_${i}`).value;
-                
-                let perms = { stage: document.getElementById(`perm_stage_${i}`).checked, timeline: document.getElementById(`perm_timeline_${i}`).checked, bs_view: document.getElementById(`perm_bs_view_${i}`).checked, bs_edit: document.getElementById(`perm_bs_edit_${i}`).checked, radar: document.getElementById(`perm_radar_${i}`).checked, end_event: document.getElementById(`perm_end_${i}`).checked };
-
-                if(role !== 'none' && role !== 'client') { newGlobalRoles[name] = { role: role, perms: perms }; }
-                if(pin && role !== 'none') { newTeamPins[pin] = { name: name, role: role, perms: perms }; }
-            });
-            
+            let newTeamPins = {}; let newGlobalRoles = {}; let rows = document.querySelectorAll('.gk-row');
+            rows.forEach((row, i) => { let name = row.getAttribute('data-name'); let role = document.getElementById(`gkRole_${i}`).value; let pin = document.getElementById(`gkPin_${i}`).value; let perms = { stage: document.getElementById(`perm_stage_${i}`).checked, timeline: document.getElementById(`perm_timeline_${i}`).checked, bs_view: document.getElementById(`perm_bs_view_${i}`).checked, bs_edit: document.getElementById(`perm_bs_edit_${i}`).checked, radar: document.getElementById(`perm_radar_${i}`).checked, end_event: document.getElementById(`perm_end_${i}`).checked }; if(role !== 'none' && role !== 'client') { newGlobalRoles[name] = { role: role, perms: perms }; } if(pin && role !== 'none') { newTeamPins[pin] = { name: name, role: role, perms: perms }; } });
             let path = isArchivedEvent ? 'BechaEventsData/archived_events/'+currentEventIndex : 'BechaEventsData/events/'+currentEventIndex;
-            Promise.all([ db.ref(path + '/teamPins').set(newTeamPins), db.ref('BechaEventsData/global_roles').update(newGlobalRoles) ]).then(() => {
-                currentEventData.teamPins = newTeamPins; prepareDashboardOrStage();
-            });
+            Promise.all([ db.ref(path + '/teamPins').set(newTeamPins), db.ref('BechaEventsData/global_roles').update(newGlobalRoles) ]).then(() => { currentEventData.teamPins = newTeamPins; prepareDashboardOrStage(); });
         }
 
         /* ----- 3. دخول الموظف بالكود السري ----- */
@@ -540,8 +525,7 @@
             if(!pin || pin.length < 4) return alert("الرجاء إدخال الكود السري الصحيح.");
             
             Promise.all([ db.ref('BechaEventsData/events').once('value'), db.ref('BechaEventsData/archived_events').once('value') ]).then((snaps) => {
-                let liveEvents = snaps[0].val() || []; let archivedEvents = snaps[1].val() || {};
-                let allEvents = [];
+                let liveEvents = snaps[0].val() || []; let archivedEvents = snaps[1].val() || {}; let allEvents = [];
                 if (Array.isArray(liveEvents)) { liveEvents.forEach((ev, i) => { if(ev) allEvents.push({...ev, originalIndex: i, isArchived: false}); }); } else { Object.keys(liveEvents).forEach(k => { if(liveEvents[k]) allEvents.push({...liveEvents[k], originalIndex: k, isArchived: false}); }); }
                 Object.keys(archivedEvents).forEach(key => { let ev = archivedEvents[key]; if(ev) allEvents.push({...ev, originalIndex: key, isArchived: true}); });
 
@@ -549,164 +533,67 @@
                 for(let ev of allEvents) { if(ev.teamPins && ev.teamPins[pin]) { foundEvent = ev; foundUser = ev.teamPins[pin]; break; } }
 
                 if(foundEvent) {
-                    if(foundUser.role === 'none' || (foundUser.role !== 'client' && !foundUser.perms.stage && !foundUser.perms.bs_view)) {
-                        document.getElementById('deniedMessageText').innerHTML = `يعطيك الصحة <b style="color:var(--primary-red);">${foundUser.name}</b>!<br><br>ليس لديك صلاحيات للدخول.`;
-                        showScreen('deniedMessageScreen'); return;
-                    }
-                    
-                    currentUser = { pseudo: foundUser.name, role: foundUser.role, perms: foundUser.perms };
-                    currentEventIndex = foundEvent.originalIndex; isArchivedEvent = foundEvent.isArchived; currentEventData = foundEvent;
-                    
+                    if(foundUser.role === 'none' || (foundUser.role !== 'client' && !foundUser.perms.stage && !foundUser.perms.bs_view)) { document.getElementById('deniedMessageText').innerHTML = `يعطيك الصحة <b style="color:var(--primary-red);">${foundUser.name}</b>!<br><br>ليس لديك صلاحيات للدخول.`; showScreen('deniedMessageScreen'); return; }
+                    currentUser = { pseudo: foundUser.name, role: foundUser.role, perms: foundUser.perms }; currentEventIndex = foundEvent.originalIndex; isArchivedEvent = foundEvent.isArchived; currentEventData = foundEvent;
                     document.getElementById('mainAppHeader').style.display = 'block';
-                    
-                    if(currentUser.role === 'client') {
-                        document.getElementById('headerUserBadge').innerText = `🏢 العميل (الإدارة)`;
-                        handleClientFlow(); 
-                    } else {
-                        let roleName = currentUser.role === 'admin_assistant' ? '👑 م.مدير' : currentUser.role === 'animateur' ? '🎤 منشط' : '🎭 الفريق';
-                        document.getElementById('headerUserBadge').innerText = `${roleName} (${currentUser.pseudo})`;
-                        initiateMicTest('route_based_on_perms');
-                    }
+                    if(currentUser.role === 'client') { document.getElementById('headerUserBadge').innerText = `🏢 العميل (الإدارة)`; handleClientFlow(); } 
+                    else { let roleName = currentUser.role === 'admin_assistant' ? '👑 م.مدير' : currentUser.role === 'animateur' ? '🎤 منشط' : '🎭 الفريق'; document.getElementById('headerUserBadge').innerText = `${roleName} (${currentUser.pseudo})`; initiateMicTest('route_based_on_perms'); }
                 } else { alert("❌ كود خاطئ! الرجاء التأكد من الكود."); }
             });
         }
 
         /* ----- 4. مسار العميل (المديرة) ----- */
         function handleClientFlow() {
-            document.getElementById('bottomControlBar').style.display = 'none'; 
-            document.getElementById('teleprompterWrapper').style.display = 'none'; 
-            document.getElementById('btnBackBackstage').style.display = 'none'; 
-            document.getElementById('btnBackStage').style.display = 'none';
-            document.getElementById('bsOnlineText').style.display = 'none'; 
-            document.getElementById('stOnlineText').style.display = 'none';
-
+            document.getElementById('bottomControlBar').style.display = 'none'; document.getElementById('teleprompterWrapper').style.display = 'none'; document.getElementById('btnBackBackstage').style.display = 'none'; document.getElementById('btnBackStage').style.display = 'none'; document.getElementById('bsOnlineText').style.display = 'none'; document.getElementById('stOnlineText').style.display = 'none';
             let path = isArchivedEvent ? 'BechaEventsData/archived_events/'+currentEventIndex : 'BechaEventsData/events/'+currentEventIndex;
-            
-            db.ref(path + '/eventEnded').on('value', snap => {
-                if(snap.val() === true) {
-                    if(clientPhaseInterval) clearInterval(clientPhaseInterval);
-                    showScreen('clientThankYouScreen');
-                } else {
-                    evaluateClientPhase();
-                    if(!clientPhaseInterval) { clientPhaseInterval = setInterval(evaluateClientPhase, 30000); } 
-                }
-            });
+            db.ref(path + '/eventEnded').on('value', snap => { if(snap.val() === true) { if(clientPhaseInterval) clearInterval(clientPhaseInterval); showScreen('clientThankYouScreen'); } else { evaluateClientPhase(); if(!clientPhaseInterval) { clientPhaseInterval = setInterval(evaluateClientPhase, 30000); } } });
         }
 
         function evaluateClientPhase() {
             if(currentEventData.eventEnded) return;
-
-            let evDateStr = currentEventData.date;
-            let evTimeStr = currentEventData.time || "00:00";
-            let evDateTime = new Date(`${evDateStr}T${evTimeStr}:00`);
-            let now = new Date();
-            let diffMs = evDateTime - now;
-            let diffMins = diffMs / 60000;
-
-            document.getElementById('dashInstName').innerText = `🏫 ${currentEventData.name}`;
-            document.getElementById('compactInstName_bs').innerText = `🏫 ${currentEventData.name}`;
-            document.getElementById('compactInstName_st').innerText = `🏫 ${currentEventData.name}`;
-            
-            showScreen('dashboardScreen');
-            document.getElementById('dashboardMenuWrapper').style.display = 'none'; 
+            let evDateStr = currentEventData.date; let evTimeStr = currentEventData.time || "00:00"; let evDateTime = new Date(`${evDateStr}T${evTimeStr}:00`); let now = new Date(); let diffMs = evDateTime - now; let diffMins = diffMs / 60000;
+            document.getElementById('dashInstName').innerText = `🏫 ${currentEventData.name}`; document.getElementById('compactInstName_bs').innerText = `🏫 ${currentEventData.name}`; document.getElementById('compactInstName_st').innerText = `🏫 ${currentEventData.name}`;
+            showScreen('dashboardScreen'); document.getElementById('dashboardMenuWrapper').style.display = 'none'; 
 
             if (diffMins > 60) {
-                currentUser.perms = { bs_view: true, bs_edit: true, stage: false, timeline: false, radar: false, end_event: false };
-                document.getElementById('backstageSection').style.display = 'block';
-                document.getElementById('stageSection').style.display = 'none';
-                document.getElementById('clientBackstageNotice').style.display = 'block';
-                
-                loadBackstageData(); 
-                if(!backstageProgRef) startBackstageListener(); 
-                applyBackstagePermissions();
+                currentUser.perms = { bs_view: true, bs_edit: true, stage: false, timeline: false, radar: false, end_event: false }; document.getElementById('backstageSection').style.display = 'block'; document.getElementById('stageSection').style.display = 'none'; document.getElementById('clientBackstageNotice').style.display = 'block';
+                loadBackstageData(); if(!backstageProgRef) startBackstageListener(); applyBackstagePermissions();
             } else {
-                currentUser.perms = { bs_view: false, bs_edit: false, stage: true, timeline: false, radar: false, end_event: false };
-                document.getElementById('backstageSection').style.display = 'none';
-                document.getElementById('stageSection').style.display = 'block';
-                document.getElementById('clientStageNotice').style.display = 'block';
-                
-                if(!liveProgRef) openStageLive(); 
-                applyStagePermissions();
+                currentUser.perms = { bs_view: false, bs_edit: false, stage: true, timeline: false, radar: false, end_event: false }; document.getElementById('backstageSection').style.display = 'none'; document.getElementById('stageSection').style.display = 'block'; document.getElementById('clientStageNotice').style.display = 'block';
+                if(!liveProgRef) openStageLive(); applyStagePermissions();
             }
         }
 
         /* ----- 5. مسار الفريق والإدارة ----- */
         function prepareDashboardOrStage() {
-            document.getElementById('dashInstName').innerText = `🏫 ${currentEventData.name}`;
-            document.getElementById('dashEventTime').innerText = `📅 ${currentEventData.date} | 🕒 ${currentEventData.time || '--'}`;
-            document.getElementById('compactInstName_bs').innerText = `🏫 ${currentEventData.name}`;
-            document.getElementById('compactInstName_st').innerText = `🏫 ${currentEventData.name}`;
+            document.getElementById('dashInstName').innerText = `🏫 ${currentEventData.name}`; document.getElementById('dashEventTime').innerText = `📅 ${currentEventData.date} | 🕒 ${currentEventData.time || '--'}`; document.getElementById('compactInstName_bs').innerText = `🏫 ${currentEventData.name}`; document.getElementById('compactInstName_st').innerText = `🏫 ${currentEventData.name}`;
             if(currentEventData.eventEnded === true && !isEventEndedLocally) { isEventEndedLocally = true; showFinalReport(); }
-            
-            if(currentUser.role === 'admin') { 
-                document.getElementById('btnAdminSettings').style.display = 'block'; 
-                showScreen('dashboardScreen'); 
-            } else {
-                routeBasedOnPerms(); 
-            }
+            if(currentUser.role === 'admin') { document.getElementById('btnAdminSettings').style.display = 'block'; showScreen('dashboardScreen'); } else { routeBasedOnPerms(); }
         }
 
         function routeBasedOnPerms() {
             let p = currentUser.perms;
-            document.getElementById('btnGoBackstage').style.display = p.bs_view ? 'block' : 'none';
-            document.getElementById('btnGoStage').style.display = p.stage ? 'block' : 'none';
-            document.getElementById('dashBackBtn').style.display = 'none'; 
-            document.getElementById('btnAdminSettings').style.display = 'none';
-
-            if(p.bs_view && p.stage) { showScreen('dashboardScreen'); }
-            else if (p.stage) { initiateMicTest('stageSection'); } 
-            else if (p.bs_view) { initiateMicTest('backstageSection'); } 
+            document.getElementById('btnGoBackstage').style.display = p.bs_view ? 'block' : 'none'; document.getElementById('btnGoStage').style.display = p.stage ? 'block' : 'none'; document.getElementById('dashBackBtn').style.display = 'none'; document.getElementById('btnAdminSettings').style.display = 'none';
+            if(p.bs_view && p.stage) { showScreen('dashboardScreen'); } else if (p.stage) { initiateMicTest('stageSection'); } else if (p.bs_view) { initiateMicTest('backstageSection'); } 
         }
 
         function initiateMicTest(targetId) {
             pendingSectionId = targetId; 
             if(currentUser.role === 'admin' || (currentUser.perms && currentUser.perms.bs_view && currentUser.perms.stage)) { document.getElementById('dashboardMenuWrapper').style.display = 'none'; }
             if(currentUser.role === 'admin') { acceptSecurityConsent(); return; }
-            document.getElementById('testRoomScreen').style.display = 'flex';
-            document.getElementById('testResults').style.display = 'none';
-            document.getElementById('testMicBtn').style.display = 'block';
-            document.getElementById('testStatusText').innerText = "اضغط مطولاً للتسجيل";
+            document.getElementById('testRoomScreen').style.display = 'flex'; document.getElementById('testResults').style.display = 'none'; document.getElementById('testMicBtn').style.display = 'block'; document.getElementById('testStatusText').innerText = "اضغط مطولاً للتسجيل";
         }
 
-        async function startTestRecording(e) { 
-            if(e) { e.preventDefault(); e.stopPropagation(); } 
-            if(isTesting) return; 
-            try { 
-                initAudioCtx();
-                if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) { alert("⚠️ متصفحك لا يدعم تسجيل الصوت."); return; }
-                if(!micStream) { micStream = await navigator.mediaDevices.getUserMedia({ audio: true }); }
-                testMediaRecorder = new MediaRecorder(micStream); testAudioChunks = []; testMediaRecorder.ondataavailable = ev => { if(ev.data.size > 0) testAudioChunks.push(ev.data); }; 
-                testMediaRecorder.onstop = () => { 
-                    const audioBlob = new Blob(testAudioChunks, { type: testMediaRecorder.mimeType || 'audio/mp4' }); const testPlayer = document.getElementById('testAudioPlayer'); testPlayer.src = URL.createObjectURL(audioBlob); 
-                    document.getElementById('silentAudio').play().catch(e=>{}); testPlayer.play().then(() => { document.getElementById('testStatusText').innerText = "🔊 جاري الاستماع لتسجيلك..."; }).catch(e=>{}); 
-                    testPlayer.onended = () => { document.getElementById('testStatusText').innerText = "كيف كان الصوت؟"; document.getElementById('testResults').style.display = 'block'; document.getElementById('testMicBtn').style.display = 'none'; }; 
-                }; 
-                isTesting = true; document.getElementById('testStatusText').innerText = "🔴 جاري التسجيل..."; testMediaRecorder.start(); 
-            } catch(err) { console.log(err); alert("⚠️ يرجى إعطاء صلاحية الميكروفون أولاً!"); } 
-        }
-
-        function cancelMicTest() {
-            document.getElementById('testRoomScreen').style.display = 'none';
-            if(currentUser.role === 'admin' || (currentUser.perms && currentUser.perms.bs_view && currentUser.perms.stage)) { document.getElementById('dashboardMenuWrapper').style.display = 'block'; }
-            else { logout(); }
-        }
-
+        async function startTestRecording(e) { if(e) { e.preventDefault(); e.stopPropagation(); } if(isTesting) return; try { initAudioCtx(); if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) { alert("⚠️ متصفحك لا يدعم تسجيل الصوت."); return; } if(!micStream) { micStream = await navigator.mediaDevices.getUserMedia({ audio: true }); } testMediaRecorder = new MediaRecorder(micStream); testAudioChunks = []; testMediaRecorder.ondataavailable = ev => { if(ev.data.size > 0) testAudioChunks.push(ev.data); }; testMediaRecorder.onstop = () => { const audioBlob = new Blob(testAudioChunks, { type: testMediaRecorder.mimeType || 'audio/mp4' }); const testPlayer = document.getElementById('testAudioPlayer'); testPlayer.src = URL.createObjectURL(audioBlob); document.getElementById('silentAudio').play().catch(e=>{}); testPlayer.play().then(() => { document.getElementById('testStatusText').innerText = "🔊 جاري الاستماع لتسجيلك..."; }).catch(e=>{}); testPlayer.onended = () => { document.getElementById('testStatusText').innerText = "كيف كان الصوت؟"; document.getElementById('testResults').style.display = 'block'; document.getElementById('testMicBtn').style.display = 'none'; }; }; isTesting = true; document.getElementById('testStatusText').innerText = "🔴 جاري التسجيل..."; testMediaRecorder.start(); } catch(err) { console.log(err); alert("⚠️ يرجى إعطاء صلاحية الميكروفون أولاً!"); } }
+        function cancelMicTest() { document.getElementById('testRoomScreen').style.display = 'none'; if(currentUser.role === 'admin' || (currentUser.perms && currentUser.perms.bs_view && currentUser.perms.stage)) { document.getElementById('dashboardMenuWrapper').style.display = 'block'; } else { logout(); } }
         function stopTestRecording(e) { if(e) { e.preventDefault(); e.stopPropagation(); } if(!isTesting || !testMediaRecorder) return; isTesting = false; testMediaRecorder.stop(); }
         function resetTest() { document.getElementById('testResults').style.display = 'none'; document.getElementById('testMicBtn').style.display = 'block'; document.getElementById('testStatusText').innerText = "اضغط مطولاً للتسجيل مرة أخرى"; }
-
-        function proceedAfterTest() {
-            document.getElementById('testRoomScreen').style.display = 'none';
-            if(currentUser.role === 'admin') { acceptSecurityConsent(); } 
-            else { document.getElementById('antiScreenModal').style.display = 'flex'; }
-        }
-
+        function proceedAfterTest() { document.getElementById('testRoomScreen').style.display = 'none'; if(currentUser.role === 'admin') { acceptSecurityConsent(); } else { document.getElementById('antiScreenModal').style.display = 'flex'; } }
+        
         function acceptSecurityConsent() {
             document.getElementById('antiScreenModal').style.display = 'none';
             if(currentUser.role !== 'admin') { setupWatermark(); document.getElementById('antiScreenshotBanner').style.display = 'block'; startPresenceTracker(); }
-            
-            initRadioReceiver(); 
-            if(pendingSectionId === 'route_based_on_perms') { routeBasedOnPerms(); return; }
-
+            initRadioReceiver(); if(pendingSectionId === 'route_based_on_perms') { routeBasedOnPerms(); return; }
             document.getElementById(pendingSectionId).style.display = 'block'; 
             if(pendingSectionId === 'backstageSection') { loadBackstageData(); startBackstageListener(); applyBackstagePermissions(); }
             if(pendingSectionId === 'stageSection') { openStageLive(); applyStagePermissions(); }
@@ -714,62 +601,101 @@
         }
 
         function setupWatermark() { let wContainer = document.getElementById('watermarkContainer'); wContainer.innerHTML = ''; for(let i=0; i<40; i++) { let span = document.createElement('span'); span.className = 'watermark-text'; span.innerText = currentUser.pseudo; wContainer.appendChild(span); } wContainer.style.display = 'flex'; }
-
-        function applyStagePermissions() {
-            let tl = document.getElementById('liveProgramTimeline');
-            tl.style.pointerEvents = currentUser.perms.timeline ? 'auto' : 'none';
-            document.getElementById('endEventBtn').style.display = currentUser.perms.end_event ? 'block' : 'none';
-            document.querySelectorAll('.online-text').forEach(el => el.style.display = currentUser.perms.radar ? 'block' : 'none');
-        }
-
-        function applyBackstagePermissions() {
-            let canEdit = currentUser.perms.bs_edit;
-            document.getElementById('instManager').disabled = !canEdit;
-            document.getElementById('instFounder').disabled = !canEdit;
-            document.querySelectorAll('.bs-edit-btn').forEach(btn => btn.style.display = canEdit ? 'block' : 'none');
-        }
-
-        document.addEventListener("visibilitychange", () => {
-            if(document.getElementById('stageSection').style.display === 'none' && document.getElementById('backstageSection').style.display === 'none') return;
-            if(isEventEndedLocally || currentUser.role === 'admin' || currentUser.role === 'client') return; 
-            if (document.hidden) { localInfractionsThisSession++; db.ref('BechaEventsData/users_infractions/' + currentUser.pseudo).transaction(current => (current || 0) + 1); } 
-            else if (!document.hidden && localInfractionsThisSession > 0) { db.ref('BechaEventsData/users_infractions/' + currentUser.pseudo).once('value').then(snap => { document.getElementById('infractionCount').innerText = snap.val() || 0; document.getElementById('infractionModal').style.display = 'flex'; }); }
-        });
-
+        function applyStagePermissions() { let tl = document.getElementById('liveProgramTimeline'); tl.style.pointerEvents = currentUser.perms.timeline ? 'auto' : 'none'; document.getElementById('endEventBtn').style.display = currentUser.perms.end_event ? 'block' : 'none'; document.querySelectorAll('.online-text').forEach(el => el.style.display = currentUser.perms.radar ? 'block' : 'none'); }
+        function applyBackstagePermissions() { let canEdit = currentUser.perms.bs_edit; document.getElementById('instManager').disabled = !canEdit; document.getElementById('instFounder').disabled = !canEdit; document.querySelectorAll('.bs-edit-btn').forEach(btn => btn.style.display = canEdit ? 'block' : 'none'); }
+        
+        document.addEventListener("visibilitychange", () => { if(document.getElementById('stageSection').style.display === 'none' && document.getElementById('backstageSection').style.display === 'none') return; if(isEventEndedLocally || currentUser.role === 'admin' || currentUser.role === 'client') return; if (document.hidden) { localInfractionsThisSession++; db.ref('BechaEventsData/users_infractions/' + currentUser.pseudo).transaction(current => (current || 0) + 1); } else if (!document.hidden && localInfractionsThisSession > 0) { db.ref('BechaEventsData/users_infractions/' + currentUser.pseudo).once('value').then(snap => { document.getElementById('infractionCount').innerText = snap.val() || 0; document.getElementById('infractionModal').style.display = 'flex'; }); } });
         function startPresenceTracker() { let path = isArchivedEvent ? 'BechaEventsData/archived_events/'+currentEventIndex : 'BechaEventsData/events/'+currentEventIndex; onlineRef = db.ref(path + '/onlineUsers/' + currentUser.pseudo); db.ref('.info/connected').on('value', snap => { if (snap.val() === true) { onlineRef.onDisconnect().remove(); onlineRef.set(true); } }); let listRef = db.ref(path + '/onlineUsers'); listRef.on('value', snap => { let usersObj = snap.val() || {}; let names = Object.keys(usersObj).join('، '); document.getElementById('onlineUsersList_bs').innerText = names || '--'; document.getElementById('onlineUsersList_st').innerText = names || '--'; }); presenceListeners.push(listRef); }
         function stopPresenceTracker() { if(onlineRef) { onlineRef.remove(); onlineRef = null; } presenceListeners.forEach(ref => ref.off()); presenceListeners = []; }
+        function closeSection() { if(liveProgRef) { liveProgRef.off(); liveProgRef = null; } if(backstageProgRef) { backstageProgRef.off(); backstageProgRef = null; } stopPresenceTracker(); if(countdownInterval) clearInterval(countdownInterval); document.getElementById('backstageSection').style.display = 'none'; document.getElementById('stageSection').style.display = 'none'; document.getElementById('bottomControlBar').style.display = 'none'; if(currentUser.role === 'admin' || (currentUser.perms && currentUser.perms.bs_view && currentUser.perms.stage)) { document.getElementById('dashboardMenuWrapper').style.display = 'block'; } else { logout(); } if(wakeLock) { wakeLock.release(); wakeLock = null; } }
 
-        function closeSection() { 
-            if(liveProgRef) { liveProgRef.off(); liveProgRef = null; } if(backstageProgRef) { backstageProgRef.off(); backstageProgRef = null; } stopPresenceTracker();
-            document.getElementById('backstageSection').style.display = 'none'; document.getElementById('stageSection').style.display = 'none'; document.getElementById('bottomControlBar').style.display = 'none';
-            if(currentUser.role === 'admin' || (currentUser.perms && currentUser.perms.bs_view && currentUser.perms.stage)) { document.getElementById('dashboardMenuWrapper').style.display = 'block'; } else { logout(); }
-            if(wakeLock) { wakeLock.release(); wakeLock = null; }
-        }
-
+        /* ----- المنظومة الإدارية للكواليس (Smart Backstage) ----- */
         function addEducator(n='') { let d = !currentUser.perms.bs_edit ? 'disabled' : ''; let del = currentUser.perms.bs_edit ? `<button class="btn btn-red" onclick="this.parentElement.remove()">🗑</button>` : ''; document.getElementById('educatorsList').insertAdjacentHTML('beforeend', `<div style="display:flex; gap:10px; margin-bottom:10px;"><input type="text" class="edu-name" placeholder="اسم الأنيستي..." value="${n}" style="flex:1;" ${d}>${del}</div>`); }
         function addCoach(s='', n='') { let d = !currentUser.perms.bs_edit ? 'disabled' : ''; let del = currentUser.perms.bs_edit ? `<button class="btn btn-red" onclick="this.parentElement.remove()">🗑</button>` : ''; document.getElementById('coachesList').insertAdjacentHTML('beforeend', `<div style="display:flex; gap:10px; margin-bottom:10px;"><input type="text" class="coach-spec" placeholder="الاختصاص" value="${s}" style="flex:1;" ${d}><input type="text" class="coach-name" placeholder="الاسم" value="${n}" style="flex:1;" ${d}>${del}</div>`); }
         function addStaff(r='', n='') { let d = !currentUser.perms.bs_edit ? 'disabled' : ''; let del = currentUser.perms.bs_edit ? `<button class="btn btn-red" onclick="this.parentElement.remove()">🗑</button>` : ''; document.getElementById('staffList').insertAdjacentHTML('beforeend', `<div style="display:flex; gap:10px; margin-bottom:10px;"><input type="text" class="staff-role" placeholder="الصفة" value="${r}" style="flex:1;" ${d}><input type="text" class="staff-name" placeholder="الاسم" value="${n}" style="flex:1;" ${d}>${del}</div>`); }
         function addProgramItem(t='', d='', comp=false, customType='') {
-            let container = document.getElementById('programList'); let idx = container.children.length; let opts = ['تلاوة قرآن', 'نشيد / كورال', 'لوحة راقصة / استعراض', 'مسرحية', 'تنشيط وألغاز', 'تكريم', 'أخرى']; let optsHtml = opts.map(o => `<option value="${o}" ${t===o?'selected':''}>${o}</option>`).join(''); let lockedClass = comp ? 'locked' : ''; let showOther = (t === 'أخرى') ? 'block' : 'none';
-            let dis = !currentUser.perms.bs_edit ? 'disabled' : ''; let del = currentUser.perms.bs_edit ? `<button class="btn btn-dark" onclick="moveItem(this, -1)">⬆️</button><button class="btn btn-dark" onclick="moveItem(this, 1)">⬇️</button><button class="btn btn-red" onclick="this.parentElement.parentElement.remove(); updateNumbers();">🗑</button>` : '';
+            let container = document.getElementById('programList'); let idx = container.children.length; let opts = ['تلاوة قرآن', 'نشيد / كورال', 'لوحة راقصة / استعراض', 'مسرحية', 'تنشيط وألغاز', 'تكريم', 'أخرى']; let optsHtml = opts.map(o => `<option value="${o}" ${t===o?'selected':''}>${o}</option>`).join(''); let lockedClass = comp ? 'locked' : ''; let showOther = (t === 'أخرى') ? 'block' : 'none'; let dis = !currentUser.perms.bs_edit ? 'disabled' : ''; let del = currentUser.perms.bs_edit ? `<button class="btn btn-dark" onclick="moveItem(this, -1)">⬆️</button><button class="btn btn-dark" onclick="moveItem(this, 1)">⬇️</button><button class="btn btn-red" onclick="this.parentElement.parentElement.remove(); updateNumbers();">🗑</button>` : '';
             let html = `<div class="prog-row ${lockedClass}" data-index="${idx}"><div class="row-num">${idx+1}</div><div style="display:flex; gap:8px;">${del}<select class="prog-type" onchange="this.parentElement.nextElementSibling.style.display=(this.value==='أخرى')?'block':'none'" style="flex:1;" ${dis}>${optsHtml}</select></div><input type="text" class="other-type" placeholder="نوع الفقرة..." value="${customType}" style="display:${showOther}; width:100%; margin-top:8px;" ${dis}><input type="text" class="prog-details" placeholder="تفاصيل..." value="${d}" style="width:100%; margin-top:8px;" ${dis}></div>`;
             container.insertAdjacentHTML('beforeend', html); updateNumbers();
         }
         function updateNumbers() { let rows = document.querySelectorAll('.prog-row'); document.getElementById('totalProgCount').innerText = rows.length; rows.forEach((r, i) => r.querySelector('.row-num').innerText = i+1); }
         function moveItem(btn, dir) { let row = btn.closest('.prog-row'); if(dir === -1 && row.previousElementSibling) row.parentNode.insertBefore(row, row.previousElementSibling); if(dir === 1 && row.nextElementSibling) row.parentNode.insertBefore(row.nextElementSibling, row); updateNumbers(); }
 
+        // تحميل البيانات وتشغيل العدادات
         function loadBackstageData() {
             ['educatorsList', 'coachesList', 'staffList', 'programList'].forEach(id => document.getElementById(id).innerHTML = '');
             let d = currentEventData.institutionDetails || {}; document.getElementById('instManager').value = d.managerName || ''; document.getElementById('instFounder').value = d.founderName || '';
             if(d.educators) d.educators.forEach(n => addEducator(n)); if(d.coaches) d.coaches.forEach(c => addCoach(c.spec, c.name)); if(d.staff) d.staff.forEach(s => addStaff(s.role, s.name));
             let p = currentEventData.eventProgram || []; if(p.length === 0 && currentUser.perms.bs_edit) { addProgramItem(); } else { p.forEach(i => addProgramItem(i.type, i.details, i.completed, i.customType)); }
+            
+            // قراءة آخر تحديث
+            let info = currentEventData.lastEditInfo || { count: 0 };
+            currentEditCount = info.count;
+            document.getElementById('editCountDisplay').innerText = currentEditCount;
+
+            // إشعار ذكي
+            if(info.role && info.role !== currentUser.role) {
+                let timeStr = new Date(info.time).toLocaleTimeString('ar-TN', {hour:'2-digit', minute:'2-digit'});
+                let msg = currentUser.role === 'client' ? `تم ضبط وتحيين برنامجكم من طرف فريق Becha Events على الساعة ${timeStr}.` : `قامت إدارة المؤسسة بإدخال/تعديل البرنامج على الساعة ${timeStr}.`;
+                document.getElementById('smartNotificationText').innerText = msg;
+                document.getElementById('smartNotificationModal').style.display = 'flex';
+            }
+
+            if(countdownInterval) clearInterval(countdownInterval);
+            updateCountdown(); countdownInterval = setInterval(updateCountdown, 60000);
         }
-        function saveBackstageData() {
+
+        function updateCountdown() {
+            let evDateStr = currentEventData.date; let evTimeStr = currentEventData.time || "00:00"; let evDateTime = new Date(`${evDateStr}T${evTimeStr}:00`);
+            let diffMins = (evDateTime - new Date()) / 60000; let diffToLock = diffMins - 60;
+            if(diffToLock <= 0) { document.getElementById('countdownDisplay').innerText = "تم إغلاق التعديل"; if(currentUser.role === 'client') evaluateClientPhase(); } 
+            else { let hrs = Math.floor(diffToLock / 60); let mins = Math.floor(diffToLock % 60); document.getElementById('countdownDisplay').innerText = `${hrs} س و ${mins} دق`; }
+        }
+
+        // مسار الحفظ الجديد (فحص + معاينة + تحميل)
+        function triggerSaveFlow() {
+            let progRows = document.querySelectorAll('.prog-row');
+            if(progRows.length === 0) { alert("🚫 عفواً، لا يمكن حفظ برنامج فارغ! الرجاء إضافة فقرة واحدة على الأقل."); return; }
+            
+            document.getElementById('a4InstName').innerText = `برنامج حفل: ${currentEventData.name}`;
+            let tableHtml = `<table class="a4-table"><tr><th>الرقم</th><th>النوع</th><th>التفاصيل</th></tr>`;
+            progRows.forEach((r, i) => {
+                let type = r.querySelector('.prog-type').value; let custom = type === 'أخرى' ? r.querySelector('.other-type').value.trim() : ''; let det = r.querySelector('.prog-details').value.trim();
+                tableHtml += `<tr><td>${i+1}</td><td>${custom || type}</td><td>${det || '-'}</td></tr>`;
+            });
+            tableHtml += `</table>`;
+            document.getElementById('a4TableContainer').innerHTML = tableHtml;
+            document.getElementById('a4PreviewModal').style.display = 'flex';
+        }
+
+        function confirmSaveAndShowDownload() {
+            document.getElementById('a4PreviewModal').style.display = 'none';
+            
             let d = { managerName: document.getElementById('instManager').value.trim(), founderName: document.getElementById('instFounder').value.trim(), educators: [], coaches: [], staff: [] };
             document.querySelectorAll('#educatorsList .edu-name').forEach(e => { if(e.value.trim()) d.educators.push(e.value.trim()); }); document.querySelectorAll('#coachesList > div').forEach(r => { let s=r.querySelector('.coach-spec').value.trim(), n=r.querySelector('.coach-name').value.trim(); if(s||n) d.coaches.push({spec:s, name:n}); }); document.querySelectorAll('#staffList > div').forEach(r => { let sr=r.querySelector('.staff-role').value.trim(), n=r.querySelector('.staff-name').value.trim(); if(sr||n) d.staff.push({role:sr, name:n}); });
             let prog = []; document.querySelectorAll('.prog-row').forEach(r => { let type = r.querySelector('.prog-type').value; prog.push({ type: type, customType: type === 'أخرى' ? r.querySelector('.other-type').value.trim() : '', details: r.querySelector('.prog-details').value.trim(), completed: r.classList.contains('locked') }); });
-            let path = isArchivedEvent ? 'BechaEventsData/archived_events/'+currentEventIndex : 'BechaEventsData/events/'+currentEventIndex; db.ref(path+'/institutionDetails').set(d); db.ref(path+'/eventProgram').set(prog).then(() => alert("✅ تم الحفظ بنجاح!"));
+            
+            let editInfo = { by: currentUser.pseudo, role: currentUser.role, time: Date.now(), count: currentEditCount + 1 };
+            
+            let path = isArchivedEvent ? 'BechaEventsData/archived_events/'+currentEventIndex : 'BechaEventsData/events/'+currentEventIndex;
+            Promise.all([ db.ref(path+'/institutionDetails').set(d), db.ref(path+'/eventProgram').set(prog), db.ref(path+'/lastEditInfo').set(editInfo) ]).then(() => {
+                currentEditCount++; document.getElementById('editCountDisplay').innerText = currentEditCount;
+                document.getElementById('downloadPromptModal').style.display = 'flex'; // نافذة طلب التحميل
+            });
         }
+
+        function downloadA4Image() {
+            // استعمال html2canvas لتصوير الـ div
+            let element = document.getElementById('a4Paper');
+            html2canvas(element, { scale: 2 }).then(canvas => {
+                let link = document.createElement('a');
+                link.download = `Program_${currentEventData.name.replace(/\s+/g, '_')}.png`;
+                link.href = canvas.toDataURL('image/png');
+                link.click();
+                document.getElementById('downloadPromptModal').style.display='none';
+            });
+        }
+
         function startBackstageListener() { let path = isArchivedEvent ? 'BechaEventsData/archived_events/'+currentEventIndex : 'BechaEventsData/events/'+currentEventIndex; backstageProgRef = db.ref(path + '/eventProgram'); backstageProgRef.on('value', snap => { if(document.getElementById('backstageSection').style.display !== 'none') { let prog = snap.val() || []; let rows = document.querySelectorAll('.prog-row'); prog.forEach((p, i) => { if(rows[i]) { if(p.completed) rows[i].classList.add('locked'); else rows[i].classList.remove('locked'); } }); } }); }
 
         function openStageLive() { renderTeleprompter(); let path = isArchivedEvent ? 'BechaEventsData/archived_events/'+currentEventIndex : 'BechaEventsData/events/'+currentEventIndex; liveProgRef = db.ref(path + '/eventProgram'); liveProgRef.on('value', snap => { let progData = snap.val() || []; currentEventData.eventProgram = progData; renderStageTimeline(progData); }); }
@@ -777,12 +703,7 @@
         function renderStageTimeline(progArray) {
             let pContainer = document.getElementById('liveProgramTimeline'); pContainer.innerHTML = '';
             if(progArray.length === 0) { pContainer.innerHTML = '<p style="color:#777; text-align:center;">لم يتم برمجة فقرات بعد.</p>'; return; }
-            progArray.forEach((item, idx) => {
-                let displayType = item.type === 'أخرى' ? (item.customType || 'فقرة متنوعة') : item.type;
-                let icon = displayType.includes('قرآن')?'📖':displayType.includes('رقص')?'💃':displayType.includes('مسرح')?'🎭':displayType.includes('تنشيط')?'🎪':displayType.includes('كورال')?'🎤':'✨';
-                let isComp = item.completed ? 'completed' : ''; let chkMark = item.completed ? '✔' : ''; let detailsText = item.details ? item.details : 'بدون تفاصيل';
-                pContainer.innerHTML += `<div class="program-item ${isComp}" onclick="toggleStep(${idx}, ${!!item.completed})"><div style="display:flex; align-items:center; gap:15px; width:100%;"><div class="chk-box">${chkMark}</div><div style="flex:1;"><span style="font-size:15px; color:#666;">الفقرة ${idx+1} (${displayType})</span><br><span style="font-size:20px; color:#333;">${icon} ${detailsText}</span></div></div></div>`;
-            });
+            progArray.forEach((item, idx) => { let displayType = item.type === 'أخرى' ? (item.customType || 'فقرة متنوعة') : item.type; let icon = displayType.includes('قرآن')?'📖':displayType.includes('رقص')?'💃':displayType.includes('مسرح')?'🎭':displayType.includes('تنشيط')?'🎪':displayType.includes('كورال')?'🎤':'✨'; let isComp = item.completed ? 'completed' : ''; let chkMark = item.completed ? '✔' : ''; let detailsText = item.details ? item.details : 'بدون تفاصيل'; pContainer.innerHTML += `<div class="program-item ${isComp}" onclick="toggleStep(${idx}, ${!!item.completed})"><div style="display:flex; align-items:center; gap:15px; width:100%;"><div class="chk-box">${chkMark}</div><div style="flex:1;"><span style="font-size:15px; color:#666;">الفقرة ${idx+1} (${displayType})</span><br><span style="font-size:20px; color:#333;">${icon} ${detailsText}</span></div></div></div>`; });
         }
         function toggleStep(idx, state) { if(!currentUser.perms.timeline) return; let path = isArchivedEvent ? 'BechaEventsData/archived_events/'+currentEventIndex : 'BechaEventsData/events/'+currentEventIndex; db.ref(path+'/eventProgram/'+idx+'/completed').set(!state); }
 
@@ -792,10 +713,7 @@
             db.ref('BechaEventsData/users_infractions').once('value').then(snap => {
                 let allInfs = snap.val() || {}; let myInfs = allInfs[currentUser.pseudo] || 0; let html = "";
                 if (currentUser.perms.radar) {
-                    html = `<h2 style='color:#198754; margin-top:0;'>🏁 انتهى العرض</h2><h3 style='color:#333;'>📊 تقرير الانضباط:</h3><ul style='list-style:none; padding:0;'>`;
-                    let teamPins = currentEventData.teamPins || {};
-                    Object.keys(teamPins).forEach(k => { let name = teamPins[k].name; let count = allInfs[name] || 0; let color = count > 0 ? 'var(--primary-red)' : '#198754'; html += `<li style='margin-bottom:10px; color:${color}; font-weight:bold; font-size:16px;'>${name}: ${count} مخالفات خروج</li>`; });
-                    html += `</ul><button class='btn btn-dark' style='width:100%; margin-top:15px;' onclick='document.getElementById("finalReportModal").style.display="none"'>إغلاق</button>`;
+                    html = `<h2 style='color:#198754; margin-top:0;'>🏁 انتهى العرض</h2><h3 style='color:#333;'>📊 تقرير الانضباط:</h3><ul style='list-style:none; padding:0;'>`; let teamPins = currentEventData.teamPins || {}; Object.keys(teamPins).forEach(k => { let name = teamPins[k].name; let count = allInfs[name] || 0; let color = count > 0 ? 'var(--primary-red)' : '#198754'; html += `<li style='margin-bottom:10px; color:${color}; font-weight:bold; font-size:16px;'>${name}: ${count} مخالفات خروج</li>`; }); html += `</ul><button class='btn btn-dark' style='width:100%; margin-top:15px;' onclick='document.getElementById("finalReportModal").style.display="none"'>إغلاق</button>`;
                 } else if (localInfractionsThisSession > 0) {
                     html = `<h2 style='color:var(--primary-red); margin-top:0;'>⛔ تنبيه أخير!</h2><p style='font-size:16px; font-weight:bold;'>تم تسجيل خروجك عدة مرات. مخالفاتك: <b style='color:var(--primary-red); font-size:18px;'>${myInfs}</b>. تم الرفع للإدارة.</p><button class='btn btn-red' style='width:100%; margin-top:15px;' onclick='document.getElementById("finalReportModal").style.display="none"'>أقر بذلك</button>`;
                 } else { html = `<h2 style='color:#198754; margin-top:0;'>🎉 انتهى العرض بنجاح!</h2><button class='btn btn-green' style='width:100%; margin-top:15px;' onclick='document.getElementById("finalReportModal").style.display="none"'>إغلاق</button>`; }
