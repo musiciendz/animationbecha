@@ -346,7 +346,7 @@
             <p style="font-size: 13px; color: #555; font-weight: bold;">يتم توليد الأكواد وتطبيق الصلاحيات السابقة أوتوماتيكياً. يمكنك تعديلها يدوياً.</p>
             
             <div id="gkTeamList" style="margin-top: 20px;"></div>
-            
+            <button id="btnStartEvent" class="btn btn-green" style="width:100%; margin-bottom:15px; font-size: 18px; padding: 15px; display: none; box-shadow: 0 4px 15px rgba(25, 135, 84, 0.4); animation: pulse 2s infinite;" onclick="startEventNow()">🎬 إعطاء شارة الانطلاق (فتح النظام)</button>
             <button class="btn btn-green" style="width:100%; margin-top:20px; font-size: 18px;" onclick="saveGatekeeperAndEnter()">💾 حفظ الصلاحيات ودخول العرض</button>
             <button class="btn btn-dark" style="width:100%; margin-top:10px;" onclick="showScreen('eventsScreen')">رجوع للعروض</button>
         </div>
@@ -1043,7 +1043,7 @@
        function showScreen(id) { 
             document.querySelectorAll('.screen').forEach(s => s.classList.remove('active-screen')); 
             document.getElementById(id).classList.add('active-screen');
-            if (typeof monitorEventStart === 'function' && (id === 'dashboardScreen' || id === 'stageSection') && typeof currentEventIndex !== 'undefined' && currentEventIndex !== null) { 
+            if (typeof monitorEventStart === 'function' && (id === 'dashboardScreen' || id === 'stageSection' || id === 'gatekeeperScreen') && typeof currentEventIndex !== 'undefined' && currentEventIndex !== null) { 
                 monitorEventStart(); 
             }
         }
