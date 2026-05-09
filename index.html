@@ -367,8 +367,7 @@
             </div>
             <button id="btnAdminSettings" class="btn btn-dark" style="width:100%; margin-top:20px; display:none;" onclick="openGatekeeper(currentEventIndex, isArchivedEvent, true)">⚙️ إعدادات وصلاحيات الفريق</button>
         </div>
-        <!-- 🔴 زر المايسترو (إعطاء شارة الانطلاق) 🔴 -->
-            <button id="btnStartEvent" class="btn btn-green" style="width:100%; margin-top:20px; font-size: 18px; padding: 15px; display: none; box-shadow: 0 4px 15px rgba(25, 135, 84, 0.4); animation: pulse 2s infinite;" onclick="startEventNow()">🎬 إعطاء شارة الانطلاق (فتح النظام)</button>
+        
         
 
         <!-- الكواليس -->
@@ -430,8 +429,12 @@
                     <div id="compactInstName_st" style="color: var(--primary-red); font-size: 16px; font-weight: 900;">--</div>
                     <div class="online-text" id="stOnlineText"><span class="online-dot">🟢</span> متصل: <span id="onlineUsersList_st">--</span></div>
                 </div>
-            </div>
-            
+        </div>
+
+        <!-- 🔴 لصّق الفلسة الخضراء متاع المايسترو هنا 🔴 -->
+        <button id="btnStartEvent" class="btn btn-green" style="width:100%; margin-bottom: 20px; font-size: 18px; padding: 15px; display: none; box-shadow: 0 4px 15px rgba(25, 135, 84, 0.4); animation: pulse 2s infinite;" onclick="startEventNow()">🎬 إعطاء شارة الانطلاق (فتح النظام)</button>
+
+        <div id="clientStageNotice" style="display:none; background: #f0fdf4; color:#198754; padding:10px; border-radius:8px; margin-bottom:15px;">
             <div id="clientStageNotice" style="display:none; background:#f0fdf4; color:#198754; padding:10px; border-radius:8px; margin-bottom:15px; font-weight:bold; font-size:14px; text-align:right;">🎬 الحفل على وشك البداية أو بدأ بالفعل! يمكنك متابعة إنجاز الفقرات مباشرة من هنا.</div>
 
             <div id="stageContent">
@@ -1041,6 +1044,10 @@
         function showScreen(id) { document.querySelectorAll('.screen').forEach(s => s.classList.remove('active-screen')); document.getElementById(id).classList.add('active-screen'); }
 window.addEventListener('mouseup', (e) => { if(isTesting) stopTestRecording(e); });
 window.addEventListener('touchend', (e) => { if(isTesting) stopTestRecording(e); });
+        // 🔴 تفعيل رادار شارة الانطلاق آلياً للإدارة والموظفين
+    if (typeof monitorEventStart === 'function' && (id === 'dashboardScreen' || id === 'stageSection') && typeof currentEventIndex !== 'undefined' && currentEventIndex !== null) {
+        monitorEventStart();
+    }
         // 🔴 محرك الستار وصالة الانتظار
         let eventStartListener = null;
         function monitorEventStart() {
