@@ -1056,9 +1056,6 @@ window.addEventListener('touchend', (e) => { if(isTesting) stopTestRecording(e);
             
             eventStartListener = db.ref(path + '/eventStarted').on('value', snap => {
                 let started = snap.val();
-                let isMaestro = (currentUser.role === 'admin_assistant');
-                
-                // إظهار زر المايسترو لمساعد المدير أو الإدارة
                 let isMaestro = (currentUser.role === 'admin_assistant' || currentUser.role === 'admin');
                 
                 if(!started && !isMaestro) {
