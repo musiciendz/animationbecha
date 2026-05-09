@@ -434,10 +434,9 @@
         <!-- 🔴 لصّق الفلسة الخضراء متاع المايسترو هنا 🔴 -->
         <button id="btnStartEvent" class="btn btn-green" style="width:100%; margin-bottom: 20px; font-size: 18px; padding: 15px; display: none; box-shadow: 0 4px 15px rgba(25, 135, 84, 0.4); animation: pulse 2s infinite;" onclick="startEventNow()">🎬 إعطاء شارة الانطلاق (فتح النظام)</button>
 
-        <div id="clientStageNotice" style="display:none; background: #f0fdf4; color:#198754; padding:10px; border-radius:8px; margin-bottom:15px;">
-            <div id="clientStageNotice" style="display:none; background:#f0fdf4; color:#198754; padding:10px; border-radius:8px; margin-bottom:15px; font-weight:bold; font-size:14px; text-align:right;">🎬 الحفل على وشك البداية أو بدأ بالفعل! يمكنك متابعة إنجاز الفقرات مباشرة من هنا.</div>
+        <div id="clientStageNotice" style="display:none; background:#f0fdf4; color:#198754; padding:10px; border-radius:8px; margin-bottom:15px; font-weight:bold; font-size:14px; text-align:right;">🎬 الحفل على وشك البداية أو بدأ بالفعل! يمكنك متابعة إنجاز الفقرات مباشرة من هنا.</div>
 
-            <div id="stageContent">
+        <div id="stageContent">
                 <div id="teleprompterWrapper" style="background: #fffdf5; border: 3px solid #ffc107; border-radius: 15px; margin-bottom: 25px;">
                     <div style="padding:15px; background:#ffc107; color:#333; font-weight:900; font-size:18px; cursor:pointer; display:flex; justify-content:space-between; border-radius: 11px 11px 0 0;" onclick="toggleTeleprompter()">
                         <span>🎤 الكلمة الترحيبية</span> <span id="teleIcon">➖</span>
@@ -775,7 +774,7 @@
             
             document.getElementById(pendingSectionId).style.display = 'block'; 
             if(pendingSectionId === 'backstageSection') { loadBackstageData(); startBackstageListener(); applyBackstagePermissions(); }
-            if(pendingSectionId === 'stageSection') { openStageLive(); applyStagePermissions(); }
+            if(pendingSectionId === 'stageSection') { openStageLive(); applyStagePermissions(); monitorEventStart(); }
             startPresenceTracker(); 
             document.getElementById('bottomControlBar').style.display = 'flex';
         }
