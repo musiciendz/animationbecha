@@ -1041,8 +1041,13 @@
         window.addEventListener('beforeunload', () => { if(isRecording) { let path = isArchivedEvent ? 'BechaEventsData/archived_events/'+currentEventIndex : 'BechaEventsData/events/'+currentEventIndex; db.ref(path + '/activeRecording').set(null); } stopPresenceTracker(); });
 
         function logout() { location.reload(); }
-        function showScreen(id) { if (typeof monitorEventStart === 'function' && (id === 'dashboardScreen' || id === 'stageSection') && typeof currentEventIndex !== 'undefined' && currentEventIndex !== null) { monitorEventStart(); }
-        window.addEventListener('mouseup', (e) => { if(isTesting) stopTestRecording(e); });
+       function showScreen(id) { 
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active-screen')); 
+            document.getElementById(id).classList.add('active-screen');
+            if (typeof monitorEventStart === 'function' && (id === 'dashboardScreen' || id === 'stageSection') && typeof currentEventIndex !== 'undefined' && currentEventIndex !== null) { 
+                monitorEventStart(); 
+            }
+        }
 window.addEventListener('touchend', (e) => { if(isTesting) stopTestRecording(e); });
        
         // 🔴 محرك الستار وصالة الانتظار
