@@ -1051,8 +1051,10 @@ window.addEventListener('touchend', (e) => { if(isTesting) stopTestRecording(e);
        
         // 🔴 محرك الستار وصالة الانتظار
         let eventStartListener = null;
+        // 🔴 محرك الستار وصالة الانتظار
+        let eventStartListener = null;
         function monitorEventStart() {
-           if(currentUser.role === 'client') return;
+            if(currentUser.role === 'client') return;
             
             let path = isArchivedEvent ? 'BechaEventsData/archived_events/'+currentEventIndex : 'BechaEventsData/events/'+currentEventIndex;
             if(eventStartListener) db.ref(path + '/eventStarted').off('value', eventStartListener);
@@ -1061,6 +1063,16 @@ window.addEventListener('touchend', (e) => { if(isTesting) stopTestRecording(e);
                 let started = snap.val();
                 let isMaestro = (currentUser.role === 'admin_assistant' || currentUser.role === 'admin');
                 
+                // 🔴 السطر السحري اللي يظهر الفلسة للمدير 🔴
+                let startBtn = document.getElementById('btnStartEvent');
+                if (startBtn) {
+                    if (isMaestro && !started) {
+                        startBtn.style.display = 'block'; // إظهار الزر قبل بداية العرض
+                    } else {
+                        startBtn.style.display = 'none'; // إخفاؤه إذا انطلق العرض
+                    }
+                }
+
                 if(!started && !isMaestro) {
                     // حجز الموظف في صالة الانتظار
                     document.getElementById('waitingInstName').innerText = currentEventData.name;
@@ -1076,7 +1088,6 @@ window.addEventListener('touchend', (e) => { if(isTesting) stopTestRecording(e);
                 }
             });
         }
-
         function startEventNow() {
             if(!confirm("⚠️ هل أنت متأكد من إعطاء شارة الانطلاق للفريق؟ سيتم فتح النظام لديهم.")) return;
             let path = isArchivedEvent ? 'BechaEventsData/archived_events/'+currentEventIndex : 'BechaEventsData/events/'+currentEventIndex;
