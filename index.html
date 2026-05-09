@@ -1052,7 +1052,7 @@ window.addEventListener('touchend', (e) => { if(isTesting) stopTestRecording(e);
         // 🔴 محرك الستار وصالة الانتظار
         let eventStartListener = null;
         function monitorEventStart() {
-            if(currentUser.role === 'client' || currentUser.role === 'admin') return; 
+           if(currentUser.role === 'client') return;
             
             let path = isArchivedEvent ? 'BechaEventsData/archived_events/'+currentEventIndex : 'BechaEventsData/events/'+currentEventIndex;
             if(eventStartListener) db.ref(path + '/eventStarted').off('value', eventStartListener);
