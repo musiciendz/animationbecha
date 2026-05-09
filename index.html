@@ -1042,12 +1042,10 @@
 
         function logout() { location.reload(); }
         function showScreen(id) { document.querySelectorAll('.screen').forEach(s => s.classList.remove('active-screen')); document.getElementById(id).classList.add('active-screen'); }
+        if (typeof monitorEventStart === 'function' && (id === 'dashboardScreen' || id === 'stageSection') && typeof currentEventIndex !== 'undefined' && currentEventIndex !== null) { monitorEventStart(); }
 window.addEventListener('mouseup', (e) => { if(isTesting) stopTestRecording(e); });
 window.addEventListener('touchend', (e) => { if(isTesting) stopTestRecording(e); });
-        // 🔴 تفعيل رادار شارة الانطلاق آلياً للإدارة والموظفين
-    if (typeof monitorEventStart === 'function' && (id === 'dashboardScreen' || id === 'stageSection') && typeof currentEventIndex !== 'undefined' && currentEventIndex !== null) {
-        monitorEventStart();
-    }
+       
         // 🔴 محرك الستار وصالة الانتظار
         let eventStartListener = null;
         function monitorEventStart() {
@@ -1061,7 +1059,7 @@ window.addEventListener('touchend', (e) => { if(isTesting) stopTestRecording(e);
                 let isMaestro = (currentUser.role === 'admin_assistant');
                 
                 // إظهار زر المايسترو لمساعد المدير أو الإدارة
-                if(isMaestro) { document.getElementById('btnStartEvent').style.display = started ? 'none' : 'block'; }
+                let isMaestro = (currentUser.role === 'admin_assistant' || currentUser.role === 'admin');
                 
                 if(!started && !isMaestro) {
                     // حجز الموظف في صالة الانتظار
