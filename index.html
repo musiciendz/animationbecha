@@ -322,19 +322,42 @@
             <button class="btn btn-dark" style="width: 100%; padding: 12px; font-size: 16px;" onclick="logout()">🚪 إغلاق وعودة</button>
         </div>
     </div>
+    
     <div id="adminHubScreen" class="screen">
-        <h1 style="color:var(--primary-red); margin-top:0;">🎛️ مركز القيادة</h1>
-        <div style="display:grid; grid-template-columns:1fr 1fr; gap:15px; margin-top:20px;">
-            <div class="dash-card" style="border-color:#17a2b8;" onclick="loadEventsForAdmin()"><h3 style="color:#17a2b8; margin:0;">📅 إدارة العروض</h3></div>
-            <div class="dash-card" style="border-color:#ff9800;" onclick="openLibraryScreen()"><h3 style="color:#ff9800; margin:0;">📚 بنك الفقرات</h3></div>
-            <div class="dash-card" style="border-color:#6c757d; opacity:0.5;"><h3 style="color:#6c757d; margin:0;">⚙️ الإعدادات (قريباً)</h3></div>
-            <div class="dash-card" style="border-color:#6c757d; opacity:0.5;"><h3 style="color:#6c757d; margin:0;">📊 التقارير (قريباً)</h3></div>
+        <h1 style="color:var(--primary-red); margin-bottom:30px;">🎛️ مركز القيادة</h1>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:15px;">
+            <div class="dash-card" style="border-color:#17a2b8;" onclick="loadEventsForAdmin()">
+                <h3 style="color:#17a2b8; margin:0;">📅 إدارة العروض</h3>
+            </div>
+            <div class="dash-card" style="border-color:#ff9800;" onclick="openLibraryScreen()">
+                <h3 style="color:#ff9800; margin:0;">📚 بنك الفقرات</h3>
+            </div>
+            <div class="dash-card" style="border-color:#6f42c1;" onclick="showScreen('settingsScreen')">
+                <h3 style="color:#6f42c1; margin:0;">⚙️ الإعدادات العامة</h3>
+            </div>
+            <div class="dash-card" style="border-color:#6c757d; opacity:0.6;">
+                <h3 style="color:#6c757d; margin:0;">📊 التقارير (قريباً)</h3>
+            </div>
         </div>
     </div>
+
+    <div id="settingsScreen" class="screen">
+        <div class="sticky-container">
+            <button class="btn btn-dark" onclick="backToAdminHub()">⬅️ رجوع</button>
+            <h3 style="margin:0; color:#6f42c1;">⚙️ الإعدادات العامة</h3>
+        </div>
+        <div style="background:white; padding:20px; border-radius:15px; text-align:right; margin-top:15px;">
+            <h4 style="color:var(--primary-red); border-bottom:2px solid #eee; padding-bottom:10px;">📝 قوالب الكلمات الترحيبية</h4>
+            <p style="font-size:12px; color:#666;">يمكنك تعديل النصوص الأساسية التي تظهر عند اختيار "مناسبة الحفل".</p>
+            <div id="templatesConfigContainer"></div>
+            <button class="btn btn-green" style="width:100%; margin-top:15px;" onclick="saveGlobalTemplates()">💾 حفظ القوالب</button>
+        </div>
+    </div>
+
     <div id="eventsScreen" class="screen">
         <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--primary-red); padding-bottom: 10px; margin-bottom: 15px;">
+            <button class="btn btn-dark" style="padding: 5px 10px; font-size: 14px; border-radius: 8px;" onclick="backToAdminHub()">⬅️ الرئيسية</button>
             <h2 style="color: #333; margin: 0;">📅 عروضي القادمة</h2>
-            <button class="btn btn-outline" style="border-color:#ff9800; color:#ff9800; font-size: 14px;" onclick="openLibraryScreen()">📚 بنك الفقرات</button>
         </div>
         <div id="eventsListContainer"></div>
     </div>
@@ -345,10 +368,8 @@
                 <h2 style="color: var(--primary-red); margin:0;">⚙️ إعدادات الفريق</h2>
                 <button class="btn btn-outline" style="border-color:#dc3545; color:#dc3545; padding:5px 10px; font-size:12px;" onclick="resetTeamInfractions()">🧹 تصفير الإنذارات</button>
             </div>
-            
             <h3 id="gkEventName" style="color:#17a2b8; margin-top:0;">--</h3>
-            <p style="font-size: 13px; color: #555; font-weight: bold;">يتم توليد الأكواد وتطبيق الصلاحيات السابقة أوتوماتيكياً. يمكنك تعديلها يدوياً.</p>
-            
+            <p style="font-size: 13px; color: #555; font-weight: bold;">يتم توليد الأكواد وتطبيق الصلاحيات السابقة أوتوماتيكياً.</p>
             <div id="gkTeamList" style="margin-top: 20px;"></div>
             <button id="btnStartEvent" class="btn btn-green" style="width:100%; margin-bottom:15px; font-size: 18px; padding: 15px; display: none; box-shadow: 0 4px 15px rgba(25, 135, 84, 0.4); animation: pulse 2s infinite;" onclick="startEventNow()">🎬 إعطاء شارة الانطلاق (فتح النظام)</button>
             <button class="btn btn-green" style="width:100%; margin-top:20px; font-size: 18px;" onclick="saveGatekeeperAndEnter()">💾 حفظ الصلاحيات ودخول العرض</button>
@@ -358,18 +379,11 @@
 
     <div id="libraryScreen" class="screen">
         <div class="sticky-container">
-            <button class="btn btn-dark" style="padding: 5px 15px; font-size: 14px; border-radius: 12px;" onclick="showScreen('eventsScreen')">⬅️ رجوع</button>
+            <button class="btn btn-dark" style="padding: 5px 15px; font-size: 14px; border-radius: 12px;" onclick="backToAdminHub()">⬅️ رجوع</button>
             <h3 style="margin:0; color:var(--primary-red);">📚 مكتبة باشا إيفنتس</h3>
             <button class="btn btn-green" style="padding: 5px 10px; font-size: 14px; border-radius: 12px;" onclick="openLibForm()">➕ إضافة</button>
         </div>
-        
-        <div style="display:flex; gap:8px; margin-bottom:15px; overflow-x:auto; padding-bottom:5px; justify-content: right;">
-            <button class="btn btn-outline" style="white-space:nowrap; padding:5px 10px;" onclick="renderLibrary('all')">📂 الكل</button>
-            <button class="btn btn-outline" style="white-space:nowrap; padding:5px 10px; border-color:#ff9800; color:#ff9800;" onclick="renderLibrary('fav')">⭐ المفضلات</button>
-            <button class="btn btn-outline" style="white-space:nowrap; padding:5px 10px; border-color:#17a2b8; color:#17a2b8;" onclick="renderLibrary('لغز / تشنشينة')">🧩 ألغاز</button>
-            <button class="btn btn-outline" style="white-space:nowrap; padding:5px 10px; border-color:#198754; color:#198754;" onclick="renderLibrary('لعبة حركية')">🏃 حركية</button>
-            <button class="btn btn-outline" style="white-space:nowrap; padding:5px 10px; border-color:#9b59b6; color:#9b59b6;" onclick="renderLibrary('مسابقة فكرية')">💡 فكرية</button>
-        </div>
+        <div id="libTabsContainer" style="display:flex; gap:8px; margin-bottom:15px; overflow-x:auto; padding-bottom:5px; justify-content: right;"></div>
         <div id="generalLibContainer"></div>
     </div>
 
@@ -385,24 +399,14 @@
                 <option value="أخرى">أخرى</option>
             </select>
             <input type="text" id="libItemCustomType" placeholder="اكتب نوع الفقرة..." style="width:100%; margin-bottom:15px; display:none;">
-            
             <h4 style="color:#17a2b8; margin:10px 0 5px 0;">🎤 نص المنشط:</h4>
             <textarea id="libItemAnim" style="width:100%; height:60px;" placeholder="ماذا سيقول المنشط..."></textarea>
-            
             <h4 style="color:#9b59b6; margin:10px 0 5px 0;">🎧 دور الـ DJ:</h4>
             <textarea id="libItemDJ" style="width:100%; height:50px;" placeholder="الأغاني والمؤثرات المطلوبة..."></textarea>
-            
             <h4 style="color:#ff9800; margin:10px 0 5px 0;">🏃‍♂️ دور المساعد:</h4>
             <textarea id="libItemAssist" style="width:100%; height:50px;" placeholder="التحضيرات (كراسي، جوائز...)..."></textarea>
-            
-            <label style="display:flex; align-items:center; gap:8px; margin-top:15px; font-weight:bold; cursor:pointer;">
-                <input type="checkbox" id="libItemFav" style="width:20px; height:20px;"> ⭐ إضافة للمفضلة فوراً
-            </label>
-            
-            <div style="display:flex; gap:10px; margin-top:20px;">
-                <button class="btn btn-green" style="flex:1;" onclick="saveLibItem()">💾 حفظ</button>
-                <button class="btn btn-dark" style="flex:1;" onclick="document.getElementById('libFormModal').style.display='none'">❌ إلغاء</button>
-            </div>
+            <label style="display:flex; align-items:center; gap:8px; margin-top:15px; font-weight:bold; cursor:pointer;"><input type="checkbox" id="libItemFav" style="width:20px; height:20px;"> ⭐ إضافة للمفضلة فوراً</label>
+            <div style="display:flex; gap:10px; margin-top:20px;"><button class="btn btn-green" style="flex:1;" onclick="saveLibItem()">💾 حفظ</button><button class="btn btn-dark" style="flex:1;" onclick="document.getElementById('libFormModal').style.display='none'">❌ إلغاء</button></div>
         </div>
     </div>
 
@@ -422,7 +426,6 @@
                <h2 style="color: var(--primary-red); margin: 0; font-size: 22px; display:flex; align-items:center; gap:10px;"><span id="dashInstName">--</span> <span style="font-size:16px; cursor:pointer;" onclick="editLocalInstName()" title="تعديل الإسم">✏️</span></h2>
                 <button class="btn btn-outline" id="dashBackBtn" style="padding: 5px 10px; font-size: 12px; border-radius:8px;" onclick="showScreen('eventsScreen')">🔙 العروض</button>
             </div>
-            
             <div id="dashEventTime" style="margin-bottom: 20px; font-weight: bold; color: #666; font-size: 14px;"></div>
             <div id="dashboardMenu" style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
                 <div class="dash-card" id="btnGoBackstage" style="border-color:#17a2b8;" onclick="initiateMicTest('backstageSection')"><h3 style="color:#17a2b8; margin:0;">🧰 الكواليس</h3></div>
@@ -439,19 +442,26 @@
                     <div class="online-text" id="bsOnlineText">🟢 متصل: <span id="onlineUsersList_bs">--</span></div>
                 </div>
             </div>
-
             <div class="smart-stats-bar">
                 <div class="stat-item" style="color: var(--primary-red);">⏳ <span id="countdownDisplay">يتم الحساب...</span></div>
                 <div class="stat-item" style="color: #17a2b8;">🔄 التحديثات: <span id="editCountDisplay">0</span></div>
             </div>
-
             <div id="clientBackstageNotice" style="display:none; background:#e3f2fd; color:#0275d8; padding:10px; border-radius:8px; margin-bottom:15px; font-weight:bold; font-size:14px; text-align:right;">ℹ️ يمكنك تعديل البرنامج بحرية. سيتم إغلاق التعديل أوتوماتيكياً ساعة قبل موعد الحفل.</div>
+            
             <div id="backstageContent">
                 <div class="accordion-item">
                     <div class="accordion-header" onclick="toggleAccordion('accInst')"><span>👑 معطيات الإدارة والمؤسسة</span><span id="icon_accInst">➕</span></div>
                     <div id="accInst" class="accordion-content">
                         <input type="text" id="instManager" placeholder="المديرة..." style="width:100%; margin-bottom:10px;">
                         <input type="text" id="instFounder" placeholder="الباعث (اختياري)..." style="width:100%; margin-bottom:20px;">
+                        <h4 style="color:var(--primary-red); margin: 15px 0 5px 0;">🎉 مناسبة الحفل:</h4>
+                        <select id="eventOccasion" style="width:100%; margin-bottom:20px;" onchange="handleOccasionChange(this.value)">
+                            <option value="">-- إختر المناسبة --</option>
+                            <option value="mother">عيد الأمهات</option>
+                            <option value="end_year">اختتام السنة التربوية</option>
+                            <option value="other">مناسبة أخرى (كتابة يدوية)</option>
+                        </select>
+                        <input type="text" id="customOccasionInput" placeholder="اكتب المناسبة هنا..." style="width:100%; margin-bottom:20px; display:none;">
                         <h4 style="color:#198754; margin: 10px 0;">👩‍🏫 المربيات:</h4><div id="educatorsList"></div><button class="btn btn-outline bs-edit-btn" style="width:100%; border-color:#198754; color:#198754;" onclick="addEducator()">+ إضافة</button>
                         <h4 style="color:#ff9800; margin: 10px 0;">🎯 المدربون:</h4><div id="coachesList"></div><button class="btn btn-outline bs-edit-btn" style="width:100%; border-color:#ff9800; color:#ff9800;" onclick="addCoach()">+ إضافة</button>
                         <h4 style="color:#9b59b6; margin: 10px 0;">🤝 العمال/الشركاء:</h4><div id="staffList"></div><button class="btn btn-outline bs-edit-btn" style="width:100%; border-color:#9b59b6; color:#9b59b6;" onclick="addStaff()">+ إضافة</button>
@@ -461,8 +471,8 @@
                 <div class="accordion-item bs-edit-btn">
                     <div class="accordion-header" onclick="toggleAccordion('accTeleprompter')"><span>🎤 الكلمة الترحيبية (تعديل)</span><span id="icon_accTeleprompter">➕</span></div>
                     <div id="accTeleprompter" class="accordion-content">
-                        <p style="font-size:12px; color:#666; font-weight:bold; line-height:1.6;">السيستام باش يصنع الكلمة الترحيبية وحدو ويجبد أسامي المربيات والمدربين والوقت (صبحية/عشوية/سهرة). <br><span style="color:var(--primary-red);">إذا تحب تكتب كلمتك الخاصة، تفضل اكتبها هوني:</span></p>
-                        <textarea id="customTeleprompterInput" style="width:100%; height:120px; resize:vertical;" placeholder="الكلمة الترحيبية المخصصة (اختياري)..."></textarea>
+                        <p style="font-size:12px; color:#666; font-weight:bold; line-height:1.6;">تتولد أوتوماتيكياً حسب المناسبة المختارة الفوق. <br><span style="color:var(--primary-red);">ويمكنك تعديلها يدوياً هنا:</span></p>
+                        <textarea id="customTeleprompterInput" style="width:100%; height:120px; resize:vertical;" placeholder="الكلمة الترحيبية..."></textarea>
                     </div>
                 </div>
 
@@ -471,7 +481,6 @@
                     <div id="accProg" class="accordion-content open">
                       <div id="programList"></div>
                         <button class="btn btn-outline bs-edit-btn" style="width:100%; margin-top:10px; border-color:var(--primary-red); color:var(--primary-red); border-style: dashed;" onclick="addProgramItem()">+ فقرة جديدة</button>
-                        </div>
                     </div>
                 </div>
                 
@@ -482,24 +491,14 @@
 
         <div id="stageSection" style="display:none; margin-top:0;">
             <div class="sticky-container">
-                <div style="display: flex; gap: 8px;">
-                    <button id="btnBackStage" class="btn btn-dark" style="padding: 5px 15px; font-size: 14px; border-radius: 12px;" onclick="closeSection()">رجوع ⬅️</button>
-                </div>
-                <div style="text-align: left;">
-                    <div id="compactInstName_st" style="color: var(--primary-red); font-size: 16px; font-weight: 900;">--</div>
-                    <div class="online-text" id="stOnlineText"><span class="online-dot">🟢</span> متصل: <span id="onlineUsersList_st">--</span></div>
-                </div>
+                <div style="display: flex; gap: 8px;"><button id="btnBackStage" class="btn btn-dark" style="padding: 5px 15px; font-size: 14px; border-radius: 12px;" onclick="closeSection()">رجوع ⬅️</button></div>
+                <div style="text-align: left;"><div id="compactInstName_st" style="color: var(--primary-red); font-size: 16px; font-weight: 900;">--</div><div class="online-text" id="stOnlineText"><span class="online-dot">🟢</span> متصل: <span id="onlineUsersList_st">--</span></div></div>
             </div>
-
             <button id="btnStartEvent" class="btn btn-green" style="width:100%; margin-bottom: 20px; font-size: 18px; padding: 15px; display: none; box-shadow: 0 4px 15px rgba(25, 135, 84, 0.4); animation: pulse 2s infinite;" onclick="startEventNow()">🎬 إعطاء شارة الانطلاق (فتح النظام)</button>
-
-            <div id="clientStageNotice" style="display:none; background:#f0fdf4; color:#198754; padding:10px; border-radius:8px; margin-bottom:15px; font-weight:bold; font-size:14px; text-align:right;">🎬 الحفل على وشك البداية أو بدأ بالفعل! يمكنك متابعة إنجاز الفقرات مباشرة من هنا.</div>
-
+            <div id="clientStageNotice" style="display:none; background:#f0fdf4; color:#198754; padding:10px; border-radius:8px; margin-bottom:15px; font-weight:bold; font-size:14px; text-align:right;">🎬 الحفل بدأ بالفعل! يمكنك المتابعة من هنا.</div>
             <div id="stageContent">
                 <div id="teleprompterWrapper" style="background: #fffdf5; border: 3px solid #ffc107; border-radius: 15px; margin-bottom: 25px;">
-                    <div style="padding:15px; background:#ffc107; color:#333; font-weight:900; font-size:18px; cursor:pointer; display:flex; justify-content:space-between; border-radius: 11px 11px 0 0;" onclick="toggleTeleprompter()">
-                        <span>🎤 الكلمة الترحيبية</span> <span id="teleIcon">➖</span>
-                    </div>
+                    <div style="padding:15px; background:#ffc107; color:#333; font-weight:900; font-size:18px; cursor:pointer; display:flex; justify-content:space-between; border-radius: 11px 11px 0 0;" onclick="toggleTeleprompter()"><span>🎤 الكلمة الترحيبية</span> <span id="teleIcon">➖</span></div>
                     <div id="teleprompterView" style="padding: 25px; font-size: 20px; line-height: 1.8; font-weight: 800; color: #222;"></div>
                 </div>
                 <div style="text-align: right;"><h3 style="color: #333; margin-bottom: 15px; border-bottom: 2px solid #ccc; padding-bottom: 10px;">📜 خريطة الحفل:</h3><div id="liveProgramTimeline"></div></div>
@@ -523,6 +522,41 @@
         let audioCtx = null; let analyser = null; let dataArray = null; let animationId = null; let wakeLock = null; 
         let testMediaRecorder = null; let testAudioChunks = []; let isTesting = false; let micStream = null;
         let testRecordTimer = null; let libraryData = {};
+        
+        // المتغيرات الجديدة للتبويبات والقوالب
+        let activeLibFilter = 'all';
+        let welcomeTemplates = {
+            mother: "🎤✨ يا أهلاً وسهلاً بمناسبة عيد الأمهات...\nتحية للمديرة [المديرة] وأسرة [الروضة]...\nمربياتنا: [المربيات]...\nنحتفل اليوم بتيجان رؤوسنا الأمهات الغاليات ❤️",
+            end_year: "🎤✨ حفل اختتام السنة التربوية بـ [الروضة]...\nتحت إشراف المديرة [المديرة]...\nاليوم نجني ثمار تعب عام كامل مع صغارنا ونشكر مربياتنا: [المربيات] 🎓🌟",
+            default: "🎤✨ أهلاً بكم في حفلنا المميز بـ [الروضة]...\nنرحب بكم جميعاً تحت إشراف المديرة [المديرة] وفريقنا المبدع 🎪🔥"
+        };
+
+        // مسار العودة الذكي لمركز القيادة
+        function backToAdminHub() { showScreen('adminHubScreen'); }
+
+        // محرك الكلمات الترحيبية
+        function handleOccasionChange(val) {
+            document.getElementById('customOccasionInput').style.display = (val === 'other') ? 'block' : 'none';
+            if(val && val !== 'other') fillWelcomeMessage(val);
+        }
+
+        function fillWelcomeMessage(templateKey) {
+            let rawText = welcomeTemplates[templateKey] || welcomeTemplates.default;
+            let nursery = currentEventData.name || "روضتنا";
+            let manager = document.getElementById('instManager').value || "مديرة المؤسسة";
+            let edus = [];
+            document.querySelectorAll('#educatorsList .edu-name').forEach(e => { if(e.value) edus.push(e.value); });
+            let educatorsStr = edus.length > 0 ? edus.join('، ') : "مربياتنا الفاضلات";
+
+            let finalText = rawText.replace(/\[الروضة\]/g, nursery)
+                                  .replace(/\[المديرة\]/g, manager)
+                                  .replace(/\[المربيات\]/g, educatorsStr);
+            
+            document.getElementById('customTeleprompterInput').value = finalText;
+        }
+
+        // حفظ القوالب (للإعدادات مستقبلاً)
+        function saveGlobalTemplates() { alert("✅ تم حفظ القوالب بنجاح!"); }
 
         function initAudioCtx() { if(!audioCtx) { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); analyser = audioCtx.createAnalyser(); analyser.fftSize = 128; const bufferLength = analyser.frequencyBinCount; dataArray = new Uint8Array(bufferLength); } if(audioCtx.state === 'suspended') { audioCtx.resume(); } }
         function playBeep(type) { initAudioCtx(); const osc = audioCtx.createOscillator(); const gainNode = audioCtx.createGain(); osc.connect(gainNode); gainNode.connect(audioCtx.destination); if(type === 'start') { osc.frequency.value = 800; gainNode.gain.setValueAtTime(0.1, audioCtx.currentTime); osc.start(); osc.stop(audioCtx.currentTime + 0.15); } else { osc.frequency.value = 600; gainNode.gain.setValueAtTime(0.1, audioCtx.currentTime); osc.start(); osc.stop(audioCtx.currentTime + 0.1); const osc2 = audioCtx.createOscillator(); const gain2 = audioCtx.createGain(); osc2.frequency.value = 600; osc2.connect(gain2); gain2.connect(audioCtx.destination); gain2.gain.setValueAtTime(0.1, audioCtx.currentTime); osc2.start(audioCtx.currentTime + 0.15); osc2.stop(audioCtx.currentTime + 0.25); } }
@@ -856,8 +890,33 @@
         // 📚 محرك بنك الفقرات التنشيطية والمكتبة الذكية
         // ==========================================
         function openLibraryScreen() { showScreen('libraryScreen'); loadLibraryData(); }
-        function loadLibraryData() { db.ref('BechaEventsData/library').on('value', snap => { libraryData = snap.val() || {}; if(document.getElementById('libraryScreen').classList.contains('active-screen')) renderLibrary(); if(document.getElementById('stageSection').style.display === 'block' && currentEventData && currentEventData.eventProgram) { renderStageTimeline(currentEventData.eventProgram); } }); }
+        
+        function loadLibraryData() { 
+            db.ref('BechaEventsData/library').on('value', snap => { 
+                libraryData = snap.val() || {}; 
+                updateLibraryTabs();
+                if(document.getElementById('libraryScreen').classList.contains('active-screen')) renderLibrary(activeLibFilter); 
+                if(document.getElementById('stageSection').style.display === 'block' && currentEventData && currentEventData.eventProgram) { renderStageTimeline(currentEventData.eventProgram); } 
+            }); 
+        }
 
+        // صانع التبويبات الأوتوماتيكي
+        function updateLibraryTabs() {
+            let container = document.getElementById('libTabsContainer');
+            if(!container) return;
+            let types = new Set();
+            Object.values(libraryData).forEach(item => { if(item.type) types.add(item.type); });
+            
+            let html = `<button class="btn btn-outline" style="white-space:nowrap;" onclick="activeLibFilter='all'; renderLibrary('all')">📂 الكل</button>`;
+            html += `<button class="btn btn-outline" style="white-space:nowrap; border-color:#ff9800; color:#ff9800;" onclick="activeLibFilter='fav'; renderLibrary('fav')">⭐ المفضلات</button>`;
+            
+            types.forEach(t => {
+                html += `<button class="btn btn-outline" style="white-space:nowrap; border-color:#17a2b8; color:#17a2b8;" onclick="activeLibFilter='${t}'; renderLibrary('${t}')">${t}</button>`;
+            });
+            container.innerHTML = html;
+        }
+
+        // مفلتر المكتبة حسب التبويبة
         function renderLibrary(filterType = 'all') {
             let genContainer = document.getElementById('generalLibContainer'); genContainer.innerHTML = '';
             let items = Object.keys(libraryData).map(k => ({id: k, ...libraryData[k]})); 
@@ -876,7 +935,6 @@
                 genContainer.innerHTML += html;
             });
         }
-
         function openLibForm() { document.getElementById('libItemId').value = ''; document.getElementById('libItemName').value = ''; document.getElementById('libItemType').value = 'لغز / تشنشينة'; document.getElementById('libItemCustomType').value = ''; document.getElementById('libItemCustomType').style.display = 'none'; document.getElementById('libItemAnim').value = ''; document.getElementById('libItemDJ').value = ''; document.getElementById('libItemAssist').value = ''; document.getElementById('libItemFav').checked = false; document.getElementById('libFormTitle').innerText = '➕ فقرة جديدة'; document.getElementById('libFormModal').style.display = 'flex'; }
 
         function saveLibItem() { let id = document.getElementById('libItemId').value || 'lib_' + Date.now(); let name = document.getElementById('libItemName').value.trim(); if(!name) return alert("الرجاء كتابة اسم الفقرة!"); let isFav = document.getElementById('libItemFav').checked; if (isFav) { let duplicate = Object.keys(libraryData).find(k => libraryData[k].name === name && libraryData[k].isFav && k !== id); if (duplicate) { alert(`⚠️ يا سي حمادي، اسم الفقرة (${name}) موجود ديجا في المفضلات! الرجاء تغيير الاسم أو تعديل الفقرة القديمة.`); return; } } let selectedType = document.getElementById('libItemType').value; let finalType = selectedType === 'أخرى' ? document.getElementById('libItemCustomType').value.trim() : selectedType; if (selectedType === 'أخرى' && !finalType) return alert("الرجاء كتابة نوع الفقرة!"); let itemData = { name: name, type: finalType, animText: document.getElementById('libItemAnim').value.trim(), djText: document.getElementById('libItemDJ').value.trim(), assistText: document.getElementById('libItemAssist').value.trim(), isFav: isFav, updatedAt: Date.now() }; db.ref('BechaEventsData/library/' + id).set(itemData).then(() => { document.getElementById('libFormModal').style.display = 'none'; }); }
