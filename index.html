@@ -699,12 +699,12 @@
             pendingSectionId = targetId; 
             document.getElementById('dashboardMenuWrapper').style.display = 'none';
             
-            if(currentUser.role === 'admin') { acceptSecurityConsent(); return; }
-            
-            document.getElementById('testRoomScreen').style.display = 'flex'; 
-            document.getElementById('testResults').style.display = 'none'; 
-            document.getElementById('testMicBtn').style.display = 'block'; 
-            document.getElementById('testStatusText').innerText = "اضغط مطولاً للتسجيل";
+            // 🔴 التعديل الجديد: تخطي غرفة الصوت والمرور مباشرة للتحذير الأمني
+            if(currentUser.role === 'admin' || currentUser.role === 'admin_assistant') { 
+                acceptSecurityConsent(); // الإدارة تتعدى ديراكت
+            } else { 
+                document.getElementById('antiScreenModal').style.display = 'flex'; // الموظف يتعدى ديراكت للإقرار الأمني
+            }
         }
 
         // 🔴 دالة التسجيل (فحص الصوت) المعدلة مع العداد المنقذ وإلغاء الصدى
@@ -796,7 +796,19 @@
                 }
             }
         }
-        function applyBackstagePermissions() { let canEdit = currentUser.perms.bs_edit; document.getElementById('instManager').disabled = !canEdit; document.getElementById('instFounder').disabled = !canEdit; document.querySelectorAll('.bs-edit-btn').forEach(btn => btn.style.display = canEdit ? 'block' : 'none'); document.getElementById('customTeleprompterInput').disabled = !canEdit; }
+       function applyBackstagePermissions() { 
+            let canEdit = currentUser.perms.bs_edit; 
+            document.getElementById('instManager').disabled = !canEdit; 
+            document.getElementById('instFounder').disabled = !canEdit; 
+            document.querySelectorAll('.bs-edit-btn').forEach(btn => btn.style.display = canEdit ? 'block' : 'none'); 
+            document.getElementById('customTeleprompterInput').disabled = !canEdit; 
+
+            // 🔴 التعديل الجديد: إخفاء مربع الكلمة الترحيبية بالكامل على مديرة الروضة (العميل)
+            let teleprompterBox = document.getElementById('accTeleprompter').parentElement;
+            if (currentUser.role === 'client') {
+                teleprompterBox.style.display = 'none';
+            }
+        }
         
         document.addEventListener("visibilitychange", () => { if(document.getElementById('stageSection').style.display === 'none' && document.getElementById('backstageSection').style.display === 'none') return; if(isEventEndedLocally || currentUser.role === 'admin' || currentUser.role === 'client') return; if (document.hidden) { localInfractionsThisSession++; db.ref('BechaEventsData/users_infractions/' + currentUser.pseudo).transaction(current => (current || 0) + 1); } else if (!document.hidden && localInfractionsThisSession > 0) { db.ref('BechaEventsData/users_infractions/' + currentUser.pseudo).once('value').then(snap => { document.getElementById('infractionCount').innerText = snap.val() || 0; document.getElementById('infractionModal').style.display = 'flex'; }); } });
         function startPresenceTracker() { let path = isArchivedEvent ? 'BechaEventsData/archived_events/'+currentEventIndex : 'BechaEventsData/events/'+currentEventIndex; onlineRef = db.ref(path + '/onlineUsers/' + currentUser.pseudo); db.ref('.info/connected').on('value', snap => { if (snap.val() === true) { onlineRef.onDisconnect().remove(); onlineRef.set(true); } }); let listRef = db.ref(path + '/onlineUsers'); listRef.on('value', snap => { let usersObj = snap.val() || {}; let names = Object.keys(usersObj).join('، '); document.getElementById('onlineUsersList_bs').innerText = names || '--'; document.getElementById('onlineUsersList_st').innerText = names || '--'; }); presenceListeners.push(listRef); }
