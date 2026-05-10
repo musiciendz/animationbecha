@@ -826,8 +826,48 @@
                 document.getElementById('a4PreviewModal').style.display='none'; 
             });
         }
-        function confirmSaveAndShowDownload() { document.getElementById('a4PreviewModal').style.display = 'none'; let d = { managerName: document.getElementById('instManager').value.trim(), founderName: document.getElementById('instFounder').value.trim(), educators: [], coaches: [], staff: [] }; document.querySelectorAll('#educatorsList .edu-name').forEach(e => { if(e.value.trim()) d.educators.push(e.value.trim()); }); document.querySelectorAll('#coachesList > div').forEach(r => { let s=r.querySelector('.coach-spec').value.trim(), n=r.querySelector('.coach-name').value.trim(); if(s||n) d.coaches.push({spec:s, name:n}); }); document.querySelectorAll('#staffList > div').forEach(r => { let sr=r.querySelector('.staff-role').value.trim(), n=r.querySelector('.staff-name').value.trim(); if(sr||n) d.staff.push({role:sr, name:n}); }); let prog = []; document.querySelectorAll('.prog-row').forEach(r => { let type = r.querySelector('.prog-type').value; prog.push({ type: type, customType: type === 'أخرى' ? r.querySelector('.other-type').value.trim() : '', details: r.querySelector('.prog-details').value.trim(), completed: r.classList.contains('locked') }); }); let customTeleprompterText = document.getElementById('customTeleprompterInput').value.trim(); let editInfo = { by: currentUser.pseudo, role: currentUser.role, time: Date.now(), count: currentEditCount + 1 }; let path = isArchivedEvent ? 'BechaEventsData/archived_events/'+currentEventIndex : 'BechaEventsData/events/'+currentEventIndex; Promise.all([ db.ref(path+'/institutionDetails').set(d), db.ref(path+'/eventProgram').set(prog), db.ref(path+'/lastEditInfo').set(editInfo), db.ref(path+'/customTeleprompter').set(customTeleprompterText) ]).then(() => { currentEditCount++; document.getElementById('editCountDisplay').innerText = currentEditCount; currentEventData.lastEditInfo = editInfo; currentEventData.institutionDetails = d; currentEventData.eventProgram = prog; currentEventData.customTeleprompter = customTeleprompterText; document.getElementById('downloadPromptModal').style.display = 'flex'; }); }
-        function downloadA4Image() { let element = document.getElementById('a4Paper'); html2canvas(element, { scale: 2 }).then(canvas => { let link = document.createElement('a'); link.download = `Program_${currentEventData.name.replace(/\s+/g, '_')}.png`; link.href = canvas.toDataURL('image/png'); link.click(); document.getElementById('downloadPromptModal').style.display='none'; }); }
+        let savedA4CanvasData = null; // ذاكرة مؤقتة باش نخبيو فيها التصويرة قبل ما تتسكر الشاشة
+
+        function confirmSaveAndShowDownload() { 
+            let element = document.getElementById('a4Paper'); 
+            
+            // 1. نصورو الورقة وهي مازالت ظاهرة
+            html2canvas(element, { scale: 2 }).then(canvas => { 
+                savedA4CanvasData = canvas.toDataURL('image/png'); // خبينا التصويرة
+                
+                // 2. توة نسكرو الشاشة ونكملو الحفظ
+                document.getElementById('a4PreviewModal').style.display = 'none'; 
+                
+                let d = { managerName: document.getElementById('instManager').value.trim(), founderName: document.getElementById('instFounder').value.trim(), educators: [], coaches: [], staff: [] }; 
+                document.querySelectorAll('#educatorsList .edu-name').forEach(e => { if(e.value.trim()) d.educators.push(e.value.trim()); }); 
+                document.querySelectorAll('#coachesList > div').forEach(r => { let s=r.querySelector('.coach-spec').value.trim(), n=r.querySelector('.coach-name').value.trim(); if(s||n) d.coaches.push({spec:s, name:n}); }); 
+                document.querySelectorAll('#staffList > div').forEach(r => { let sr=r.querySelector('.staff-role').value.trim(), n=r.querySelector('.staff-name').value.trim(); if(sr||n) d.staff.push({role:sr, name:n}); }); 
+                
+                let prog = []; 
+                document.querySelectorAll('.prog-row').forEach(r => { let type = r.querySelector('.prog-type').value; prog.push({ type: type, customType: type === 'أخرى' ? r.querySelector('.other-type').value.trim() : '', details: r.querySelector('.prog-details').value.trim(), completed: r.classList.contains('locked') }); }); 
+                
+                let customTeleprompterText = document.getElementById('customTeleprompterInput').value.trim(); 
+                let editInfo = { by: currentUser.pseudo, role: currentUser.role, time: Date.now(), count: currentEditCount + 1 }; 
+                let path = isArchivedEvent ? 'BechaEventsData/archived_events/'+currentEventIndex : 'BechaEventsData/events/'+currentEventIndex; 
+                
+                Promise.all([ db.ref(path+'/institutionDetails').set(d), db.ref(path+'/eventProgram').set(prog), db.ref(path+'/lastEditInfo').set(editInfo), db.ref(path+'/customTeleprompter').set(customTeleprompterText) ]).then(() => { 
+                    currentEditCount++; document.getElementById('editCountDisplay').innerText = currentEditCount; 
+                    currentEventData.lastEditInfo = editInfo; currentEventData.institutionDetails = d; 
+                    currentEventData.eventProgram = prog; currentEventData.customTeleprompter = customTeleprompterText; 
+                    document.getElementById('downloadPromptModal').style.display = 'flex'; 
+                });
+            });
+        }
+
+        function downloadA4Image() { 
+            if(savedA4CanvasData) {
+                let link = document.createElement('a'); 
+                link.download = `Program_${currentEventData.name.replace(/\s+/g, '_')}.png`; 
+                link.href = savedA4CanvasData; 
+                link.click(); 
+            }
+            document.getElementById('downloadPromptModal').style.display='none'; 
+        }
         function startBackstageListener() { let path = isArchivedEvent ? 'BechaEventsData/archived_events/'+currentEventIndex : 'BechaEventsData/events/'+currentEventIndex; backstageProgRef = db.ref(path + '/eventProgram'); backstageProgRef.on('value', snap => { if(document.getElementById('backstageSection').style.display !== 'none') { let prog = snap.val() || []; let rows = document.querySelectorAll('.prog-row'); prog.forEach((p, i) => { if(rows[i]) { if(p.completed) rows[i].classList.add('locked'); else rows[i].classList.remove('locked'); } }); } }); }
 
         function openStageLive() { renderTeleprompter(); let path = isArchivedEvent ? 'BechaEventsData/archived_events/'+currentEventIndex : 'BechaEventsData/events/'+currentEventIndex; liveProgRef = db.ref(path + '/eventProgram'); liveProgRef.on('value', snap => { let progData = snap.val() || []; currentEventData.eventProgram = progData; renderStageTimeline(progData); }); }
