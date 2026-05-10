@@ -144,6 +144,14 @@
     transform: scale(0.9); background: #198754; 
     box-shadow: 0 4px 15px rgba(25,135,84,0.4); 
 }
+        /* 📚 ديكور بنك الفقرات */
+        .lib-card { background: white; border: 2px solid #eee; border-radius: 12px; padding: 15px; margin-bottom: 15px; text-align: right; position: relative; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+        .lib-fav-zone { background: #fffdf5; border: 2px dashed #ffc107; padding: 15px; border-radius: 12px; margin-bottom: 20px; }
+        .fav-heart { position: absolute; left: 15px; top: 15px; font-size: 24px; cursor: pointer; color: #ccc; transition: 0.3s; }
+        .fav-heart.active { color: #E10600; animation: pulse 0.5s; }
+        .lib-title { font-size: 18px; font-weight: 900; color: var(--primary-red); margin-bottom: 5px; padding-left: 30px; }
+        .lib-date { font-size: 11px; color: #888; font-weight: bold; }
+        .lib-actions { display: flex; gap: 10px; margin-top: 15px; border-top: 1px solid #eee; padding-top: 10px; }
     </style>
 </head>
 <body>
@@ -330,7 +338,10 @@
 
     <!-- العروض (للمدير) -->
     <div id="eventsScreen" class="screen">
-        <h2 style="border-bottom: 2px solid var(--primary-red); padding-bottom: 10px; color: #333;">📅 عروضي القادمة</h2>
+        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--primary-red); padding-bottom: 10px; margin-bottom: 15px;">
+            <h2 style="color: #333; margin: 0;">📅 عروضي القادمة</h2>
+            <button class="btn btn-outline" style="border-color:#ff9800; color:#ff9800; font-size: 14px;" onclick="openLibraryScreen()">📚 بنك الفقرات</button>
+        </div>
         <div id="eventsListContainer"></div>
     </div>
 
@@ -410,7 +421,11 @@
                 <div class="accordion-item">
                     <div class="accordion-header" onclick="toggleAccordion('accProg')"><span>📋 برنامج الحفل (<span id="totalProgCount">0</span>)</span><span id="icon_accProg">➖</span></div>
                     <div id="accProg" class="accordion-content open">
-                        <div id="programList"></div><button class="btn btn-outline bs-edit-btn" style="width:100%; margin-top:10px; border-color:var(--primary-red); color:var(--primary-red); border-style: dashed;" onclick="addProgramItem()">+ فقرة جديدة</button>
+                       <div id="programList"></div>
+                        <div style="display:flex; gap:10px; margin-top:10px;">
+                            <button class="btn btn-outline bs-edit-btn" style="flex:1; border-color:var(--primary-red); color:var(--primary-red); border-style: dashed;" onclick="addProgramItem()">+ فقرة عادية</button>
+                            <button class="btn btn-outline bs-edit-btn" id="libSelectBtn" style="flex:1; border-color:#ff9800; color:#ff9800; border-style: dashed; display:none;" onclick="openLibSelectModal()">✨ إختر من المكتبة</button>
+                        </div>
                     </div>
                 </div>
                 
@@ -767,6 +782,9 @@
         function proceedAfterTest() { document.getElementById('testRoomScreen').style.display = 'none'; if(currentUser.role === 'admin') { acceptSecurityConsent(); } else { document.getElementById('antiScreenModal').style.display = 'flex'; } }
         
         function acceptSecurityConsent() {
+            // 🔴 التعديل الجديد: تحميل بيانات المكتبة في الخلفية بمجرد الدخول
+            loadLibraryData();
+            
             document.getElementById('antiScreenModal').style.display = 'none';
             if(currentUser.role !== 'admin') { setupWatermark(); document.getElementById('antiScreenshotBanner').style.display = 'block'; startPresenceTracker(); }
             
@@ -803,11 +821,14 @@
             document.querySelectorAll('.bs-edit-btn').forEach(btn => btn.style.display = canEdit ? 'block' : 'none'); 
             document.getElementById('customTeleprompterInput').disabled = !canEdit; 
 
-            // 🔴 التعديل الجديد: إخفاء مربع الكلمة الترحيبية بالكامل على مديرة الروضة (العميل)
+            // 🔴 التعديل: إخفاء الكلمة الترحيبية على العميل
             let teleprompterBox = document.getElementById('accTeleprompter').parentElement;
-            if (currentUser.role === 'client') {
-                teleprompterBox.style.display = 'none';
-            }
+            teleprompterBox.style.display = (currentUser.role === 'client') ? 'none' : 'block';
+
+            // 🔴 التعديل: إخفاء زر المكتبة على العميل
+            let libBtn = document.getElementById('libSelectBtn');
+            if(libBtn) libBtn.style.display = (currentUser.role === 'client') ? 'none' : 'block';
+        }
         }
         
         document.addEventListener("visibilitychange", () => { if(document.getElementById('stageSection').style.display === 'none' && document.getElementById('backstageSection').style.display === 'none') return; if(isEventEndedLocally || currentUser.role === 'admin' || currentUser.role === 'client') return; if (document.hidden) { localInfractionsThisSession++; db.ref('BechaEventsData/users_infractions/' + currentUser.pseudo).transaction(current => (current || 0) + 1); } else if (!document.hidden && localInfractionsThisSession > 0) { db.ref('BechaEventsData/users_infractions/' + currentUser.pseudo).once('value').then(snap => { document.getElementById('infractionCount').innerText = snap.val() || 0; document.getElementById('infractionModal').style.display = 'flex'; }); } });
@@ -821,7 +842,13 @@
         function addStaff(r='', n='') { let d = !currentUser.perms.bs_edit ? 'disabled' : ''; let del = currentUser.perms.bs_edit ? `<button class="btn btn-red" onclick="this.parentElement.remove()">🗑</button>` : ''; document.getElementById('staffList').insertAdjacentHTML('beforeend', `<div style="display:flex; gap:10px; margin-bottom:10px;"><input type="text" class="staff-role" placeholder="الصفة" value="${r}" style="flex:1;" ${d}><input type="text" class="staff-name" placeholder="الاسم" value="${n}" style="flex:1;" ${d}>${del}</div>`); }
         function addProgramItem(t='', d='', comp=false, customType='') {
             let container = document.getElementById('programList'); let idx = container.children.length; let opts = ['تلاوة قرآن', 'نشيد / كورال', 'لوحة راقصة / استعراض', 'مسرحية', 'تنشيط وألغاز', 'تكريم', 'أخرى']; let optsHtml = opts.map(o => `<option value="${o}" ${t===o?'selected':''}>${o}</option>`).join(''); let lockedClass = comp ? 'locked' : ''; let showOther = (t === 'أخرى') ? 'block' : 'none'; let dis = !currentUser.perms.bs_edit ? 'disabled' : ''; let del = currentUser.perms.bs_edit ? `<button class="btn btn-dark" onclick="moveItem(this, -1)">⬆️</button><button class="btn btn-dark" onclick="moveItem(this, 1)">⬇️</button><button class="btn btn-red" onclick="this.parentElement.parentElement.remove(); updateNumbers();">🗑</button>` : '';
-            let html = `<div class="prog-row ${lockedClass}" data-index="${idx}"><div class="row-num">${idx+1}</div><div style="display:flex; gap:8px;">${del}<select class="prog-type" onchange="this.parentElement.nextElementSibling.style.display=(this.value==='أخرى')?'block':'none'" style="flex:1;" ${dis}>${optsHtml}</select></div><input type="text" class="other-type" placeholder="نوع الفقرة..." value="${customType}" style="display:${showOther}; width:100%; margin-top:8px;" ${dis}><input type="text" class="prog-details" placeholder="تفاصيل..." value="${d}" style="width:100%; margin-top:8px;" ${dis}></div>`;
+
+            // 🔴 التعديل: إخفاء التفاصيل السريّة على العميل
+            let isSecret = (t === 'تنشيط وألغاز');
+            let clientSecretStyle = (currentUser.role === 'client' && isSecret) ? 'display:none;' : '';
+            let clientSecretNotice = (currentUser.role === 'client' && isSecret) ? '<div style="color:#ff9800; font-size:12px; margin-top:8px; font-weight:bold;">🔒 المحتوى محدد من طرف فريق باشا إيفنتس</div>' : '';
+
+            let html = `<div class="prog-row ${lockedClass}" data-index="${idx}"><div class="row-num">${idx+1}</div><div style="display:flex; gap:8px;">${del}<select class="prog-type" onchange="this.parentElement.nextElementSibling.style.display=(this.value==='أخرى')?'block':'none'" style="flex:1;" ${dis}>${optsHtml}</select></div><input type="text" class="other-type" placeholder="نوع الفقرة..." value="${customType}" style="display:${showOther}; width:100%; margin-top:8px;" ${dis}><input type="text" class="prog-details" placeholder="تفاصيل..." value="${d}" style="width:100%; margin-top:8px; ${clientSecretStyle}" ${dis}>${clientSecretNotice}</div>`;
             container.insertAdjacentHTML('beforeend', html); updateNumbers();
         }
         function updateNumbers() { let rows = document.querySelectorAll('.prog-row'); document.getElementById('totalProgCount').innerText = rows.length; rows.forEach((r, i) => r.querySelector('.row-num').innerText = i+1); }
@@ -964,7 +991,40 @@
         function renderStageTimeline(progArray) {
             let pContainer = document.getElementById('liveProgramTimeline'); pContainer.innerHTML = '';
             if(progArray.length === 0) { pContainer.innerHTML = '<p style="color:#777; text-align:center;">لم يتم برمجة فقرات بعد.</p>'; return; }
-            progArray.forEach((item, idx) => { let displayType = item.type === 'أخرى' ? (item.customType || 'فقرة متنوعة') : item.type; let icon = displayType.includes('قرآن')?'📖':displayType.includes('رقص')?'💃':displayType.includes('مسرح')?'🎭':displayType.includes('تنشيط')?'🎪':displayType.includes('كورال')?'🎤':'✨'; let isComp = item.completed ? 'completed' : ''; let chkMark = item.completed ? '✔' : ''; let detailsText = item.details ? item.details : 'بدون تفاصيل'; pContainer.innerHTML += `<div class="program-item ${isComp}" onclick="toggleStep(${idx}, ${!!item.completed})"><div style="display:flex; align-items:center; gap:15px; width:100%;"><div class="chk-box">${chkMark}</div><div style="flex:1;"><span style="font-size:15px; color:#666;">الفقرة ${idx+1} (${displayType})</span><br><span style="font-size:20px; color:#333;">${icon} ${detailsText}</span></div></div></div>`; });
+            
+            progArray.forEach((item, idx) => { 
+                let displayType = item.type === 'أخرى' ? (item.customType || 'فقرة متنوعة') : item.type; 
+                let icon = displayType.includes('قرآن')?'📖':displayType.includes('رقص')?'💃':displayType.includes('مسرح')?'🎭':displayType.includes('تنشيط')?'🎪':displayType.includes('كورال')?'🎤':'✨'; 
+                let isComp = item.completed ? 'completed' : ''; 
+                let chkMark = item.completed ? '✔' : ''; 
+                let detailsText = item.details ? item.details : 'بدون تفاصيل'; 
+                let extraLayers = '';
+
+                // 🔴 التعديل: إظهار الطبقات السرية (تنشيط، DJ، مساعد)
+                if (detailsText.startsWith('LIB::')) {
+                    let parts = detailsText.split('::');
+                    let libId = parts[1];
+                    let libName = parts[2] || 'فقرة تنشيطية';
+                    detailsText = `<span style="color:#E10600;">⭐ ${libName}</span>`;
+
+                    if (currentUser.role !== 'client') {
+                        let libItem = libraryData[libId];
+                        if (libItem) {
+                            if (currentUser.role === 'animateur' || currentUser.role === 'admin' || currentUser.role === 'admin_assistant') {
+                                if(libItem.animText) extraLayers += `<div style="background:#e3f2fd; color:#0275d8; padding:8px; border-radius:8px; margin-top:8px; font-size:14px; text-align:right;">🎤 <b>المنشط:</b> ${libItem.animText.replace(/\n/g, '<br>')}</div>`;
+                            }
+                            if (currentUser.role === 'dj' || currentUser.role === 'admin' || currentUser.role === 'admin_assistant') {
+                                if(libItem.djText) extraLayers += `<div style="background:#f3e5f5; color:#8e24aa; padding:8px; border-radius:8px; margin-top:8px; font-size:14px; text-align:right;">🎧 <b>DJ:</b> ${libItem.djText.replace(/\n/g, '<br>')}</div>`;
+                            }
+                            if (currentUser.role === 'assistant' || currentUser.role === 'assistant_anim' || currentUser.role === 'admin' || currentUser.role === 'admin_assistant') {
+                                if(libItem.assistText) extraLayers += `<div style="background:#fff3e0; color:#e65100; padding:8px; border-radius:8px; margin-top:8px; font-size:14px; text-align:right;">🏃‍♂️ <b>المساعد:</b> ${libItem.assistText.replace(/\n/g, '<br>')}</div>`;
+                            }
+                        }
+                    }
+                }
+
+                pContainer.innerHTML += `<div class="program-item ${isComp}" onclick="toggleStep(${idx}, ${!!item.completed})"><div style="display:flex; align-items:flex-start; gap:15px; width:100%;"><div class="chk-box" style="margin-top:5px;">${chkMark}</div><div style="flex:1;"><span style="font-size:15px; color:#666;">الفقرة ${idx+1} (${displayType})</span><br><span style="font-size:20px; color:#333;">${icon} ${detailsText}</span>${extraLayers}</div></div></div>`; 
+            });
         }
         function toggleStep(idx, state) { if(!currentUser.perms.timeline) return; let path = isArchivedEvent ? 'BechaEventsData/archived_events/'+currentEventIndex : 'BechaEventsData/events/'+currentEventIndex; db.ref(path+'/eventProgram/'+idx+'/completed').set(!state); }
 
@@ -1138,6 +1198,189 @@ window.addEventListener('touchend', (e) => { if(isTesting) stopTestRecording(e);
                     }
                 }
             });
+        }
+        // ==========================================
+        // 📚 محرك بنك الفقرات التنشيطية والمكتبة الذكية
+        // ==========================================
+        let libraryData = {};
+
+        function openLibraryScreen() {
+            showScreen('libraryScreen');
+            loadLibraryData();
+        }
+
+        function loadLibraryData() {
+            db.ref('BechaEventsData/library').on('value', snap => {
+                libraryData = snap.val() || {};
+                if(document.getElementById('libraryScreen').style.display === 'block') renderLibrary();
+                if(document.getElementById('stageSection').style.display === 'block' && currentEventData && currentEventData.eventProgram) {
+                    renderStageTimeline(currentEventData.eventProgram); // تحديث الركح فوراً عند التعديل
+                }
+            });
+        }
+
+        function renderLibrary() {
+            let favContainer = document.getElementById('favLibContainer');
+            let genContainer = document.getElementById('generalLibContainer');
+            favContainer.innerHTML = ''; genContainer.innerHTML = '';
+            
+            let items = Object.keys(libraryData).map(k => ({id: k, ...libraryData[k]}));
+            items.sort((a, b) => b.updatedAt - a.updatedAt); // الأحدث أولاً
+            
+            items.forEach(item => {
+                let d = new Date(item.updatedAt);
+                let dateStr = d.toLocaleDateString('ar-TN') + ' ' + d.toLocaleTimeString('ar-TN', {hour:'2-digit', minute:'2-digit'});
+                let isFav = item.isFav ? 'active' : '';
+                
+                let html = `
+                <div class="lib-card">
+                    <div class="fav-heart ${isFav}" onclick="toggleFavorite('${item.id}', ${!item.isFav})">❤️</div>
+                    <div class="lib-title">${item.name} <span style="font-size:12px; color:#666;">(${item.type})</span></div>
+                    <div class="lib-date">آخر تحيين: ${dateStr}</div>
+                    
+                    <div style="font-size:13px; color:#555; margin-top:10px; background:#f8f9fa; padding:10px; border-radius:8px;">
+                        <b>🎤 المنشط:</b> ${item.animText || '---'}<br>
+                        <b>🎧 الـ DJ:</b> ${item.djText || '---'}<br>
+                        <b>🏃‍♂️ المساعد:</b> ${item.assistText || '---'}
+                    </div>
+                    
+                    <div class="lib-actions">
+                        <button class="btn btn-outline" style="border-color:#17a2b8; color:#17a2b8; flex:1; padding:5px;" onclick="editLibItem('${item.id}')">✏️ تعديل</button>
+                        <button class="btn btn-outline" style="border-color:#dc3545; color:#dc3545; flex:1; padding:5px;" onclick="deleteLibItem('${item.id}')">🗑️ حذف</button>
+                    </div>
+                </div>`;
+                
+                if(item.isFav) favContainer.innerHTML += html;
+                else genContainer.innerHTML += html;
+            });
+            
+            if(favContainer.innerHTML === '') favContainer.innerHTML = '<p style="color:#888; font-size:13px; text-align:center;">لا توجد فقرات مفضلة حالياً.</p>';
+            if(genContainer.innerHTML === '') genContainer.innerHTML = '<p style="color:#888; font-size:13px; text-align:center;">المكتبة فارغة.</p>';
+        }
+
+        function openLibForm() {
+            document.getElementById('libItemId').value = '';
+            document.getElementById('libItemName').value = '';
+            document.getElementById('libItemType').value = 'لغز / تشنشينة';
+            document.getElementById('libItemAnim').value = '';
+            document.getElementById('libItemDJ').value = '';
+            document.getElementById('libItemAssist').value = '';
+            document.getElementById('libItemFav').checked = false;
+            document.getElementById('libFormTitle').innerText = '➕ فقرة جديدة';
+            document.getElementById('libFormModal').style.display = 'flex';
+        }
+
+        function saveLibItem() {
+            let id = document.getElementById('libItemId').value || 'lib_' + Date.now();
+            let name = document.getElementById('libItemName').value.trim();
+            if(!name) return alert("الرجاء كتابة اسم الفقرة!");
+            let isFav = document.getElementById('libItemFav').checked;
+            
+            // 📡 رادار منع التكرار في المفضلات
+            if (isFav) {
+                let duplicate = Object.keys(libraryData).find(k => libraryData[k].name === name && libraryData[k].isFav && k !== id);
+                if (duplicate) {
+                    alert(`⚠️ يا سي حمادي، اسم الفقرة (${name}) موجود ديجا في المفضلات! الرجاء تغيير الاسم أو تعديل الفقرة القديمة.`);
+                    return;
+                }
+            }
+
+            let itemData = {
+                name: name, type: document.getElementById('libItemType').value,
+                animText: document.getElementById('libItemAnim').value.trim(),
+                djText: document.getElementById('libItemDJ').value.trim(),
+                assistText: document.getElementById('libItemAssist').value.trim(),
+                isFav: isFav, updatedAt: Date.now()
+            };
+
+            db.ref('BechaEventsData/library/' + id).set(itemData).then(() => {
+                document.getElementById('libFormModal').style.display = 'none';
+            });
+        }
+
+        function toggleFavorite(id, state) {
+            if (state) {
+                let itemToMove = libraryData[id];
+                let duplicate = Object.keys(libraryData).find(k => libraryData[k].name === itemToMove.name && libraryData[k].isFav && k !== id);
+                if (duplicate) {
+                    alert(`⚠️ لا يمكن تحويلها للمفضلة! اسم الفقرة (${itemToMove.name}) موجود ديجا في المفضلات.`);
+                    return;
+                }
+            }
+            db.ref('BechaEventsData/library/' + id + '/isFav').set(state);
+        }
+
+        function editLibItem(id) {
+            let item = libraryData[id];
+            if(!item) return;
+            document.getElementById('libItemId').value = id;
+            document.getElementById('libItemName').value = item.name;
+            document.getElementById('libItemType').value = item.type;
+            document.getElementById('libItemAnim').value = item.animText || '';
+            document.getElementById('libItemDJ').value = item.djText || '';
+            document.getElementById('libItemAssist').value = item.assistText || '';
+            document.getElementById('libItemFav').checked = item.isFav;
+            document.getElementById('libFormTitle').innerText = '✏️ تعديل الفقرة';
+            document.getElementById('libFormModal').style.display = 'flex';
+        }
+
+        function deleteLibItem(id) {
+            if(confirm("⚠️ متأكد تحب تفسخ هالفقرة نهائياً من المكتبة؟")) {
+                db.ref('BechaEventsData/library/' + id).remove();
+            }
+        }
+
+        // ==========================================
+        // 📡 ربط المكتبة ببرنامج الحفل (الكواليس)
+        // ==========================================
+        function openLibSelectModal() {
+            let list = document.getElementById('libSelectList');
+            list.innerHTML = '';
+            
+            db.ref('BechaEventsData/library').once('value', snap => {
+                let libs = snap.val() || {};
+                let items = Object.keys(libs).map(k => ({id: k, ...libs[k]}));
+                items.sort((a, b) => b.updatedAt - a.updatedAt); 
+                
+                if(items.length === 0) {
+                    list.innerHTML = '<p style="text-align:center; color:#888;">المكتبة فارغة.</p>';
+                } else {
+                    items.forEach(item => {
+                        let star = item.isFav ? '⭐ ' : '';
+                        list.innerHTML += `
+                        <div style="padding:15px; border:2px solid #eee; border-radius:10px; margin-bottom:10px; cursor:pointer; text-align:right;" onclick="selectLibItemForProg('${item.id}', '${item.name.replace(/'/g, "\\'")}')">
+                            <h4 style="margin:0; color:var(--primary-red);">${star}${item.name}</h4>
+                            <span style="font-size:12px; color:#666;">${item.type}</span>
+                        </div>`;
+                    });
+                }
+                document.getElementById('libSelectModal').style.display = 'flex';
+            });
+        }
+
+        function selectLibItemForProg(libId, libName) {
+            // 📡 رادار التكرار في البرنامج المباشر
+            let currentRows = document.querySelectorAll('.prog-row');
+            let isDuplicated = false;
+            let dupIndex = -1;
+            
+            currentRows.forEach((row, i) => {
+                let detailsInput = row.querySelector('.prog-details').value;
+                if(detailsInput.includes(libName)) {
+                    isDuplicated = true;
+                    dupIndex = i + 1;
+                }
+            });
+
+            if(isDuplicated) {
+                if(!confirm(`⚠️ انتبه! فقرة "${libName}" موجودة ديجا في البرنامج (الفقرة رقم ${dupIndex}).\nمتأكد تحب تعاودها مرة أخرى؟`)) {
+                    return; // تراجع
+                }
+            }
+
+            // تنزيل الفقرة أوتوماتيكياً بالشيفرة السرية (LIB) باش تظهر الطبقات
+            addProgramItem('تنشيط وألغاز', `LIB::${libId}::${libName}`, false, '');
+            document.getElementById('libSelectModal').style.display = 'none';
         }
     </script>
 </body>
