@@ -780,7 +780,22 @@
         }
 
         function setupWatermark() { let wContainer = document.getElementById('watermarkContainer'); wContainer.innerHTML = ''; for(let i=0; i<40; i++) { let span = document.createElement('span'); span.className = 'watermark-text'; span.innerText = currentUser.pseudo; wContainer.appendChild(span); } wContainer.style.display = 'flex'; }
-        function applyStagePermissions() { let tl = document.getElementById('liveProgramTimeline'); tl.style.pointerEvents = currentUser.perms.timeline ? 'auto' : 'none'; document.getElementById('endEventBtn').style.display = currentUser.perms.end_event ? 'block' : 'none'; document.querySelectorAll('.online-text').forEach(el => el.style.display = currentUser.perms.radar ? 'block' : 'none'); }
+        function applyStagePermissions() { 
+            let tl = document.getElementById('liveProgramTimeline'); 
+            tl.style.pointerEvents = currentUser.perms.timeline ? 'auto' : 'none'; 
+            document.getElementById('endEventBtn').style.display = currentUser.perms.end_event ? 'block' : 'none'; 
+            document.querySelectorAll('.online-text').forEach(el => el.style.display = currentUser.perms.radar ? 'block' : 'none'); 
+
+            // 🔴 التعديل الجديد: إخفاء الكلمة الترحيبية
+            let teleWrapper = document.getElementById('teleprompterWrapper');
+            if (teleWrapper) {
+                if (currentUser.role === 'assistant_anim' || currentUser.role === 'assistant' || currentUser.role === 'dj') {
+                    teleWrapper.style.display = 'none'; // تتخبى
+                } else {
+                    teleWrapper.style.display = 'block'; // تظهر للمنشط والإدارة
+                }
+            }
+        }
         function applyBackstagePermissions() { let canEdit = currentUser.perms.bs_edit; document.getElementById('instManager').disabled = !canEdit; document.getElementById('instFounder').disabled = !canEdit; document.querySelectorAll('.bs-edit-btn').forEach(btn => btn.style.display = canEdit ? 'block' : 'none'); document.getElementById('customTeleprompterInput').disabled = !canEdit; }
         
         document.addEventListener("visibilitychange", () => { if(document.getElementById('stageSection').style.display === 'none' && document.getElementById('backstageSection').style.display === 'none') return; if(isEventEndedLocally || currentUser.role === 'admin' || currentUser.role === 'client') return; if (document.hidden) { localInfractionsThisSession++; db.ref('BechaEventsData/users_infractions/' + currentUser.pseudo).transaction(current => (current || 0) + 1); } else if (!document.hidden && localInfractionsThisSession > 0) { db.ref('BechaEventsData/users_infractions/' + currentUser.pseudo).once('value').then(snap => { document.getElementById('infractionCount').innerText = snap.val() || 0; document.getElementById('infractionModal').style.display = 'flex'; }); } });
@@ -1062,24 +1077,31 @@ window.addEventListener('touchend', (e) => { if(isTesting) stopTestRecording(e);
                 let started = snap.val();
                 let isMaestro = (currentUser.role === 'admin_assistant' || currentUser.role === 'admin');
                 
-                // 🔴 السطر السحري اللي يظهر الفلسة للمدير 🔴
+                // 🔴 التعديل الجديد: زر التحكم (Play / Pause)
                 let startBtn = document.getElementById('btnStartEvent');
                 if (startBtn) {
-                    if (isMaestro && !started) {
-                        startBtn.style.display = 'block'; // إظهار الزر قبل بداية العرض
+                    if (isMaestro) {
+                        startBtn.style.display = 'block';
+                        if (started) {
+                            startBtn.innerHTML = '⏸️ إيقاف مؤقت (إرجاع الفريق للانتظار)';
+                            startBtn.className = 'btn btn-red';
+                            startBtn.style.animation = 'none';
+                        } else {
+                            startBtn.innerHTML = '▶️ فتح النظام للجميع';
+                            startBtn.className = 'btn btn-green';
+                            startBtn.style.animation = 'pulse 2s infinite';
+                        }
                     } else {
-                        startBtn.style.display = 'none'; // إخفاؤه إذا انطلق العرض
+                        startBtn.style.display = 'none';
                     }
                 }
 
                 if(!started && !isMaestro) {
-                    // حجز الموظف في صالة الانتظار
                     document.getElementById('waitingInstName').innerText = currentEventData.name;
                     document.getElementById('waitingEventTime').innerText = currentEventData.time || '--:--';
                     document.getElementById('waitingRoomScreen').style.display = 'flex';
                     document.getElementById('bottomControlBar').style.display = 'none';
                 } else {
-                    // رفع الستار وإخفاء صالة الانتظار
                     document.getElementById('waitingRoomScreen').style.display = 'none';
                     if(document.getElementById('stageSection').style.display !== 'none' || document.getElementById('backstageSection').style.display !== 'none'){
                         document.getElementById('bottomControlBar').style.display = 'flex';
@@ -1088,20 +1110,22 @@ window.addEventListener('touchend', (e) => { if(isTesting) stopTestRecording(e);
             });
         }
         function startEventNow() {
-            if(!confirm("⚠️ هل أنت متأكد من إعطاء شارة الانطلاق للفريق؟ سيتم فتح النظام لديهم.")) return;
             let path = isArchivedEvent ? 'BechaEventsData/archived_events/'+currentEventIndex : 'BechaEventsData/events/'+currentEventIndex;
-            db.ref(path + '/eventStarted').set(true);
+            db.ref(path + '/eventStarted').once('value').then(snap => {
+                let isStarted = snap.val();
+                if(isStarted) {
+                    // إذا العرض بادي، نسألوه كان يحب يوقفو
+                    if(confirm("⚠️ هل أنت متأكد من إيقاف العرض مؤقتاً؟ سيتم إرجاع الموظفين لشاشة الانتظار.")) {
+                        db.ref(path + '/eventStarted').set(false);
+                    }
+                } else {
+                    // إذا العرض حابس، نسألوه كان يحب يحلو
+                    if(confirm("⚠️ هل أنت متأكد من فتح النظام للفريق؟")) {
+                        db.ref(path + '/eventStarted').set(true);
+                    }
+                }
+            });
         }
-
-        // 🔴 دالة الدخول الذكي (Auto-Login) عبر الرابط من Becha Pro
-        window.addEventListener('DOMContentLoaded', (event) => {
-            const urlParams = new URLSearchParams(window.location.search);
-            const autoPin = urlParams.get('pin');
-            if(autoPin) {
-                document.getElementById('loginPin').value = autoPin;
-                setTimeout(() => { loginWithPin(); }, 500); 
-            }
-        });
     </script>
 </body>
 </html>
