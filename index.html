@@ -653,14 +653,23 @@
         }
 
         function handleClientFlow() { showScreen('dashboardScreen'); document.getElementById('bottomControlBar').style.display = 'none'; document.getElementById('teleprompterWrapper').style.display = 'none'; document.getElementById('btnBackBackstage').style.display = 'none'; document.getElementById('btnBackStage').style.display = 'none'; document.getElementById('bsOnlineText').style.display = 'none'; document.getElementById('stOnlineText').style.display = 'none'; let path = isArchivedEvent ? 'BechaEventsData/archived_events/'+currentEventIndex : 'BechaEventsData/events/'+currentEventIndex; db.ref(path + '/eventEnded').on('value', snap => { if(snap.val() === true) { if(clientPhaseInterval) clearInterval(clientPhaseInterval); showScreen('clientThankYouScreen'); } else { evaluateClientPhase(); if(!clientPhaseInterval) { clientPhaseInterval = setInterval(evaluateClientPhase, 30000); } } }); }
+        // 1. القلم السحري لتعديل الاسم (مع الحفظ في قاعدة البيانات)
         function editLocalInstName() {
-            let newName = prompt("تعديل اسم المؤسسة (للعرض الحالي فقط):", currentEventData.name);
-            if (newName && newName.trim() !== "") {
-                currentEventData.name = newName;
-                document.getElementById('dashInstName').innerText = `🏫 ${newName}`;
-                document.getElementById('compactInstName_bs').innerText = `🏫 ${newName}`;
-                document.getElementById('compactInstName_st').innerText = `🏫 ${newName}`;
-                if(document.getElementById('a4InstName')) document.getElementById('a4InstName').innerText = `برنامج حفل: ${newName}`;
+            let newName = prompt("تعديل اسم المؤسسة:", currentEventData.name);
+            if (newName && newName.trim() !== "" && newName.trim() !== currentEventData.name) {
+                let cleanName = newName.trim();
+                let path = isArchivedEvent ? 'BechaEventsData/archived_events/'+currentEventIndex : 'BechaEventsData/events/'+currentEventIndex;
+                
+                // تسجيل الاسم الجديد في Firebase
+                db.ref(path + '/name').set(cleanName).then(() => {
+                    currentEventData.name = cleanName;
+                    if(document.getElementById('dashInstName')) document.getElementById('dashInstName').innerText = cleanName;
+                    if(document.getElementById('compactInstName_bs')) document.getElementById('compactInstName_bs').innerText = `🏫 ${cleanName}`;
+                    if(document.getElementById('compactInstName_st')) document.getElementById('compactInstName_st').innerText = `🏫 ${cleanName}`;
+                    if(document.getElementById('a4InstName')) document.getElementById('a4InstName').innerText = `برنامج حفل: ${cleanName}`;
+                }).catch(err => {
+                    alert("❌ صار خطأ في الحفظ، عاود جرب.");
+                });
             }
         }
         function evaluateClientPhase() { if(currentEventData.eventEnded) return; let evDateStr = currentEventData.date; let evTimeStr = currentEventData.time || "00:00"; let evDateTime = new Date(`${evDateStr}T${evTimeStr}:00`); let diffMins = (evDateTime - new Date()) / 60000; document.getElementById('dashInstName').innerText = `🏫 ${currentEventData.name}`; document.getElementById('compactInstName_bs').innerText = `🏫 ${currentEventData.name}`; document.getElementById('compactInstName_st').innerText = `🏫 ${currentEventData.name}`; document.getElementById('dashboardMenuWrapper').style.display = 'none'; let newPhase = diffMins > 60 ? 'editable' : 'locked'; if (currentActivePhase !== newPhase) { currentActivePhase = newPhase; if (newPhase === 'editable') { currentUser.perms = { bs_view: true, bs_edit: true, stage: false, timeline: false, radar: false, end_event: false }; document.getElementById('backstageSection').style.display = 'block'; document.getElementById('stageSection').style.display = 'none'; document.getElementById('clientBackstageNotice').style.display = 'block'; loadBackstageData(); if(!backstageProgRef) startBackstageListener(); applyBackstagePermissions(); } else { currentUser.perms = { bs_view: false, bs_edit: false, stage: true, timeline: false, radar: false, end_event: false }; document.getElementById('backstageSection').style.display = 'none'; document.getElementById('stageSection').style.display = 'block'; document.getElementById('clientStageNotice').style.display = 'block'; if(!liveProgRef) openStageLive(); applyStagePermissions(); } } }
