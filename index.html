@@ -422,7 +422,7 @@
         <div id="stageSection" style="display:none; margin-top:0;">
             <div class="sticky-container">
                 <div style="display: flex; gap: 8px;">
-                    <button class="btn btn-outline" style="border-color:#6f42c1; color:#6f42c1; padding: 5px 12px; font-size: 16px; border-radius: 12px;" onclick="enterPocketMode()">🌙</button>
+                   
                     <button id="btnBackStage" class="btn btn-dark" style="padding: 5px 15px; font-size: 14px; border-radius: 12px;" onclick="closeSection()">رجوع ⬅️</button>
                 </div>
                 <div style="text-align: left;">
@@ -770,13 +770,13 @@
             document.getElementById('antiScreenModal').style.display = 'none';
             if(currentUser.role !== 'admin') { setupWatermark(); document.getElementById('antiScreenshotBanner').style.display = 'block'; startPresenceTracker(); }
             
-            initRadioReceiver(); 
+            // initRadioReceiver(); // 🔴 تم تعطيل الراديو مؤقتاً
             
             document.getElementById(pendingSectionId).style.display = 'block'; 
             if(pendingSectionId === 'backstageSection') { loadBackstageData(); startBackstageListener(); applyBackstagePermissions(); }
             if(pendingSectionId === 'stageSection') { openStageLive(); applyStagePermissions(); monitorEventStart(); }
             startPresenceTracker(); 
-            document.getElementById('bottomControlBar').style.display = 'flex';
+            // document.getElementById('bottomControlBar').style.display = 'flex'; // 🔴 تم تعطيل ظهور شريط الراديو
         }
 
         function setupWatermark() { let wContainer = document.getElementById('watermarkContainer'); wContainer.innerHTML = ''; for(let i=0; i<40; i++) { let span = document.createElement('span'); span.className = 'watermark-text'; span.innerText = currentUser.pseudo; wContainer.appendChild(span); } wContainer.style.display = 'flex'; }
@@ -1103,9 +1103,10 @@ window.addEventListener('touchend', (e) => { if(isTesting) stopTestRecording(e);
                     document.getElementById('bottomControlBar').style.display = 'none';
                 } else {
                     document.getElementById('waitingRoomScreen').style.display = 'none';
-                    if(document.getElementById('stageSection').style.display !== 'none' || document.getElementById('backstageSection').style.display !== 'none'){
-                        document.getElementById('bottomControlBar').style.display = 'flex';
-                    }
+                    // تم تعطيل ظهور شريط الراديو من هنا أيضاً
+                    // if(document.getElementById('stageSection').style.display !== 'none' || document.getElementById('backstageSection').style.display !== 'none'){
+                    //    document.getElementById('bottomControlBar').style.display = 'flex';
+                    // }
                 }
             });
         }
