@@ -438,7 +438,10 @@
             <div class="sticky-container">
                 <div style="display: flex; gap: 8px;"><button id="btnBackBackstage" class="btn btn-dark" style="padding: 5px 15px; font-size: 14px; border-radius: 12px;" onclick="closeSection()">رجوع ⬅️</button></div>
                 <div style="text-align: left;">
-                    <div id="compactInstName_bs" style="color: #17a2b8; font-size: 16px; font-weight: 900;">--</div>
+                    <div style="display:flex; align-items:center; gap:5px;">
+                        <div id="compactInstName_bs" style="color: #17a2b8; font-size: 16px; font-weight: 900;">--</div>
+                        <span style="font-size:14px; cursor:pointer;" onclick="editLocalInstName()" title="تعديل الإسم">✏️</span>
+                    </div>
                     <div class="online-text" id="bsOnlineText">🟢 متصل: <span id="onlineUsersList_bs">--</span></div>
                 </div>
             </div>
@@ -492,7 +495,10 @@
         <div id="stageSection" style="display:none; margin-top:0;">
             <div class="sticky-container">
                 <div style="display: flex; gap: 8px;"><button id="btnBackStage" class="btn btn-dark" style="padding: 5px 15px; font-size: 14px; border-radius: 12px;" onclick="closeSection()">رجوع ⬅️</button></div>
-                <div style="text-align: left;"><div id="compactInstName_st" style="color: var(--primary-red); font-size: 16px; font-weight: 900;">--</div><div class="online-text" id="stOnlineText"><span class="online-dot">🟢</span> متصل: <span id="onlineUsersList_st">--</span></div></div>
+                <div style="text-align: left;"><div style="display:flex; align-items:center; gap:5px;">
+                        <div id="compactInstName_st" style="color: var(--primary-red); font-size: 16px; font-weight: 900;">--</div>
+                        <span style="font-size:14px; cursor:pointer;" onclick="editLocalInstName()" title="تعديل الإسم">✏️</span>
+                    </div><div class="online-text" id="stOnlineText"><span class="online-dot">🟢</span> متصل: <span id="onlineUsersList_st">--</span></div></div>
             </div>
             <button id="btnStartEvent" class="btn btn-green" style="width:100%; margin-bottom: 20px; font-size: 18px; padding: 15px; display: none; box-shadow: 0 4px 15px rgba(25, 135, 84, 0.4); animation: pulse 2s infinite;" onclick="startEventNow()">🎬 إعطاء شارة الانطلاق (فتح النظام)</button>
             <div id="clientStageNotice" style="display:none; background:#f0fdf4; color:#198754; padding:10px; border-radius:8px; margin-bottom:15px; font-weight:bold; font-size:14px; text-align:right;">🎬 الحفل بدأ بالفعل! يمكنك المتابعة من هنا.</div>
