@@ -459,10 +459,8 @@
                 <div class="accordion-item">
                     <div class="accordion-header" onclick="toggleAccordion('accProg')"><span>📋 برنامج الحفل (<span id="totalProgCount">0</span>)</span><span id="icon_accProg">➖</span></div>
                     <div id="accProg" class="accordion-content open">
-                       <div id="programList"></div>
-                        <div style="display:flex; gap:10px; margin-top:10px;">
-                            <button class="btn btn-outline bs-edit-btn" style="flex:1; border-color:var(--primary-red); color:var(--primary-red); border-style: dashed;" onclick="addProgramItem()">+ فقرة عادية</button>
-                            <button class="btn btn-outline bs-edit-btn" id="libSelectBtn" style="flex:1; border-color:#ff9800; color:#ff9800; border-style: dashed; display:none;" onclick="openLibSelectModal()">✨ إختر من المكتبة</button>
+                      <div id="programList"></div>
+                        <button class="btn btn-outline bs-edit-btn" style="width:100%; margin-top:10px; border-color:var(--primary-red); color:var(--primary-red); border-style: dashed;" onclick="addProgramItem()">+ فقرة جديدة</button>
                         </div>
                     </div>
                 </div>
@@ -653,10 +651,54 @@
         function addStaff(r='', n='') { let d = !currentUser.perms.bs_edit ? 'disabled' : ''; let del = currentUser.perms.bs_edit ? `<button class="btn btn-red" onclick="this.parentElement.remove()">🗑</button>` : ''; document.getElementById('staffList').insertAdjacentHTML('beforeend', `<div style="display:flex; gap:10px; margin-bottom:10px;"><input type="text" class="staff-role" placeholder="الصفة" value="${r}" style="flex:1;" ${d}><input type="text" class="staff-name" placeholder="الاسم" value="${n}" style="flex:1;" ${d}>${del}</div>`); }
         
         function addProgramItem(t='', d='', comp=false, customType='') {
-            let container = document.getElementById('programList'); let idx = container.children.length; let opts = ['تلاوة قرآن', 'نشيد / كورال', 'لوحة راقصة / استعراض', 'مسرحية', 'تنشيط وألغاز', 'تكريم', 'أخرى']; let optsHtml = opts.map(o => `<option value="${o}" ${t===o?'selected':''}>${o}</option>`).join(''); let lockedClass = comp ? 'locked' : ''; let showOther = (t === 'أخرى') ? 'block' : 'none'; let dis = !currentUser.perms.bs_edit ? 'disabled' : ''; let del = currentUser.perms.bs_edit ? `<button class="btn btn-dark" onclick="moveItem(this, -1)">⬆️</button><button class="btn btn-dark" onclick="moveItem(this, 1)">⬇️</button><button class="btn btn-red" onclick="this.parentElement.parentElement.remove(); updateNumbers();">🗑</button>` : '';
-            let isSecret = (t === 'تنشيط وألغاز'); let clientSecretStyle = (currentUser.role === 'client' && isSecret) ? 'display:none;' : ''; let clientSecretNotice = (currentUser.role === 'client' && isSecret) ? '<div style="color:#ff9800; font-size:12px; margin-top:8px; font-weight:bold;">🔒 المحتوى محدد من طرف فريق باشا إيفنتس</div>' : '';
-            let html = `<div class="prog-row ${lockedClass}" data-index="${idx}"><div class="row-num">${idx+1}</div><div style="display:flex; gap:8px;">${del}<select class="prog-type" onchange="this.parentElement.nextElementSibling.style.display=(this.value==='أخرى')?'block':'none'" style="flex:1;" ${dis}>${optsHtml}</select></div><input type="text" class="other-type" placeholder="نوع الفقرة..." value="${customType}" style="display:${showOther}; width:100%; margin-top:8px;" ${dis}><input type="text" class="prog-details" placeholder="تفاصيل..." value="${d}" style="width:100%; margin-top:8px; ${clientSecretStyle}" ${dis}>${clientSecretNotice}</div>`;
+            // تحديث الاسم القديم أوتوماتيكياً للحفلات المسجلة
+            if (t === 'تنشيط وألغاز') t = 'فقرة تنشيطية';
+
+            let container = document.getElementById('programList'); let idx = container.children.length; 
+            
+            // إضافة الخيار الوهمي الأول
+            let optsHtml = `<option value="" disabled ${t===''?'selected':''}>- إختر نوع الفقرة -</option>`;
+            let opts = ['تلاوة قرآن', 'نشيد / كورال', 'لوحة راقصة / استعراض', 'مسرحية', 'فقرة تنشيطية', 'تكريم', 'أخرى']; 
+            optsHtml += opts.map(o => `<option value="${o}" ${t===o?'selected':''}>${o}</option>`).join(''); 
+            
+            let lockedClass = comp ? 'locked' : ''; let showOther = (t === 'أخرى') ? 'block' : 'none'; 
+            let dis = !currentUser.perms.bs_edit ? 'disabled' : ''; 
+            let del = currentUser.perms.bs_edit ? `<button class="btn btn-dark" onclick="moveItem(this, -1)">⬆️</button><button class="btn btn-dark" onclick="moveItem(this, 1)">⬇️</button><button class="btn btn-red" onclick="this.parentElement.parentElement.remove(); updateNumbers();">🗑</button>` : '';
+
+            // الحماية وإخفاء التفاصيل على العميل
+            let isSecret = (t === 'فقرة تنشيطية'); 
+            let clientSecretStyle = (currentUser.role === 'client' && isSecret) ? 'display:none;' : ''; 
+            let clientSecretNotice = (currentUser.role === 'client' && isSecret) ? '<div style="color:#ff9800; font-size:12px; margin-top:8px; font-weight:bold;">🔒 المحتوى محدد من طرف فريق باشا إيفنتس</div>' : '';
+
+            // زر المكتبة الذكي (يظهر كان للبشوات وفي الفقرة التنشيطية)
+            let showLibBtn = (isSecret && currentUser.role !== 'client') ? 'block' : 'none';
+            let inputId = `details_input_${Date.now()}_${idx}`;
+
+            let html = `
+            <div class="prog-row ${lockedClass}" data-index="${idx}">
+                <div class="row-num">${idx+1}</div>
+                <div style="display:flex; gap:8px;">
+                    ${del}
+                    <select class="prog-type" onchange="toggleRowFields(this)" style="flex:1;" ${dis}>${optsHtml}</select>
+                </div>
+                <input type="text" class="other-type" placeholder="نوع الفقرة..." value="${customType}" style="display:${showOther}; width:100%; margin-top:8px;" ${dis}>
+                
+                <div style="display:flex; gap:8px; margin-top:8px; align-items:center;">
+                    <input type="text" id="${inputId}" class="prog-details" placeholder="تفاصيل..." value="${d}" style="flex:1; ${clientSecretStyle}" ${dis}>
+                    <button class="btn btn-outline inline-lib-btn" style="border-color:#ff9800; color:#ff9800; display:${showLibBtn}; padding: 10px;" onclick="openLibSelectModal('${inputId}')" ${dis}>✨</button>
+                </div>
+                ${clientSecretNotice}
+            </div>`;
+            
             container.insertAdjacentHTML('beforeend', html); updateNumbers();
+        }
+
+        // الحسّاس اللي يفيق بالتبديل في القائمة
+        function toggleRowFields(sel) {
+            let row = sel.closest('.prog-row'); let val = sel.value;
+            let otherInput = row.querySelector('.other-type'); let libBtn = row.querySelector('.inline-lib-btn');
+            otherInput.style.display = (val === 'أخرى') ? 'block' : 'none';
+            if (libBtn) { libBtn.style.display = (val === 'فقرة تنشيطية' && currentUser.role !== 'client') ? 'block' : 'none'; }
         }
 
         function updateNumbers() { let rows = document.querySelectorAll('.prog-row'); document.getElementById('totalProgCount').innerText = rows.length; rows.forEach((r, i) => r.querySelector('.row-num').innerText = i+1); }
@@ -758,13 +800,34 @@
 
         function deleteLibItem(id) { if(confirm("⚠️ متأكد تحب تفسخ هالفقرة نهائياً من المكتبة؟")) { db.ref('BechaEventsData/library/' + id).remove(); } }
 
-        function openLibSelectModal() { let list = document.getElementById('libSelectList'); list.innerHTML = ''; db.ref('BechaEventsData/library').once('value', snap => { let libs = snap.val() || {}; let items = Object.keys(libs).map(k => ({id: k, ...libs[k]})); items.sort((a, b) => b.updatedAt - a.updatedAt); if(items.length === 0) { list.innerHTML = '<p style="text-align:center; color:#888;">المكتبة فارغة.</p>'; } else { items.forEach(item => { let star = item.isFav ? '⭐ ' : ''; list.innerHTML += `<div style="padding:15px; border:2px solid #eee; border-radius:10px; margin-bottom:10px; cursor:pointer; text-align:right;" onclick="selectLibItemForProg('${item.id}', '${item.name.replace(/'/g, "\\'")}')"><h4 style="margin:0; color:var(--primary-red);">${star}${item.name}</h4><span style="font-size:12px; color:#666;">${item.type}</span></div>`; }); } document.getElementById('libSelectModal').style.display = 'flex'; }); }
+        let targetLibInputId = ''; // الذاكرة اللي تسجل بلاصة السطر
+
+        function openLibSelectModal(inputId) { 
+            targetLibInputId = inputId;
+            let list = document.getElementById('libSelectList'); list.innerHTML = ''; 
+            db.ref('BechaEventsData/library').once('value', snap => { 
+                let libs = snap.val() || {}; let items = Object.keys(libs).map(k => ({id: k, ...libs[k]})); items.sort((a, b) => b.updatedAt - a.updatedAt); 
+                if(items.length === 0) { list.innerHTML = '<p style="text-align:center; color:#888;">المكتبة فارغة.</p>'; } 
+                else { 
+                    items.forEach(item => { 
+                        let star = item.isFav ? '⭐ ' : ''; 
+                        list.innerHTML += `<div style="padding:15px; border:2px solid #eee; border-radius:10px; margin-bottom:10px; cursor:pointer; text-align:right;" onclick="selectLibItemForProg('${item.id}', '${item.name.replace(/'/g, "\\'")}')"><h4 style="margin:0; color:var(--primary-red);">${star}${item.name}</h4><span style="font-size:12px; color:#666;">${item.type}</span></div>`; 
+                    }); 
+                } 
+                document.getElementById('libSelectModal').style.display = 'flex'; 
+            }); 
+        }
 
         function selectLibItemForProg(libId, libName) {
             let currentRows = document.querySelectorAll('.prog-row'); let isDuplicated = false; let dupIndex = -1;
             currentRows.forEach((row, i) => { let detailsInput = row.querySelector('.prog-details').value; if(detailsInput.includes(libName)) { isDuplicated = true; dupIndex = i + 1; } });
             if(isDuplicated) { if(!confirm(`⚠️ انتبه! فقرة "${libName}" موجودة ديجا في البرنامج (الفقرة رقم ${dupIndex}).\nمتأكد تحب تعاودها مرة أخرى؟`)) { return; } }
-            addProgramItem('تنشيط وألغاز', `LIB::${libId}::${libName}`, false, '');
+            
+            // صبّان الداتا في السطر الصحيح
+            if(targetLibInputId) {
+                let inputElem = document.getElementById(targetLibInputId);
+                if(inputElem) inputElem.value = `LIB::${libId}::${libName}`;
+            }
             document.getElementById('libSelectModal').style.display = 'none';
         }
     </script>
