@@ -182,8 +182,25 @@
     <audio id="silentAudio" loop playsinline><source src="data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAAABkYXRhAgAAAAEA" type="audio/wav"></audio>
     <audio id="mainRadioPlayer" playsinline></audio>
     <audio id="testAudioPlayer" playsinline></audio> 
-
     <div id="watermarkContainer"></div>
+    <!-- 🌟 الشاشة العملاقة للمنشط (Teleprompter) -->
+    <div id="fullscreenTeleprompter">
+        <div class="fs-header">
+            <h2 id="fsTitle" class="fs-title">--</h2>
+            <div style="display:flex; align-items:center;">
+                <!-- الكرونو / الساعة اللايف -->
+                <span id="fsTimer" style="color:#17a2b8; font-size:22px; font-weight:bold; margin-left:20px; font-family: monospace;">00:00</span>
+                <button class="fs-zoom-btn" onclick="zoomFsText(1)" title="تكبير الخط">🔍+</button>
+                <button class="fs-zoom-btn" onclick="zoomFsText(-1)" title="تصغير الخط">🔍-</button>
+                <button class="btn btn-red" style="padding: 8px 15px; font-size:16px;" onclick="closeFullscreen()">❌ خروج</button>
+            </div>
+        </div>
+        <div id="fsContent" class="fs-content"></div>
+        <div class="fs-footer">
+            <button class="fs-btn prev" onclick="navigateFs(-1)">⬅️ السابق</button>
+            <button class="fs-btn next" onclick="navigateFs(1)">التالي ➡️</button>
+        </div>
+    </div>
     <div id="waitingRoomScreen" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #111; z-index: 12005; flex-direction: column; align-items: center; justify-content: center; padding: 30px; box-sizing: border-box; text-align: center;">
         <h1 style="color: white; font-size: 40px; margin: 0; letter-spacing: 2px;">BECHA</h1>
         <h2 style="color: var(--primary-red); margin-top: -10px; margin-bottom: 30px;">EVENTS</h2>
