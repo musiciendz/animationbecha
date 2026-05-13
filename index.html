@@ -1052,7 +1052,7 @@
                 else { 
                     items.forEach(item => { 
                         let star = item.isFav ? '⭐ ' : ''; 
-                        list.innerHTML += `<div style="padding:15px; border:2px solid #eee; border-radius:10px; margin-bottom:10px; cursor:pointer; text-align:right;" onclick="selectLibItemForProg('${item.id}', '${item.name.replace(/'/g, "\\'")}')"><h4 style="margin:0; color:var(--primary-red);">${star}${item.name}</h4><span style="font-size:12px; color:#666;">${item.type}</span></div>`; 
+                        list.innerHTML += `<div style="padding:15px; border:2px solid #eee; border-radius:10px; margin-bottom:10px; cursor:pointer; text-align:right;" onclick="selectLibItemForProg('${item.id}', '${item.name.replace(/'/g, "\\'").replace(/"/g, '&quot;')}')"><h4 style="margin:0; color:var(--primary-red);">${star}${item.name}</h4><span style="font-size:12px; color:#666;">${item.type}</span></div>`; 
                     }); 
                 } 
                 document.getElementById('libSelectModal').style.display = 'flex'; 
