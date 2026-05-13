@@ -175,6 +175,12 @@
         .rich-content[contenteditable="false"] { background: #e9ecef; cursor: not-allowed; }
         .color-picker-wrapper { position: relative; display: inline-block; }
         .color-picker-input { opacity: 0; position: absolute; top: 0; left: 0; width: 100%; height: 100%; cursor: pointer; }
+        /* 🛑 فرض السيطرة على النوافذ المنبثقة الطويلة */
+        .modal > div {
+            margin: 40px auto !important;
+            max-height: 85vh !important;
+            overflow-y: auto !important;
+        }
     </style>
 </head>
 <body>
