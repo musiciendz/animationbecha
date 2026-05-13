@@ -150,6 +150,31 @@
         .lib-title { font-size: 18px; font-weight: 900; color: var(--primary-red); margin-bottom: 5px; padding-left: 30px; }
         .lib-date { font-size: 11px; color: #888; font-weight: bold; }
         .lib-actions { display: flex; gap: 10px; margin-top: 15px; border-top: 1px solid #eee; padding-top: 10px; }
+        /* ------------------------------------- */
+        /* 🌟 ستايل الشاشة العملاقة (Plein Écran) */
+        /* ------------------------------------- */
+        #fullscreenTeleprompter { display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: #111; z-index: 99999; flex-direction: column; overflow: hidden; animation: fadeIn 0.3s ease; }
+        .fs-header { display: flex; justify-content: space-between; align-items: center; padding: 15px 25px; background: #222; border-bottom: 3px solid var(--primary-red); }
+        .fs-title { color: #ffc107; font-size: 24px; font-weight: 900; margin: 0; }
+        .fs-content { flex: 1; padding: 30px; overflow-y: auto; color: white; font-size: 32px; line-height: 1.8; font-weight: 800; text-align: right; }
+        .fs-footer { display: flex; justify-content: space-between; padding: 15px; background: #222; border-top: 2px solid #444; }
+        .fs-btn { background: #333; color: white; border: 2px solid #555; border-radius: 12px; padding: 15px 30px; font-size: 22px; font-weight: bold; cursor: pointer; transition: 0.2s; flex: 1; margin: 0 5px; }
+        .fs-btn:active { transform: scale(0.95); background: #555; }
+        .fs-btn.next { background: #198754; border-color: #198754; }
+        .fs-btn.prev { background: #17a2b8; border-color: #17a2b8; }
+        .fs-zoom-btn { background: transparent; border: none; color: white; font-size: 24px; cursor: pointer; margin-right: 15px; }
+
+        /* ------------------------------------- */
+        /* 📝 ستايل المحرر الذكي (Mini-Word) */
+        /* ------------------------------------- */
+        .rich-editor-box { border: 2px solid #ccc; border-radius: 8px; overflow: hidden; background: white; margin-top: 8px; display: flex; flex-direction: column;}
+        .rich-toolbar { display: flex; gap: 5px; padding: 5px; background: #f8f9fa; border-bottom: 1px solid #ddd; flex-wrap: wrap; }
+        .rich-btn { background: white; border: 1px solid #ccc; border-radius: 4px; padding: 5px 8px; cursor: pointer; font-weight: bold; font-family: 'Cairo'; font-size: 14px; color: #333; transition: 0.2s;}
+        .rich-btn:hover { background: #e9ecef; }
+        .rich-content { min-height: 80px; max-height: 300px; overflow-y: auto; padding: 12px; outline: none; text-align: right; font-size: 14px; line-height: 1.6; }
+        .rich-content[contenteditable="false"] { background: #e9ecef; cursor: not-allowed; }
+        .color-picker-wrapper { position: relative; display: inline-block; }
+        .color-picker-input { opacity: 0; position: absolute; top: 0; left: 0; width: 100%; height: 100%; cursor: pointer; }
     </style>
 </head>
 <body>
