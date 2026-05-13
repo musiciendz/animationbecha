@@ -1086,6 +1086,7 @@
            ========================================================= */
         
         // 1. محرك المحرر الذكي (يغلف الخانة العادية ويردها وورد)
+        // 1. محرك المحرر الذكي (يغلف الخانة العادية ويردها وورد) - نسخة مطورة بالتزامن
         function wrapWithRichEditor(el) {
             if (el.dataset.richified) return;
             el.dataset.richified = "true";
@@ -1136,6 +1137,20 @@
             observer.observe(el, { attributes: true, attributeFilter: ['disabled'] });
 
             el.addEventListener('input', () => { if(editor.innerHTML !== el.value) editor.innerHTML = el.value; });
+
+            // 🛑 السحر الجديد هوني: العسّاس اللي يفيق بالتعديل البرمجي (Sync Fix)
+            const descriptor = Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype, 'value') || Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value');
+            if (descriptor) {
+                Object.defineProperty(el, 'value', {
+                    get: function() { return descriptor.get.call(this); },
+                    set: function(val) {
+                        descriptor.set.call(this, val); // يعبي الخانة القديمة
+                        if (editor.innerHTML !== val) {
+                            editor.innerHTML = val || ''; // يجبد الكتيبة للمربع الذكي ديراكت
+                        }
+                    }
+                });
+            }
 
             wrapper.appendChild(toolbar);
             wrapper.appendChild(editor);
