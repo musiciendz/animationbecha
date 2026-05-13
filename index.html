@@ -1282,52 +1282,78 @@
             }
             document.getElementById('libSelectModal').style.display = 'none';
         };
-        /* =========================================================
-           🧠 محرك القوائم الذكية اللي تتعلم وحدها (Auto-Learning Categories)
+    /* =========================================================
+           🧠 محرك الذكاء المزدوج (Dual Smart Engine) - القوائم المنفصلة
            ========================================================= */
-        function runSmartCategoryEngine() {
-            // 1. الأنواع الأساسية اللي تبدا بيهم التطبيقة
-            let baseCategories = ['لغز / تشنشينة', 'لعبة حركية', 'مسابقة فكرية'];
-            let smartSet = new Set(baseCategories);
+        function runDualSmartEngine() {
+            // ----------------------------------------------------
+            // 🧠 المخ الأول: خاص بـ "المكتبة" (الفقرات التنشيطية)
+            // ----------------------------------------------------
+            let libBaseCategories = ['لغز / تشنشينة', 'لعبة حركية', 'مسابقة فكرية', 'الأغنية المترجمة', 'عيد الأم'];
+            let libSmartSet = new Set(libBaseCategories);
 
-            // 2. الماكينة تفركس في المكتبة وتستخرج أي نوع جديد زدتو إنت قبل
+            // يقرى الأنواع الجدد من قاعدة بيانات المكتبة
             if (typeof libraryData !== 'undefined') {
                 for (let key in libraryData) {
                     let typeVal = libraryData[key].type;
-                    if (typeVal && typeVal !== 'أخرى' && typeVal.trim() !== '') {
-                        smartSet.add(typeVal.trim());
-                    }
+                    if (typeVal && typeVal !== 'أخرى' && typeVal.trim() !== '') libSmartSet.add(typeVal.trim());
                 }
             }
 
-            // 3. تحضير كود الخيارات (Options) للقائمة الجديدة
-            let optionsHTML = '';
-            smartSet.forEach(cat => { optionsHTML += `<option value="${cat}">${cat}</option>`; });
-            optionsHTML += `<option value="أخرى" style="font-weight:bold; color:var(--primary-red);">➕ أخرى (إضافة نوع جديد)</option>`;
+            let libOptionsHTML = '';
+            libSmartSet.forEach(cat => { libOptionsHTML += `<option value="${cat}">${cat}</option>`; });
+            libOptionsHTML += `<option value="أخرى" style="font-weight:bold; color:var(--primary-red);">➕ أخرى (إضافة نوع جديد)</option>`;
 
-            // 4. تحديث القائمة في نافذة إضافة فقرة (المكتبة)
             let libSelect = document.getElementById('libType');
-            if (libSelect && libSelect.options.length !== smartSet.size + 1) {
+            if (libSelect && libSelect.options.length !== libSmartSet.size + 1) {
                 let currentVal = libSelect.value;
-                libSelect.innerHTML = optionsHTML;
-                // نرجعو الاختيار القديم باش ما تتبدلش قدامك وإنت تخدم
-                let exists = Array.from(libSelect.options).some(o => o.value === currentVal);
-                if(exists) libSelect.value = currentVal;
+                libSelect.innerHTML = libOptionsHTML;
+                if(Array.from(libSelect.options).some(o => o.value === currentVal)) libSelect.value = currentVal;
             }
 
-            // 5. تحديث القوائم الكل في بناء "برنامج الحفل" (الكواليس)
+            // ----------------------------------------------------
+            // 🧠 المخ الثاني: خاص بـ "برنامج الحفل" (الكواليس)
+            // ----------------------------------------------------
+            let progBaseCategories = ['فقرة تنشيطية', 'الافتتاح', 'اختتام', 'نشيد / كورال'];
+            let progSmartSet = new Set(progBaseCategories);
+
+            // يقرى الأنواع اللي تعلمها السيستام قبل (مخبية في ذاكرة المتصفح LocalStorage)
+            let savedProgTypes = JSON.parse(localStorage.getItem('bechaSmartProgTypes') || '[]');
+            savedProgTypes.forEach(t => progSmartSet.add(t));
+
+            let progOptionsHTML = '';
+            progSmartSet.forEach(cat => { progOptionsHTML += `<option value="${cat}">${cat}</option>`; });
+            progOptionsHTML += `<option value="أخرى" style="font-weight:bold; color:var(--primary-red);">➕ أخرى (إضافة نوع جديد)</option>`;
+
             document.querySelectorAll('.prog-type').forEach(select => {
-                if (select.options.length !== smartSet.size + 1) {
+                if (select.options.length !== progSmartSet.size + 1) {
                     let currentVal = select.value;
-                    select.innerHTML = optionsHTML;
-                    let exists = Array.from(select.options).some(o => o.value === currentVal);
-                    if(exists) select.value = currentVal;
+                    select.innerHTML = progOptionsHTML;
+                    if(Array.from(select.options).some(o => o.value === currentVal)) select.value = currentVal;
                 }
             });
         }
 
-        // تشغيل المحرك بطريقة خفية كل ثانية ونص باش يلقط أي تغيير ديراكت
-        setInterval(runSmartCategoryEngine, 1500);
+        // 🛑 دالة باش تحفظ أي كلمة جديدة تكتبها بيدك في برنامج الحفل (مثال: كلمة المديرة)
+        function learnNewProgramType(newType) {
+            if(!newType || newType.trim() === '') return;
+            let savedTypes = JSON.parse(localStorage.getItem('bechaSmartProgTypes') || '[]');
+            if(!savedTypes.includes(newType.trim())) {
+                savedTypes.push(newType.trim());
+                localStorage.setItem('bechaSmartProgTypes', JSON.stringify(savedTypes)); // يخبيها طول العمر
+            }
+        }
+
+        // عسّاس: أول ما تكتب نوع جديد في خانة "أخرى" وتبعد يدك، السيستام يحفظها ديراكت
+        document.addEventListener('change', function(e) {
+            if(e.target && e.target.classList.contains('prog-type-custom')) {
+                learnNewProgramType(e.target.value);
+            }
+        });
+
+        // تشغيل المحرك المزدوج كل ثانية ونص
+        setInterval(runDualSmartEngine, 1500);
+       
     </script>
 </body>
 </html>
