@@ -1071,6 +1071,192 @@
             }
             document.getElementById('libSelectModal').style.display = 'none';
         }
+        /* =========================================================
+           🚀 المربع السحري (Mini-Word) وشاشة المنشط العملاقة 
+           ========================================================= */
+        
+        // 1. محرك المحرر الذكي (يغلف الخانة العادية ويردها وورد)
+        function wrapWithRichEditor(el) {
+            if (el.dataset.richified) return;
+            el.dataset.richified = "true";
+            el.style.display = 'none'; 
+
+            let wrapper = document.createElement('div');
+            wrapper.className = 'rich-editor-box';
+            
+            let toolbar = document.createElement('div');
+            toolbar.className = 'rich-toolbar';
+            
+            let btns = [
+                { icon: '𝐁', cmd: 'bold', title: 'Gras' },
+                { icon: '𝐼', cmd: 'italic', title: 'Italique' },
+                { icon: 'U̲', cmd: 'underline', title: 'Souligné' },
+                { icon: '⫷', cmd: 'justifyRight', title: 'يمين' }, 
+                { icon: '≣', cmd: 'justifyCenter', title: 'وسط' },
+                { icon: '⫸', cmd: 'justifyLeft', title: 'يسار' }
+            ];
+            
+            btns.forEach(b => {
+                let btn = document.createElement('button');
+                btn.className = 'rich-btn';
+                btn.innerHTML = b.icon;
+                btn.title = b.title;
+                btn.type = 'button';
+                btn.onclick = (e) => { e.preventDefault(); document.execCommand(b.cmd, false, null); editor.focus(); updateOrig(); };
+                toolbar.appendChild(btn);
+            });
+
+            let colorWrap = document.createElement('div');
+            colorWrap.className = 'color-picker-wrapper rich-btn';
+            colorWrap.innerHTML = '🎨 <input type="color" class="color-picker-input" title="لون النص">';
+            colorWrap.querySelector('input').oninput = (e) => { document.execCommand('foreColor', false, e.target.value); editor.focus(); updateOrig(); };
+            toolbar.appendChild(colorWrap);
+
+            let editor = document.createElement('div');
+            editor.className = 'rich-content';
+            editor.contentEditable = !el.disabled;
+            editor.innerHTML = el.value || '';
+
+            const updateOrig = () => { el.value = editor.innerHTML; };
+            editor.onkeyup = updateOrig;
+            editor.onblur = updateOrig;
+            editor.onpaste = () => setTimeout(updateOrig, 10);
+
+            let observer = new MutationObserver(() => { editor.contentEditable = !el.disabled; });
+            observer.observe(el, { attributes: true, attributeFilter: ['disabled'] });
+
+            el.addEventListener('input', () => { if(editor.innerHTML !== el.value) editor.innerHTML = el.value; });
+
+            wrapper.appendChild(toolbar);
+            wrapper.appendChild(editor);
+            el.parentNode.insertBefore(wrapper, el.nextSibling);
+        }
+
+        // 2. المراقب الآلي (يعس على الخانات الجدد ويركب عليهم المحرر)
+        function initGlobalRichText() {
+            const selectors = '.prog-details, #customTeleprompterInput, #libItemAnim, #libItemDJ, #libItemAssist';
+            document.querySelectorAll(selectors).forEach(wrapWithRichEditor);
+
+            const observer = new MutationObserver(mutations => {
+                mutations.forEach(m => {
+                    m.addedNodes.forEach(node => {
+                        if (node.nodeType === 1) {
+                            if (node.matches && node.matches(selectors)) wrapWithRichEditor(node);
+                            else node.querySelectorAll(selectors).forEach(wrapWithRichEditor);
+                        }
+                    });
+                });
+            });
+            observer.observe(document.body, { childList: true, subtree: true });
+        }
+        window.addEventListener('DOMContentLoaded', initGlobalRichText);
+        setTimeout(initGlobalRichText, 1000); // ضربة تأكيد بعد التحميل
+
+        // 3. تعديل دالة خريطة الركح باش نزيدو زر الـ Plein Écran
+        window.renderStageTimeline = function(progArray) {
+            let pContainer = document.getElementById('liveProgramTimeline'); pContainer.innerHTML = '';
+            if(progArray.length === 0) { pContainer.innerHTML = '<p style="color:#777; text-align:center;">لم يتم برمجة فقرات بعد.</p>'; return; }
+            
+            progArray.forEach((item, idx) => { 
+                let displayType = item.type === 'أخرى' ? (item.customType || 'فقرة متنوعة') : item.type; 
+                let icon = displayType.includes('قرآن')?'📖':displayType.includes('رقص')?'💃':displayType.includes('مسرح')?'🎭':displayType.includes('تنشيط')?'🎪':displayType.includes('كورال')?'🎤':'✨'; 
+                let isComp = item.completed ? 'completed' : ''; let chkMark = item.completed ? '✔' : ''; 
+                let detailsText = item.details ? item.details : 'بدون تفاصيل'; 
+                let extraLayers = '';
+
+                if (detailsText.startsWith('LIB::')) {
+                    let parts = detailsText.split('::'); let libId = parts[1]; let libName = parts[2] || 'فقرة تنشيطية';
+                    detailsText = `<span style="color:#E10600;">⭐ ${libName}</span>`;
+                    if (currentUser.role !== 'client') {
+                        let libData = libraryData[libId];
+                        if (libData) {
+                            if (currentUser.role === 'animateur' || currentUser.role === 'admin' || currentUser.role === 'admin_assistant') { if(libData.animText) extraLayers += `<div style="background:#e3f2fd; color:#0275d8; padding:8px; border-radius:8px; margin-top:8px; font-size:14px; text-align:right;">🎤 <b>المنشط:</b> ${libData.animText}</div>`; }
+                            if (currentUser.role === 'dj' || currentUser.role === 'admin' || currentUser.role === 'admin_assistant') { if(libData.djText) extraLayers += `<div style="background:#f3e5f5; color:#8e24aa; padding:8px; border-radius:8px; margin-top:8px; font-size:14px; text-align:right;">🎧 <b>DJ:</b> ${libData.djText}</div>`; }
+                            if (currentUser.role === 'assistant' || currentUser.role === 'assistant_anim' || currentUser.role === 'admin' || currentUser.role === 'admin_assistant') { if(libData.assistText) extraLayers += `<div style="background:#fff3e0; color:#e65100; padding:8px; border-radius:8px; margin-top:8px; font-size:14px; text-align:right;">🏃‍♂️ <b>المساعد:</b> ${libData.assistText}</div>`; }
+                        }
+                    }
+                } else {
+                    // إذا كان نص حر يقراه مباشرة بألوانو
+                    detailsText = `<div style="font-size:18px;">${detailsText}</div>`;
+                }
+
+                // إضافة الزر السحري للمنشط والإدارة
+                let playBtn = '';
+                if(currentUser.role === 'animateur' || currentUser.role === 'admin' || currentUser.role === 'admin_assistant') {
+                    playBtn = `<button class="btn btn-dark" style="margin-right:10px; border-radius:10px; font-size:14px; padding:8px 12px; display:flex; align-items:center; gap:5px;" onclick="event.stopPropagation(); openFsStep(${idx})">🖥️ عرض</button>`;
+                }
+
+                pContainer.innerHTML += `<div class="program-item ${isComp}" onclick="toggleStep(${idx}, ${!!item.completed})">
+                    <div style="display:flex; align-items:flex-start; gap:15px; width:100%;">
+                        <div class="chk-box" style="margin-top:5px;">${chkMark}</div>
+                        <div style="flex:1;">
+                            <span style="font-size:15px; color:#666;">الفقرة ${idx+1} (${displayType})</span><br>
+                            <div style="display:flex; align-items:center; margin-top:5px; flex-wrap:wrap; gap:10px;">
+                                <span style="font-size:20px; color:#333; flex:1;">${icon} ${detailsText}</span>
+                                ${playBtn}
+                            </div>
+                            ${extraLayers}
+                        </div>
+                    </div>
+                </div>`; 
+            });
+        }
+
+        // 4. ميكانيكا الشاشة العملاقة (التنقل، التكبير، الساعة)
+        let currentFsIndex = 0; let fsBaseFontSize = 32;
+        function openFsStep(idx) {
+            if(!currentEventData || !currentEventData.eventProgram) return;
+            let prog = currentEventData.eventProgram;
+            if(idx < 0 || idx >= prog.length) return;
+            currentFsIndex = idx;
+            
+            let item = prog[idx];
+            let displayType = item.type === 'أخرى' ? (item.customType || 'فقرة متنوعة') : item.type;
+            document.getElementById('fsTitle').innerText = `الفقرة ${idx+1}: ${displayType}`;
+            
+            let contentHtml = ''; let rawDet = item.details || '';
+            
+            if(rawDet.startsWith('LIB::')) {
+                let parts = rawDet.split('::'); let libId = parts[1]; let libData = libraryData[libId];
+                if(libData) {
+                    contentHtml += `<div style="color:#ffc107; font-size:1.2em; margin-bottom:20px; border-bottom:2px solid #555; padding-bottom:10px;">⭐ ${libData.name}</div>`;
+                    if(libData.animText) contentHtml += `<div style="color:#e3f2fd; margin-bottom:15px;">🎤 <b>نص المنشط:</b><br>${libData.animText}</div>`;
+                    if(libData.djText) contentHtml += `<div style="color:#f3e5f5; font-size:0.7em; opacity:0.8; margin-top:30px;">🎧 DJ: ${libData.djText}</div>`;
+                    if(libData.assistText) contentHtml += `<div style="color:#fff3e0; font-size:0.7em; opacity:0.8;">🏃‍♂️ المساعد: ${libData.assistText}</div>`;
+                } else { contentHtml = "⚠️ فقرة محذوفة من المكتبة!"; }
+            } else {
+                contentHtml = rawDet; 
+            }
+            
+            let fsContent = document.getElementById('fsContent');
+            fsContent.innerHTML = contentHtml; fsContent.style.fontSize = fsBaseFontSize + 'px';
+            document.getElementById('fullscreenTeleprompter').style.display = 'flex';
+            
+            if(!window.fsClockInterval) {
+                window.fsClockInterval = setInterval(() => {
+                    document.getElementById('fsTimer').innerText = new Date().toLocaleTimeString('ar-TN', {hour:'2-digit', minute:'2-digit', second:'2-digit'});
+                }, 1000);
+            }
+        }
+        function closeFullscreen() { document.getElementById('fullscreenTeleprompter').style.display = 'none'; }
+        function navigateFs(dir) { let prog = currentEventData.eventProgram; let nextIdx = currentFsIndex + dir; if(nextIdx >= 0 && nextIdx < prog.length) openFsStep(nextIdx); }
+        function zoomFsText(dir) { fsBaseFontSize += (dir * 4); if(fsBaseFontSize < 16) fsBaseFontSize = 16; if(fsBaseFontSize > 80) fsBaseFontSize = 80; document.getElementById('fsContent').style.fontSize = fsBaseFontSize + 'px'; }
+
+        // 5. تعديل دالة جلب فقرة من المكتبة باش تقراها الخانة الذكية
+        window.selectLibItemForProg = function(libId, libName) {
+            let currentRows = document.querySelectorAll('.prog-row'); let isDuplicated = false; let dupIndex = -1;
+            currentRows.forEach((row, i) => { let detailsInput = row.querySelector('.prog-details').value; if(detailsInput.includes(libName)) { isDuplicated = true; dupIndex = i + 1; } });
+            if(isDuplicated) { if(!confirm(`⚠️ انتبه! فقرة "${libName}" موجودة ديجا في البرنامج (الفقرة رقم ${dupIndex}).\nمتأكد تحب تعاودها مرة أخرى؟`)) return; }
+            
+            if(targetLibInputId) {
+                let inputElem = document.getElementById(targetLibInputId);
+                if(inputElem) {
+                    inputElem.value = `LIB::${libId}::${libName}`;
+                    inputElem.dispatchEvent(new Event('input', { bubbles: true })); // يعلم المربع الذكي اللي فمة تغيير
+                }
+            }
+            document.getElementById('libSelectModal').style.display = 'none';
+        };
     </script>
 </body>
 </html>
