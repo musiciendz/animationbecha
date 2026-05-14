@@ -1735,6 +1735,57 @@
             input.value = parts.join('|||');
             window.renderLibTags(inputId); // عاود ارسم من جديد
         };
+        /* =========================================
+           🚀 الرادار السحري (يحول الأكواد لبادجات أوتوماتيكياً)
+           ========================================= */
+        setInterval(function() {
+            // الرادار يلوج على كل الخانات اللي في البرنامج
+            document.querySelectorAll('.prog-details').forEach(input => {
+                let val = input.value || '';
+                
+                // 🛑 كان لقى كود المكتبة، يتصرف ديراكت!
+                if (val.includes('LIB::')) {
+                    input.style.display = 'none'; // يخفي الـ Case بالسيف عليها
+                    
+                    let containerId = input.id + '_smart_tags';
+                    let container = document.getElementById(containerId);
+                    if (!container) {
+                        container = document.createElement('div');
+                        container.id = containerId;
+                        input.parentNode.insertBefore(container, input.nextSibling);
+                    }
+                    
+                    // كان فما لعبة جديدة تزادت، يرسمها ديراكت
+                    if (input.dataset.renderedVal !== val) {
+                        let parts = val.split('|||');
+                        let html = '';
+                        parts.forEach((p, idx) => {
+                            let m = p.match(/LIB::([^:<]+)::([^<]+)/);
+                            if(m) {
+                                html += `<div style="display:inline-flex; align-items:center; background:#fff3e0; border:2px solid #ff9800; color:#e65100; padding:6px 12px; border-radius:20px; margin:5px 5px 0 0; font-size:14px; font-weight:bold; box-shadow:0 2px 4px rgba(0,0,0,0.1);">⭐ ${m[2]} <span style="color:#dc3545; cursor:pointer; margin-right:8px; font-size:14px; font-weight:900; background:white; border-radius:50%; width:22px; height:22px; display:inline-flex; justify-content:center; align-items:center; box-shadow:0 1px 3px rgba(0,0,0,0.2);" onclick="removeSmartTag('${input.id}', ${idx})" title="حذف">❌</span></div>`;
+                            }
+                        });
+                        container.innerHTML = html;
+                        input.dataset.renderedVal = val; // يسجل اللي هو رسمها باش ما يعاودش
+                    }
+                } else {
+                    // كان الخانة فرغت، ينظف البلاصة
+                    let container = document.getElementById(input.id + '_smart_tags');
+                    if (container) container.innerHTML = '';
+                    input.dataset.renderedVal = '';
+                }
+            });
+        }, 500); // يعس مرتين كل ثانية
+
+        // ❌ دالة الفسخ (تخدم مع الرادار)
+        window.removeSmartTag = function(inputId, index) {
+            let input = document.getElementById(inputId);
+            if(!input) return;
+            let parts = input.value.split('|||');
+            parts.splice(index, 1); // يفسخ اللعبة المحددة
+            input.value = parts.join('|||');
+            input.dataset.renderedVal = ''; // يفيق الرادار باش يعاود يرسم
+        };
     </script>
 </body>
 </html>
