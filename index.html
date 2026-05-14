@@ -1653,43 +1653,65 @@
             document.getElementById('fullscreenTeleprompter').style.display = 'flex';
         };
 
+        // 1. إغلاق الشاشة العملاقة (وتحرير الـ DJ من كل شيء)
         window.closeFullscreen = function() { 
             document.getElementById('fullscreenTeleprompter').style.display = 'none'; 
-            // 📡 تحرير الـ DJ وقت المنشط يخرج من الشاشة العملاقة
+            
+            // إيقاف الفيديو كانو يخدم باش ما يقعدش الصوت يدور في الخلفية
+            let videoEl = document.getElementById('localVideoElement');
+            if(videoEl) { videoEl.pause(); videoEl.src = ""; }
+
             if (currentUser && ['animateur', 'admin', 'admin_assistant'].includes(currentUser.role)) {
                 let path = isArchivedEvent ? 'BechaEventsData/archived_events/'+currentEventIndex : 'BechaEventsData/events/'+currentEventIndex;
                 db.ref(path + '/djForceSync/game').set({ active: false });
+                db.ref(path + '/djForceSync/video').set({ active: false }); // تحرير الـ DJ من إنذار الكاريوكي
             }
         };
 
+        // 2. ترقية الشاشة العملاقة (لتقبل الفيديوهات من الفلاشة)
         window.renderFsSubStep = function() {
             let parts = window.currentFsLibParts; let subIdx = window.currentFsSubIndex; let p = parts[subIdx];
             if(!p) return;
             let m = p.match(/LIB::([^:<]+)::([^<]+)/);
             let contentHtml = '';
-            let hasGame = false; // 🚩 علامة وجود لعبة
+            let hasGame = false;
             
             if(m) {
                 let libId = m[1]; let libData = libraryData[libId];
                 if(libData) {
-                    let counterText = parts.length > 1 ? `<span style="color:#aaa; font-size:0.7em;">(لعبة ${subIdx+1} من ${parts.length})</span>` : '';
+                    let counterText = parts.length > 1 ? `<span style="color:#aaa; font-size:0.7em;">(فقرة ${subIdx+1} من ${parts.length})</span>` : '';
                     contentHtml += `<div style="color:#ffc107; font-size:1.2em; margin-bottom:20px; border-bottom:2px solid #555; padding-bottom:10px;">⭐ ${libData.name} ${counterText}</div>`;
                     if(libData.animText) contentHtml += `<div style="color:#e3f2fd; margin-bottom:15px; line-height:1.6;">🎤 <b>نص المنشط:</b><br>${libData.animText.replace(/\n/g,'<br>')}</div>`;
                     
+                    // 🎬 زر الكاريوكي السحري (يظهر كان نوع الفقرة كاريوكي)
+                    let isKaraoke = (libData.type === 'كاريوكي / فيديو' || libData.type === 'الأغنية المترجمة' || libData.name.includes('كاريوكي'));
+                    if(isKaraoke && ['animateur', 'admin', 'admin_assistant'].includes(currentUser.role)) {
+                        contentHtml += `
+                        <div id="karaokeContainer" style="margin-top:30px; text-align:center; background:#1a1a1a; padding:20px; border-radius:15px; border:2px dashed #0dcaf0;">
+                            <label id="karaokeUploadLabel" class="btn btn-green" style="font-size:24px; padding:15px 30px; cursor:pointer; display:inline-block; animation: pulse 1.5s infinite;">
+                                📂 إختر فيديو الأغنية من الفلاشة (USB)
+                                <input type="file" accept="video/*" style="display:none;" onchange="window.loadLocalVideo(event)">
+                            </label>
+                            <div id="localVideoPlayerContainer" style="margin-top:20px; width:100%; display:none;">
+                                <video id="localVideoElement" controls style="width:100%; border-radius:15px; border:4px solid #ffc107; box-shadow:0 10px 30px rgba(0,0,0,0.5);"></video>
+                            </div>
+                        </div>`;
+                    }
+
                     if(parts.length > 1) {
                         contentHtml += `<div style="margin-top:20px; display:flex; gap:15px; justify-content:center;">`;
-                        if(subIdx > 0) contentHtml += `<button onclick="window.currentFsSubIndex--; renderFsSubStep();" style="padding:10px 20px; font-size:18px; border-radius:12px; background:#444; color:white; border:none; cursor:pointer;">⏮️ اللعبة السابقة</button>`;
-                        if(subIdx < parts.length - 1) contentHtml += `<button onclick="window.currentFsSubIndex++; renderFsSubStep();" style="padding:10px 20px; font-size:18px; border-radius:12px; background:var(--primary-red); color:white; border:none; cursor:pointer; font-weight:bold;">اللعبة الموالية ⏭️</button>`;
+                        if(subIdx > 0) contentHtml += `<button onclick="window.currentFsSubIndex--; renderFsSubStep();" style="padding:10px 20px; font-size:18px; border-radius:12px; background:#444; color:white; border:none; cursor:pointer;">⏮️ السابق</button>`;
+                        if(subIdx < parts.length - 1) contentHtml += `<button onclick="window.currentFsSubIndex++; renderFsSubStep();" style="padding:10px 20px; font-size:18px; border-radius:12px; background:var(--primary-red); color:white; border:none; cursor:pointer; font-weight:bold;">الموالية ⏭️</button>`;
                         contentHtml += `</div>`;
                     }
 
                     if(libData.hasChrono || libData.hasScore) {
-                        hasGame = true; // 🚩 لقينا لعبة!
+                        hasGame = true; 
                         if(window.liveGameStats.activeLibId !== libId) {
                             window.pauseLiveChrono(); 
                             window.liveGameStats = { activeLibId: libId, players: [], chrono: 0, timerInterval: null, isChronoRunning: false, isTimeUp: false };
                         }
-                        contentHtml += `<div id="liveToolsContainer" style="background:#1a1a1a; border:2px solid #555; border-radius:15px; padding:20px; margin-top:30px; box-shadow:0 10px 30px rgba(0,0,0,0.5);"></div>`;
+                        contentHtml += `<div id="liveToolsContainer" style="background:#1a1a1a; border:2px solid #555; border-radius:15px; padding:20px; margin-top:30px;"></div>`;
                         setTimeout(() => { window.renderLiveTools(libData.hasScore, libData.hasChrono); }, 50);
                     }
                 }
@@ -1697,14 +1719,32 @@
             
             document.getElementById('fsContent').innerHTML = contentHtml;
 
-            // 📡 إرسال أمر الجر للـ DJ كان فما لعبة، وإلا نسيبوه حر
             if (currentUser && ['animateur', 'admin', 'admin_assistant'].includes(currentUser.role)) {
                 let path = isArchivedEvent ? 'BechaEventsData/archived_events/'+currentEventIndex : 'BechaEventsData/events/'+currentEventIndex;
-                if(hasGame) {
-                    db.ref(path + '/djForceSync/game').set({ active: true, fsIndex: window.currentFsIndex, subIndex: window.currentFsSubIndex });
-                } else {
-                    db.ref(path + '/djForceSync/game').set({ active: false });
-                }
+                db.ref(path + '/djForceSync/game').set(hasGame ? { active: true, fsIndex: window.currentFsIndex, subIndex: window.currentFsSubIndex } : { active: false });
+            }
+        };
+
+        // 3. محرك تشغيل الفيديو المحلي (بدون أنترنات)
+        window.loadLocalVideo = function(event) {
+            let file = event.target.files[0];
+            if(!file) return;
+            
+            // إنشاء رابط وهمي محلي للفيديو
+            let videoUrl = URL.createObjectURL(file);
+            let videoContainer = document.getElementById('localVideoPlayerContainer');
+            let videoEl = document.getElementById('localVideoElement');
+            let uploadLabel = document.getElementById('karaokeUploadLabel');
+            
+            videoEl.src = videoUrl;
+            videoContainer.style.display = 'block';
+            uploadLabel.style.display = 'none'; // إخفاء زر الاختيار باش تنظاف الشاشة
+            videoEl.play(); // تشغيل أوتوماتيكي
+            
+            // 📡 إرسال إنذار الكاريوكي للـ DJ
+            if (currentUser && ['animateur', 'admin', 'admin_assistant'].includes(currentUser.role)) {
+                let path = isArchivedEvent ? 'BechaEventsData/archived_events/'+currentEventIndex : 'BechaEventsData/events/'+currentEventIndex;
+                db.ref(path + '/djForceSync/video').set({ active: true, name: file.name });
             }
         };
 
@@ -2418,39 +2458,59 @@
         };
         // 7. رادار الإختطاف للـ DJ (الطيار الآلي)
         window.djSyncListenerRef = null;
+       // 4. رادار الإختطاف للـ DJ (الطيار الآلي المطور)
+        window.djSyncListenerRef = null;
         window.startDjSyncListener = function() {
             let path = isArchivedEvent ? 'BechaEventsData/archived_events/'+currentEventIndex : 'BechaEventsData/events/'+currentEventIndex;
             if(window.djSyncListenerRef) db.ref(path + '/djForceSync').off('value', window.djSyncListenerRef);
             
             window.djSyncListenerRef = db.ref(path + '/djForceSync').on('value', snap => {
-                let syncData = snap.val() || { wheel: false, game: { active: false } };
+                let syncData = snap.val() || { wheel: false, game: { active: false }, video: { active: false } };
                 
                 if (currentUser && ['dj', 'assistant', 'client'].includes(currentUser.role)) {
+                    let fsModal = document.getElementById('fullscreenTeleprompter');
+                    
                     // 1. اختطاف العجلة
                     let wheelModal = document.getElementById('wheelOfFortuneModal');
-                    if (syncData.wheel && wheelModal.style.display !== 'flex') {
-                        window.openWheelModal();
-                    } else if (!syncData.wheel && wheelModal.style.display === 'flex') {
-                        window.closeWheelModal();
-                    }
+                    if (syncData.wheel && wheelModal.style.display !== 'flex') window.openWheelModal();
+                    else if (!syncData.wheel && wheelModal.style.display === 'flex') window.closeWheelModal();
                     
-                    // 2. اختطاف الشاشة العملاقة للعبة
-                    let fsModal = document.getElementById('fullscreenTeleprompter');
+                    // 2. اختطاف الكاريوكي (الإنذار الأحمر للـ DJ)
+                    if (syncData.video && syncData.video.active) {
+                        if (fsModal.style.display !== 'flex') fsModal.style.display = 'flex';
+                        document.getElementById('fsContent').innerHTML = `
+                            <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; height:100%; text-align:center;">
+                                <div style="font-size:100px; margin-bottom:10px; animation: pulse 1s infinite;">🎬</div>
+                                <h2 style="color:#ffc107; font-size:35px; margin:0;">المنشط يشغّل الآن فيديو كاريوكي</h2>
+                                <h3 style="color:#17a2b8; font-size:25px; margin-top:10px;">(${syncData.video.name})</h3>
+                                <div style="background:#E10600; color:#fff; font-size:28px; font-weight:900; margin-top:30px; padding:20px; border-radius:15px; border:4px solid #fff; box-shadow:0 10px 30px rgba(225,6,0,0.5);">
+                                    ⚠️ الرجاء خفض الموسيقى الخلفية (Volume) من الميكساج!
+                                </div>
+                            </div>
+                        `;
+                        return; // نوقفو اللوجيك هوني باش ما يتكتبش فوقو اللعبة
+                    }
+
+                    // 3. اختطاف الشاشة العملاقة للعبة
                     if (syncData.game && syncData.game.active) {
-                        // إذا مش نفس اللعبة ولا مش محلولة، نحلوها بالسيف
                         if (window.currentFsIndex !== syncData.game.fsIndex || window.currentFsSubIndex !== syncData.game.subIndex || fsModal.style.display !== 'flex') {
                             window.currentFsSubIndex = syncData.game.subIndex || 0;
                             window.openFsStep(syncData.game.fsIndex); 
                         }
-                    } else {
-                        // كان المنشط خرج من اللعبة، نسكرو الشاشة العملاقة للـ DJ باش يرجع حر
-                        if (fsModal.style.display === 'flex') {
-                            window.closeFullscreen();
-                        }
+                    } else if(!syncData.video || !syncData.video.active) {
+                        if (fsModal.style.display === 'flex') window.closeFullscreen();
                     }
                 }
             });
         };
+
+        // 5. زرع قسم "كاريوكي / فيديو" أوتوماتيكياً في المكتبة
+        setTimeout(() => {
+            let libSelect = document.getElementById('libItemType');
+            if(libSelect && !Array.from(libSelect.options).some(o => o.value === 'كاريوكي / فيديو')) {
+                libSelect.insertAdjacentHTML('afterbegin', '<option value="كاريوكي / فيديو">🎤 كاريوكي / فيديو</option>');
+            }
+        }, 1500);
     </script>
 </body>
 </html>
