@@ -1173,28 +1173,29 @@
             currentRows.forEach((row, i) => { let detailsInput = row.querySelector('.prog-details').value; if(detailsInput.includes(libName)) { isDuplicated = true; dupIndex = i + 1; } });
             if(isDuplicated) { if(!confirm(`⚠️ انتبه! فقرة "${libName}" موجودة ديجا في البرنامج (الفقرة رقم ${dupIndex}).\nمتأكد تحب تعاودها مرة أخرى؟`)) { return; } }
             
-            // صبّان الداتا في السطر الصحيح
-            if(targetLibInputId) {
+           if(targetLibInputId) {
             let inputElem = document.getElementById(targetLibInputId);
             if(inputElem) {
                 let newVal = `LIB::${libId}::${libName}`;
-                // إذا كانت الخانة معبية ديجا بلعبة من المكتبة، زيد اللعبة الجديدة بجنبها
+                
+                // 1. قاعدة "القفة": كان فما لعبة مسجلة، ما تفسخهاش! أعمل فاصل (|||) وزيد الجديدة
                 if(inputElem.value && inputElem.value.includes('LIB::')) {
                     if(!inputElem.value.includes(newVal)) {
                         inputElem.value += '|||' + newVal; 
                     }
                 } else {
-                    // إذا الخانة فارغة، صب اللعبة الأولى
+                    // كان الخانة فارغة، صب اللعبة الأولى
                     inputElem.value = newVal; 
                 }
                 
-                // تحديث واجهة البادجات (العنقود) كان الدالة موجودة
+                // 2. قاعدة "الرسّام": عيّط للرسّام ديراكت باش يزين البادجات ويخفي الكود الأكحل
                 if(typeof renderLibTags === 'function') {
                     renderLibTags(targetLibInputId);
                 }
             }
         }
-            document.getElementById('libSelectModal').style.display = 'none';
+        // تسكير نافذة المكتبة بعد الاختيار
+        document.getElementById('libSelectModal').style.display = 'none';
         }
         /* =========================================================
            🚀 المربع السحري (Mini-Word) وشاشة المنشط العملاقة 
