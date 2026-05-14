@@ -466,6 +466,7 @@
                 <option value="لغز / تشنشينة">لغز / تشنشينة</option>
                 <option value="لعبة حركية">لعبة حركية</option>
                 <option value="مسابقة فكرية">مسابقة فكرية</option>
+                <option value="كاريوكي / فيديو">🎤 كاريوكي / فيديو</option>
                 <option value="أخرى">أخرى</option>
             </select>
             <input type="text" id="libItemCustomType" placeholder="اكتب نوع الفقرة..." style="width:100%; margin-bottom:15px; display:none;">
@@ -1145,7 +1146,7 @@
 
         function toggleFavorite(id, state) { if (state) { let itemToMove = libraryData[id]; let duplicate = Object.keys(libraryData).find(k => libraryData[k].name === itemToMove.name && libraryData[k].isFav && k !== id); if (duplicate) { alert(`⚠️ لا يمكن تحويلها للمفضلة! اسم الفقرة (${itemToMove.name}) موجود ديجا في المفضلات.`); return; } } db.ref('BechaEventsData/library/' + id + '/isFav').set(state); }
 
-        function editLibItem(id) { let item = libraryData[id]; if(!item) return; document.getElementById('libItemId').value = id; document.getElementById('libItemName').value = item.name; let standardTypes = ['لغز / تشنشينة', 'لعبة حركية', 'مسابقة فكرية', 'أخرى']; if(standardTypes.includes(item.type)) { document.getElementById('libItemType').value = item.type; document.getElementById('libItemCustomType').style.display = 'none'; document.getElementById('libItemCustomType').value = ''; } else { document.getElementById('libItemType').value = 'أخرى'; document.getElementById('libItemCustomType').style.display = 'block'; document.getElementById('libItemCustomType').value = item.type; } document.getElementById('libItemAnim').value = item.animText || ''; document.getElementById('libItemDJ').value = item.djText || ''; document.getElementById('libItemAssist').value = item.assistText || ''; document.getElementById('libItemFav').checked = item.isFav; document.getElementById('libFormTitle').innerText = '✏️ تعديل الفقرة'; document.getElementById('libFormModal').style.display = 'flex'; }
+        function editLibItem(id) { let item = libraryData[id]; if(!item) return; document.getElementById('libItemId').value = id; document.getElementById('libItemName').value = item.name; let standardTypes = ['لغز / تشنشينة', 'لعبة حركية', 'مسابقة فكرية', 'كاريوكي / فيديو', 'أخرى']; if(standardTypes.includes(item.type)) { document.getElementById('libItemType').value = item.type; document.getElementById('libItemCustomType').style.display = 'none'; document.getElementById('libItemCustomType').value = ''; } else { document.getElementById('libItemType').value = 'أخرى'; document.getElementById('libItemCustomType').style.display = 'block'; document.getElementById('libItemCustomType').value = item.type; } document.getElementById('libItemAnim').value = item.animText || ''; document.getElementById('libItemDJ').value = item.djText || ''; document.getElementById('libItemAssist').value = item.assistText || ''; document.getElementById('libItemFav').checked = item.isFav; document.getElementById('libFormTitle').innerText = '✏️ تعديل الفقرة'; document.getElementById('libFormModal').style.display = 'flex'; }
 
         function deleteLibItem(id) { if(confirm("⚠️ متأكد تحب تفسخ هالفقرة نهائياً من المكتبة؟")) { db.ref('BechaEventsData/library/' + id).remove(); } }
 
