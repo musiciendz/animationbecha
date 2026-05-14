@@ -851,21 +851,36 @@
         }
 
        // 👁️ الحسّاس اللي يفيق بالتبديل في القائمة (حماية قصوى)
+        // 👁️ الحسّاس الذكي: حماية القائمة وإخفاء التفاصيل على العميل
         window.toggleRowFields = function(sel) {
             let row = sel.closest('.prog-row'); 
-            let val = sel.value;
+            let val = sel.value.trim();
             let otherInput = row.querySelector('.other-type'); 
             
             otherInput.style.display = (val === 'أخرى') ? 'block' : 'none';
 
-            // 🛑 الحماية القصوى: العميل عمرو ما يرى المكتبة
             let isManager = currentUser && currentUser.role !== 'client';
+            let isClient = currentUser && currentUser.role === 'client';
+            let isSecret = (val === 'فقرة تنشيطية');
 
+            // 1. أزرار المكتبة (تظهر كان للإدارة)
             let oldLibBtn = row.querySelector('.inline-lib-btn');
-            if (oldLibBtn) oldLibBtn.style.display = (val === 'فقرة تنشيطية' && isManager) ? 'block' : 'none';
-
+            if (oldLibBtn) oldLibBtn.style.display = (isSecret && isManager) ? 'block' : 'none';
             let smartLibBtn = row.querySelector('.smart-lib-btn');
-            if (smartLibBtn) smartLibBtn.style.display = (val === 'فقرة تنشيطية' && isManager) ? 'inline-block' : 'none';
+            if (smartLibBtn) smartLibBtn.style.display = (isSecret && isManager) ? 'inline-block' : 'none';
+
+            // 2. 🛑 الضربة القاضية: إخفاء المحرر الذكي كلياً عن العميل
+            let detailsInput = row.querySelector('.prog-details');
+            if (detailsInput) {
+                let richBox = detailsInput.nextElementSibling;
+                if (richBox && richBox.classList.contains('rich-editor-box')) {
+                    // كان عميل وفقرة تنشيطية، خبي المربع الذكي.. وإلا خليه يظهر
+                    richBox.style.display = (isClient && isSecret) ? 'none' : 'flex';
+                } else {
+                    // حماية إضافية للخانة العادية
+                    detailsInput.style.display = (isClient && isSecret) ? 'none' : 'block';
+                }
+            }
         };
 
         function updateNumbers() { let rows = document.querySelectorAll('.prog-row'); document.getElementById('totalProgCount').innerText = rows.length; rows.forEach((r, i) => r.querySelector('.row-num').innerText = i+1); }
@@ -1163,8 +1178,19 @@
             let wrapper = document.createElement('div');
             wrapper.className = 'rich-editor-box';
             
+            // 🛑 الحماية القصوى: إخفاء المحرر كلياً إذا كان المستعمل "عميل" والفقرة "تنشيطية"
+            let row = el.closest('.prog-row');
+            let select = row ? row.querySelector('.prog-type') : null;
+            let isSecret = select && select.value.trim() === 'فقرة تنشيطية';
+            let isClient = currentUser && currentUser.role === 'client';
+            
+            if (isClient && isSecret) {
+                wrapper.style.display = 'none'; // طفي عليه الضو ديراكت
+            } else {
+                wrapper.style.display = 'flex';
+            }
+            
             let toolbar = document.createElement('div');
-            toolbar.className = 'rich-toolbar';
             
             let btns = [
                 { icon: '𝐁', cmd: 'bold', title: 'Gras' },
