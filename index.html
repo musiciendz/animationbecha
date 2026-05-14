@@ -457,27 +457,54 @@
         <div id="generalLibContainer"></div>
     </div>
 
-    <div id="libFormModal" class="modal-overlay">
-        <div class="modal-box">
-            <h3 id="libFormTitle" style="color:var(--primary-red); margin-top:0;">➕ فقرة جديدة</h3>
-            <input type="hidden" id="libItemId">
-            <input type="text" id="libItemName" placeholder="📌 اسم الفقرة (مثال: لغز الفيل)" style="width:100%; margin-bottom:10px;">
-            <select id="libItemType" style="width:100%; margin-bottom:15px;" onchange="document.getElementById('libItemCustomType').style.display=(this.value==='أخرى')?'block':'none'">
-                <option value="لغز / تشنشينة">لغز / تشنشينة</option>
-                <option value="لعبة حركية">لعبة حركية</option>
-                <option value="مسابقة فكرية">مسابقة فكرية</option>
-                <option value="كاريوكي / فيديو">🎤 كاريوكي / فيديو</option>
-                <option value="أخرى">أخرى</option>
-            </select>
-            <input type="text" id="libItemCustomType" placeholder="اكتب نوع الفقرة..." style="width:100%; margin-bottom:15px; display:none;">
-            <h4 style="color:#17a2b8; margin:10px 0 5px 0;">🎤 نص المنشط:</h4>
-            <textarea id="libItemAnim" style="width:100%; height:60px;" placeholder="ماذا سيقول المنشط..."></textarea>
-            <h4 style="color:#9b59b6; margin:10px 0 5px 0;">🎧 دور الـ DJ:</h4>
-            <textarea id="libItemDJ" style="width:100%; height:50px;" placeholder="الأغاني والمؤثرات المطلوبة..."></textarea>
-            <h4 style="color:#ff9800; margin:10px 0 5px 0;">🏃‍♂️ دور المساعد:</h4>
-            <textarea id="libItemAssist" style="width:100%; height:50px;" placeholder="التحضيرات (كراسي، جوائز...)..."></textarea>
-            <label style="display:flex; align-items:center; gap:8px; margin-top:15px; font-weight:bold; cursor:pointer;"><input type="checkbox" id="libItemFav" style="width:20px; height:20px;"> ⭐ إضافة للمفضلة فوراً</label>
-            <div style="display:flex; gap:10px; margin-top:20px;"><button class="btn btn-green" style="flex:1;" onclick="saveLibItem()">💾 حفظ</button><button class="btn btn-dark" style="flex:1;" onclick="document.getElementById('libFormModal').style.display='none'">❌ إلغاء</button></div>
+   <div id="libFormModal" class="modal-overlay">
+        <div class="modal-box" style="max-width: 750px; width: 95%; padding: 25px;">
+            <h3 id="libFormTitle" style="color:var(--primary-red); margin-top:0; border-bottom: 2px solid #eee; padding-bottom: 10px;">➕ فقرة جديدة</h3>
+            
+            <div style="max-height: 55vh; overflow-y: auto; padding-right: 15px; margin-bottom: 20px; text-align: right;">
+                <input type="hidden" id="libItemId">
+                <input type="text" id="libItemName" placeholder="📌 اسم اللعبة أو الفقرة (مثال: لغز الفيل)" style="width:100%; margin-bottom:15px; font-size:16px;">
+                
+                <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin-bottom: 20px; border: 1px solid #ccc;">
+                    <label style="font-weight: bold; color: #333; display: block; margin-bottom: 8px;">📂 الدوسي (نوع الفقرة):</label>
+                    <select id="libItemType" style="width:100%; margin-bottom:10px; font-size:16px;" onchange="document.getElementById('libItemCustomType').style.display=(this.value==='أخرى')?'block':'none'">
+                        <option value="لغز / تشنشينة">لغز / تشنشينة</option>
+                        <option value="لعبة حركية">لعبة حركية</option>
+                        <option value="مسابقة فكرية">مسابقة فكرية</option>
+                        <option value="كاريوكي / فيديو">🎤 كاريوكي / فيديو</option>
+                        <option value="أخرى">أخرى (إضافة دوسي جديد)</option>
+                    </select>
+                    <input type="text" id="libItemCustomType" placeholder="اكتب اسم الدوسي الجديد..." style="width:100%; display:none; font-size:16px;">
+                </div>
+
+                <h4 style="color:#17a2b8; margin:10px 0 5px 0;">🎤 نص المنشط:</h4>
+                <textarea id="libItemAnim" style="width:100%; height:60px;" placeholder="ماذا سيقول المنشط..."></textarea>
+                
+                <h4 style="color:#9b59b6; margin:15px 0 5px 0;">🎧 دور الـ DJ:</h4>
+                <textarea id="libItemDJ" style="width:100%; height:50px;" placeholder="الأغاني والمؤثرات المطلوبة..."></textarea>
+                
+                <h4 style="color:#ff9800; margin:15px 0 5px 0;">🏃‍♂️ دور المساعد:</h4>
+                <textarea id="libItemAssist" style="width:100%; height:50px;" placeholder="التحضيرات (كراسي، جوائز...)..."></textarea>
+                
+                <div style="background:#fffdf5; border:2px dashed #17a2b8; padding:15px; border-radius:10px; margin-top:25px; margin-bottom:15px;">
+                    <h4 style="color:#17a2b8; margin:0 0 10px 0;">🎮 أدوات الشاشة العملاقة التفاعلية:</h4>
+                    <label style="display:flex; align-items:center; gap:8px; font-weight:bold; cursor:pointer; margin-bottom:10px; color:#333;">
+                        <input type="checkbox" id="libItemScore" style="width:20px; height:20px;"> 🏆 تفعيل لوحة النقاط للمشاركين (Scoreboard)
+                    </label>
+                    <label style="display:flex; align-items:center; gap:8px; font-weight:bold; cursor:pointer; color:#333;">
+                        <input type="checkbox" id="libItemChrono" style="width:20px; height:20px;"> ⏱️ تفعيل الكرونو (العداد التنازلي)
+                    </label>
+                </div>
+                
+                <label style="display:flex; align-items:center; gap:8px; font-weight:bold; cursor:pointer; color:#E10600; background: #ffeeee; padding: 10px; border-radius: 8px;">
+                    <input type="checkbox" id="libItemFav" style="width:20px; height:20px;"> ⭐ إضافة للمفضلة فوراً
+                </label>
+            </div>
+            
+            <div style="display:flex; gap:10px; border-top: 2px solid #eee; padding-top: 15px;">
+                <button class="btn btn-green" style="flex:1; font-size: 18px; padding: 12px; font-weight:bold;" onclick="window.saveLibItem()">💾 حفظ الفقرة</button>
+                <button class="btn btn-dark" style="flex:1; font-size: 18px; padding: 12px;" onclick="document.getElementById('libFormModal').style.display='none'">❌ إلغاء</button>
+            </div>
         </div>
     </div>
 
@@ -1967,39 +1994,50 @@
            🚀 التحديث الشامل: نظام التنشيط التفاعلي (النقاط + الكرونو) 🚀
            ========================================================= */
         
-        // 1. زرع أزرار التفعيل في نافذة المكتبة (بدون المساس بالهيكل القديم)
-        setTimeout(() => {
-            let favContainer = document.getElementById('libItemFav');
-            if (favContainer && !document.getElementById('libItemScore')) {
-                let toolsHtml = `
-                    <div style="background:#f8f9fa; border:2px dashed #17a2b8; padding:15px; border-radius:10px; margin-top:15px; margin-bottom:15px;">
-                        <h4 style="color:#17a2b8; margin:0 0 10px 0;">🎮 أدوات الشاشة العملاقة التفاعلية:</h4>
-                        <label style="display:flex; align-items:center; gap:8px; font-weight:bold; cursor:pointer; margin-bottom:10px; color:#333;">
-                            <input type="checkbox" id="libItemScore" style="width:20px; height:20px;"> 🏆 تفعيل لوحة النقاط للمشاركين (Scoreboard)
-                        </label>
-                        <label style="display:flex; align-items:center; gap:8px; font-weight:bold; cursor:pointer; color:#333;">
-                            <input type="checkbox" id="libItemChrono" style="width:20px; height:20px;"> ⏱️ تفعيل الكرونو (العداد التنازلي)
-                        </label>
-                    </div>
-                `;
-                favContainer.parentNode.insertAdjacentHTML('beforebegin', toolsHtml);
-            }
-        }, 1000);
+       
 
         // 2. تحديث دوال الحفظ باش تقرا الأزرار الجدد
-        window.openLibForm = function() {
+      window.openLibForm = function() {
             document.getElementById('libItemId').value = '';
             document.getElementById('libItemName').value = '';
-            document.getElementById('libItemType').value = 'لغز / تشنشينة';
-            document.getElementById('libItemCustomType').value = '';
-            document.getElementById('libItemCustomType').style.display = 'none';
-            document.getElementById('libItemAnim').value = '';
-            document.getElementById('libItemDJ').value = '';
-            document.getElementById('libItemAssist').value = '';
-            document.getElementById('libItemFav').checked = false;
+            
+            // 🧠 الذكاء السياقي: نقراو الدوسي اللي محلول توة
+            let targetType = 'لغز / تشنشينة'; // الديفو
+            if (activeLibFilter !== 'all' && activeLibFilter !== 'fav') {
+                targetType = activeLibFilter;
+            }
+
+            let standardTypes = ['لغز / تشنشينة', 'لعبة حركية', 'مسابقة فكرية', 'كاريوكي / فيديو', 'أخرى'];
+            let typeSelect = document.getElementById('libItemType');
+            let customInput = document.getElementById('libItemCustomType');
+
+            // كان الدوسي موجود في القائمة، نختاروه. كان لا، نحطو "أخرى" ونكتبو اسمو آلياً
+            if (standardTypes.includes(targetType)) {
+                typeSelect.value = targetType;
+                customInput.style.display = 'none';
+                customInput.value = '';
+            } else {
+                typeSelect.value = 'أخرى';
+                customInput.style.display = 'block';
+                customInput.value = targetType;
+            }
+
+            // تنظيف المربع الذكي (الـ Mini-Word)
+            document.querySelectorAll('#libItemAnim, #libItemDJ, #libItemAssist').forEach(el => { 
+                el.value = ''; 
+                if(el.nextElementSibling && el.nextElementSibling.classList.contains('rich-editor-box')) { 
+                    el.nextElementSibling.querySelector('.rich-content').innerHTML = ''; 
+                } 
+            });
+            
+            // الذكاء السياقي للمفضلات
+            document.getElementById('libItemFav').checked = (activeLibFilter === 'fav'); 
+            
             if(document.getElementById('libItemScore')) document.getElementById('libItemScore').checked = false;
             if(document.getElementById('libItemChrono')) document.getElementById('libItemChrono').checked = false;
-            document.getElementById('libFormTitle').innerText = '➕ فقرة جديدة';
+            
+            let titleText = activeLibFilter === 'all' ? 'المكتبة العامة' : targetType;
+            document.getElementById('libFormTitle').innerText = '➕ إضافة فقرة إلى: ' + titleText;
             document.getElementById('libFormModal').style.display = 'flex';
         };
 
