@@ -1028,6 +1028,7 @@
             monitorCurtainAlert();
             window.startLiveGameListener();
             window.startWheelSyncListener();
+            window.startDjSyncListener();
         }
         
         function renderTeleprompter() { 
@@ -1652,33 +1653,59 @@
             document.getElementById('fullscreenTeleprompter').style.display = 'flex';
         };
 
+        window.closeFullscreen = function() { 
+            document.getElementById('fullscreenTeleprompter').style.display = 'none'; 
+            // 📡 تحرير الـ DJ وقت المنشط يخرج من الشاشة العملاقة
+            if (currentUser && ['animateur', 'admin', 'admin_assistant'].includes(currentUser.role)) {
+                let path = isArchivedEvent ? 'BechaEventsData/archived_events/'+currentEventIndex : 'BechaEventsData/events/'+currentEventIndex;
+                db.ref(path + '/djForceSync/game').set({ active: false });
+            }
+        };
+
         window.renderFsSubStep = function() {
-            let parts = window.currentFsLibParts;
-            let subIdx = window.currentFsSubIndex;
-            let p = parts[subIdx];
+            let parts = window.currentFsLibParts; let subIdx = window.currentFsSubIndex; let p = parts[subIdx];
             if(!p) return;
-            
             let m = p.match(/LIB::([^:<]+)::([^<]+)/);
             let contentHtml = '';
+            let hasGame = false; // 🚩 علامة وجود لعبة
+            
             if(m) {
                 let libId = m[1]; let libData = libraryData[libId];
                 if(libData) {
                     let counterText = parts.length > 1 ? `<span style="color:#aaa; font-size:0.7em;">(لعبة ${subIdx+1} من ${parts.length})</span>` : '';
                     contentHtml += `<div style="color:#ffc107; font-size:1.2em; margin-bottom:20px; border-bottom:2px solid #555; padding-bottom:10px;">⭐ ${libData.name} ${counterText}</div>`;
-                    if(libData.animText) contentHtml += `<div style="color:#e3f2fd; margin-bottom:15px; line-height:1.6;">🎤 <b>نص المنشط:</b><br>${libData.animText}</div>`;
-                    if(libData.djText) contentHtml += `<div style="color:#f3e5f5; font-size:0.8em; opacity:0.9; margin-top:30px;">🎧 <b>DJ:</b> ${libData.djText}</div>`;
-                    if(libData.assistText) contentHtml += `<div style="color:#fff3e0; font-size:0.8em; opacity:0.9;">🏃‍♂️ <b>المساعد:</b> ${libData.assistText}</div>`;
+                    if(libData.animText) contentHtml += `<div style="color:#e3f2fd; margin-bottom:15px; line-height:1.6;">🎤 <b>نص المنشط:</b><br>${libData.animText.replace(/\n/g,'<br>')}</div>`;
                     
-                    // أزرار التنقل (⏭️) في وسط الشاشة العملاقة
                     if(parts.length > 1) {
-                        contentHtml += `<div style="margin-top:40px; display:flex; gap:15px; justify-content:center; border-top:1px solid #444; padding-top:20px;">`;
-                        if(subIdx > 0) contentHtml += `<button onclick="window.currentFsSubIndex--; renderFsSubStep();" style="padding:12px 25px; font-size:20px; border-radius:12px; background:#444; color:white; border:none; cursor:pointer;">⏮️ اللعبة السابقة</button>`;
-                        if(subIdx < parts.length - 1) contentHtml += `<button onclick="window.currentFsSubIndex++; renderFsSubStep();" style="padding:12px 25px; font-size:20px; border-radius:12px; background:var(--primary-red); color:white; border:none; cursor:pointer; font-weight:bold; box-shadow:0 4px 10px rgba(225,6,0,0.4);">اللعبة الموالية ⏭️</button>`;
+                        contentHtml += `<div style="margin-top:20px; display:flex; gap:15px; justify-content:center;">`;
+                        if(subIdx > 0) contentHtml += `<button onclick="window.currentFsSubIndex--; renderFsSubStep();" style="padding:10px 20px; font-size:18px; border-radius:12px; background:#444; color:white; border:none; cursor:pointer;">⏮️ اللعبة السابقة</button>`;
+                        if(subIdx < parts.length - 1) contentHtml += `<button onclick="window.currentFsSubIndex++; renderFsSubStep();" style="padding:10px 20px; font-size:18px; border-radius:12px; background:var(--primary-red); color:white; border:none; cursor:pointer; font-weight:bold;">اللعبة الموالية ⏭️</button>`;
                         contentHtml += `</div>`;
+                    }
+
+                    if(libData.hasChrono || libData.hasScore) {
+                        hasGame = true; // 🚩 لقينا لعبة!
+                        if(window.liveGameStats.activeLibId !== libId) {
+                            window.pauseLiveChrono(); 
+                            window.liveGameStats = { activeLibId: libId, players: [], chrono: 0, timerInterval: null, isChronoRunning: false, isTimeUp: false };
+                        }
+                        contentHtml += `<div id="liveToolsContainer" style="background:#1a1a1a; border:2px solid #555; border-radius:15px; padding:20px; margin-top:30px; box-shadow:0 10px 30px rgba(0,0,0,0.5);"></div>`;
+                        setTimeout(() => { window.renderLiveTools(libData.hasScore, libData.hasChrono); }, 50);
                     }
                 }
             } else { contentHtml = p; }
+            
             document.getElementById('fsContent').innerHTML = contentHtml;
+
+            // 📡 إرسال أمر الجر للـ DJ كان فما لعبة، وإلا نسيبوه حر
+            if (currentUser && ['animateur', 'admin', 'admin_assistant'].includes(currentUser.role)) {
+                let path = isArchivedEvent ? 'BechaEventsData/archived_events/'+currentEventIndex : 'BechaEventsData/events/'+currentEventIndex;
+                if(hasGame) {
+                    db.ref(path + '/djForceSync/game').set({ active: true, fsIndex: window.currentFsIndex, subIndex: window.currentFsSubIndex });
+                } else {
+                    db.ref(path + '/djForceSync/game').set({ active: false });
+                }
+            }
         };
 
         // 3. زر الصاروخ 🚀 (مكتبة الارتجال المباشر)
@@ -2225,23 +2252,35 @@
             }
         };
 
-        window.openWheelModal = function() {
-            window.refreshWheelData(); // رسم العجلة ديراكت
+       window.openWheelModal = function() {
+            window.refreshWheelData(); 
             document.getElementById('wheelOfFortuneModal').style.display = 'flex';
             let isReadOnly = currentUser && ['dj', 'assistant', 'assistant_anim', 'client'].includes(currentUser.role);
+            
             if(isReadOnly) {
                 document.getElementById('spinWheelBtn').style.display = 'none';
                 document.getElementById('wheelDjNotice').style.display = 'block';
             } else {
                 document.getElementById('spinWheelBtn').style.display = 'block';
                 document.getElementById('wheelDjNotice').style.display = 'none';
+                // 📡 إرسال أمر "الفتح الإجباري" للـ DJ
+                if (['animateur', 'admin', 'admin_assistant'].includes(currentUser.role)) {
+                    let path = isArchivedEvent ? 'BechaEventsData/archived_events/'+currentEventIndex : 'BechaEventsData/events/'+currentEventIndex;
+                    db.ref(path + '/djForceSync/wheel').set(true);
+                }
             }
             document.getElementById('wheelResultBox').innerHTML = window.activeWheelSlices.length === 1 ? "<span style='color:#E10600;'>المخزن فارغ تماماً! الرجاء إضافة فقرات جديدة.</span>" : "في انتظار دوران العجلة...";
             document.getElementById('spinWheelBtn').disabled = window.activeWheelSlices.length === 1;
         };
 
-        window.closeWheelModal = function() { document.getElementById('wheelOfFortuneModal').style.display = 'none'; };
-
+        window.closeWheelModal = function() { 
+            document.getElementById('wheelOfFortuneModal').style.display = 'none'; 
+            // 📡 إرسال أمر "الإغلاق الإجباري" للـ DJ (تحريره)
+            if (currentUser && ['animateur', 'admin', 'admin_assistant'].includes(currentUser.role)) {
+                let path = isArchivedEvent ? 'BechaEventsData/archived_events/'+currentEventIndex : 'BechaEventsData/events/'+currentEventIndex;
+                db.ref(path + '/djForceSync/wheel').set(false);
+            }
+        };
         // 3. الدوران وإرسال الإشارة للـ DJ
         window.spinTheWheel = function() {
             let btn = document.getElementById('spinWheelBtn');
@@ -2374,6 +2413,41 @@
                 if (htmlContent && currentUser && ['dj', 'assistant', 'client'].includes(currentUser.role)) {
                     let resBox = document.getElementById('wheelResultBox');
                     if(resBox) resBox.innerHTML = htmlContent;
+                }
+            });
+        };
+        // 7. رادار الإختطاف للـ DJ (الطيار الآلي)
+        window.djSyncListenerRef = null;
+        window.startDjSyncListener = function() {
+            let path = isArchivedEvent ? 'BechaEventsData/archived_events/'+currentEventIndex : 'BechaEventsData/events/'+currentEventIndex;
+            if(window.djSyncListenerRef) db.ref(path + '/djForceSync').off('value', window.djSyncListenerRef);
+            
+            window.djSyncListenerRef = db.ref(path + '/djForceSync').on('value', snap => {
+                let syncData = snap.val() || { wheel: false, game: { active: false } };
+                
+                if (currentUser && ['dj', 'assistant', 'client'].includes(currentUser.role)) {
+                    // 1. اختطاف العجلة
+                    let wheelModal = document.getElementById('wheelOfFortuneModal');
+                    if (syncData.wheel && wheelModal.style.display !== 'flex') {
+                        window.openWheelModal();
+                    } else if (!syncData.wheel && wheelModal.style.display === 'flex') {
+                        window.closeWheelModal();
+                    }
+                    
+                    // 2. اختطاف الشاشة العملاقة للعبة
+                    let fsModal = document.getElementById('fullscreenTeleprompter');
+                    if (syncData.game && syncData.game.active) {
+                        // إذا مش نفس اللعبة ولا مش محلولة، نحلوها بالسيف
+                        if (window.currentFsIndex !== syncData.game.fsIndex || window.currentFsSubIndex !== syncData.game.subIndex || fsModal.style.display !== 'flex') {
+                            window.currentFsSubIndex = syncData.game.subIndex || 0;
+                            window.openFsStep(syncData.game.fsIndex); 
+                        }
+                    } else {
+                        // كان المنشط خرج من اللعبة، نسكرو الشاشة العملاقة للـ DJ باش يرجع حر
+                        if (fsModal.style.display === 'flex') {
+                            window.closeFullscreen();
+                        }
+                    }
                 }
             });
         };
