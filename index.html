@@ -2550,6 +2550,88 @@
                 libSelect.insertAdjacentHTML('afterbegin', '<option value="كاريوكي / فيديو">🎤 كاريوكي / فيديو</option>');
             }
         }, 1500);
+        /* =========================================================
+           🎬 مشغل الفيديو العالمي من الفلاشة (المايسترو)
+           ========================================================= */
+        
+        setInterval(() => {
+            // 1. زراعة الزر 🎬 بجنب الصاروخ 🚀 في الشاشة العملاقة
+            let fsControls = document.querySelector('.fs-header div');
+            if(fsControls && !document.getElementById('globalKaraokeBtn')) {
+                let rocketBtn = fsControls.querySelector('button[title="ارتجال فقرة حية"]');
+                if(rocketBtn) {
+                    rocketBtn.insertAdjacentHTML('beforebegin', `
+                        <label id="globalKaraokeBtn" title="تشغيل فيديو من الفلاشة (USB)" style="color:#25D366; margin-right:15px; font-size:26px; cursor:pointer; display:none;">
+                            🎬
+                            <input type="file" accept="video/*" style="display:none;" onchange="window.loadLocalVideoGlobal(event)">
+                        </label>
+                    `);
+                }
+            }
+            
+            // 2. زراعة شاشة العرض العملاقة للفيديو
+            let fsContainer = document.getElementById('fullscreenTeleprompter');
+            if(fsContainer && !document.getElementById('globalVideoContainer')) {
+                fsContainer.insertAdjacentHTML('beforeend', `
+                    <div id="globalVideoContainer" style="display:none; position:absolute; top:75px; left:0; width:100%; height:calc(100% - 75px); background:#000; z-index:9000; text-align:center; flex-direction:column; justify-content:center; align-items:center;">
+                        <button onclick="window.closeGlobalVideo()" style="position:absolute; top:15px; right:25px; background:#E10600; color:#fff; border:none; padding:10px 20px; font-size:18px; border-radius:10px; cursor:pointer; font-weight:bold; box-shadow:0 4px 10px rgba(0,0,0,0.5); z-index:9001;">❌ إغلاق الفيديو</button>
+                        <video id="globalLocalVideoElement" controls style="max-width:95%; max-height:85%; border-radius:15px; border:4px solid #ffc107; box-shadow:0 10px 30px rgba(0,0,0,0.8); background:#111; margin-top:40px;"></video>
+                    </div>
+                `);
+            }
+
+            // إظهار زر الكاريوكي كان للمنشط والإدارة فقط
+            if (currentUser && ['animateur', 'admin', 'admin_assistant'].includes(currentUser.role)) {
+                let kBtn = document.getElementById('globalKaraokeBtn');
+                if(kBtn) kBtn.style.display = 'inline-block';
+            }
+        }, 1500);
+
+        // 3. محرك تشغيل الفيديو وبث الإنذار للـ DJ
+        window.loadLocalVideoGlobal = function(event) {
+            let file = event.target.files[0];
+            if(!file) return;
+            
+            let videoUrl = URL.createObjectURL(file);
+            let videoContainer = document.getElementById('globalVideoContainer');
+            let videoEl = document.getElementById('globalLocalVideoElement');
+            
+            videoEl.src = videoUrl;
+            videoContainer.style.display = 'flex';
+            videoEl.play();
+            
+            // 📡 إرسال إنذار الكاريوكي للـ DJ باش يختطف شاشتو
+            if (currentUser && ['animateur', 'admin', 'admin_assistant'].includes(currentUser.role)) {
+                let path = isArchivedEvent ? 'BechaEventsData/archived_events/'+currentEventIndex : 'BechaEventsData/events/'+currentEventIndex;
+                db.ref(path + '/djForceSync/video').set({ active: true, name: file.name });
+            }
+            
+            // تفريغ الخانة باش ينجم يعاود يختار نفس الفيديو مرة أخرى كان حب
+            event.target.value = '';
+        };
+
+        // 4. إغلاق الفيديو وتحرير الـ DJ
+        window.closeGlobalVideo = function() {
+            let videoContainer = document.getElementById('globalVideoContainer');
+            let videoEl = document.getElementById('globalLocalVideoElement');
+            
+            videoEl.pause();
+            videoEl.src = ""; // تفريغ الذاكرة
+            videoContainer.style.display = 'none';
+            
+            // 📡 إيقاف الإنذار عند الـ DJ
+            if (currentUser && ['animateur', 'admin', 'admin_assistant'].includes(currentUser.role)) {
+                let path = isArchivedEvent ? 'BechaEventsData/archived_events/'+currentEventIndex : 'BechaEventsData/events/'+currentEventIndex;
+                db.ref(path + '/djForceSync/video').set({ active: false });
+            }
+        };
+
+        // 5. تأمين الإغلاق مع زر الخروج الرئيسي
+        let originalCloseFullscreen = window.closeFullscreen;
+        window.closeFullscreen = function() {
+            window.closeGlobalVideo(); // سكر الفيديو كانو يخدم
+            originalCloseFullscreen(); // سكر الشاشة العملاقة
+        };
     </script>
 </body>
 </html>
