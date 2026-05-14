@@ -2103,24 +2103,35 @@
             });
         };
         /* =========================================================
-           🎡 نظام دائرة الحظ التفاعلية (الروليت) + المرآة السحرية للـ DJ 
+           🎡 نظام دائرة الحظ الديناميكية الذكية (الرسم الآلي) + المرآة 
            ========================================================= */
         
-        // 1. زراعة الواجهة والأزرار الثابتة أوتوماتيكياً في الصفحة
+        window.activeWheelSlices = [];
+        window.usedWheelItems = []; // مخزن الألعاب المحروقة
+        window.wheelColors = ["#E10600", "#198754", "#ff9800", "#17a2b8", "#9b59b6", "#e83e8c", "#6f42c1", "#20c997"];
+        window.currentWheelDeg = 0;
+
+        // 1. زراعة الواجهة
         setInterval(() => {
-            // أ. زراعة نافذة العجلة (Modal)
             if(!document.getElementById('wheelOfFortuneModal')) {
                 let wheelModalHtml = `
                 <div id="wheelOfFortuneModal" class="modal-overlay" style="z-index: 130000;">
                     <div class="modal-box" style="text-align: center; background: #111; border: 4px solid #ffc107; max-width: 600px; width:95%;">
                         <div style="display: flex; justify-content: space-between; margin-bottom: 20px;">
-                            <h2 style="color: #ffc107; margin: 0;">🎡 عجلة الحظ والتحديات</h2>
+                            <h2 style="color: #ffc107; margin: 0;">🎡 عجلة الحظ الذكية</h2>
                             <button class="btn btn-dark" onclick="closeWheelModal()">❌ إغلاق</button>
                         </div>
                         
                         <div style="position: relative; width: 280px; height: 280px; margin: 0 auto 30px auto;">
-                            <div style="position: absolute; top: -15px; left: 50%; transform: translateX(-50%); width: 0; height: 0; border-left: 15px solid transparent; border-right: 15px solid transparent; border-top: 35px solid #E10600; z-index: 10; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5));"></div>
-                            <img id="spinWheelImg" src="cercle jeux2.jpg" style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover; transition: transform cubic-bezier(0.25, 0.1, 0.15, 1); box-shadow: 0 0 20px rgba(255,193,7,0.4);">
+                            <!-- الإبرة الحمراء -->
+                            <div style="position: absolute; top: -15px; left: 50%; transform: translateX(-50%); width: 0; height: 0; border-left: 15px solid transparent; border-right: 15px solid transparent; border-top: 35px solid #E10600; z-index: 15; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.8));"></div>
+                            
+                            <!-- العجلة الديناميكية (رسم آلي) -->
+                            <div id="dynamicWheelContainer" style="width: 100%; height: 100%; position: relative; transition: transform cubic-bezier(0.25, 0.1, 0.15, 1); border-radius: 50%; box-shadow: 0 0 20px rgba(255,193,7,0.4);">
+                                <canvas id="spinWheelCanvas" width="280" height="280" style="width:100%; height:100%; border-radius: 50%;"></canvas>
+                                <!-- اللوجو في الوسط (التصويرة الجديدة) -->
+                                <img src="cercle.png" style="position:absolute; top:50%; left:50%; transform:translate(-50%, -50%); width:90px; height:90px; border-radius:50%; box-shadow: 0 2px 10px rgba(0,0,0,0.8); z-index:10; background:white;">
+                            </div>
                         </div>
 
                         <button id="spinWheelBtn" class="btn btn-green" style="font-size: 24px; padding: 15px 30px; width: 100%; font-weight: 900; animation: pulse 1.5s infinite; box-shadow: 0 5px 15px rgba(25,135,84,0.5);" onclick="spinTheWheel()">🎲 آه لو لعبت يا زهر!</button>
@@ -2135,36 +2146,87 @@
                 document.body.insertAdjacentHTML('beforeend', wheelModalHtml);
             }
 
-            // ب. زراعة الزر في واجهة الركح المباشر (Dashboard) بجنب زر الأسماء
+            // زراعة الأزرار في الركح والشاشة العملاقة
             let stageBtns = document.getElementById('stageActionButtons');
             if (stageBtns && !document.getElementById('stageWheelBtn')) {
                 stageBtns.insertAdjacentHTML('beforeend', `<button id="stageWheelBtn" class="btn btn-outline" style="border-color:#ffc107; color:#ffc107; font-size:18px; padding:12px; font-weight:bold; flex:1;" onclick="openWheelModal()">🎡 دائرة الحظ</button>`);
             }
 
-            // ج. زراعة الزر في الشاشة العملاقة (Plein Écran) بجنب الصاروخ
             let fsHeaderControls = document.querySelector('.fs-header div');
             if (fsHeaderControls && !document.getElementById('fsWheelBtn')) {
                 let exitBtn = fsHeaderControls.querySelector('.btn-red');
-                if(exitBtn) {
-                    exitBtn.insertAdjacentHTML('beforebegin', `<button id="fsWheelBtn" class="fs-zoom-btn" onclick="openWheelModal()" title="دائرة الحظ" style="color:#ffc107; margin-right:15px; font-size:26px;">🎡</button>`);
-                }
+                if(exitBtn) exitBtn.insertAdjacentHTML('beforebegin', `<button id="fsWheelBtn" class="fs-zoom-btn" onclick="openWheelModal()" title="دائرة الحظ" style="color:#ffc107; margin-right:15px; font-size:26px;">🎡</button>`);
             }
 
-            // د. إخفاء الأزرار على الـ DJ والعميل (باش نعطيو الصلاحية كان للمنشط)
             let isReadOnly = currentUser && ['dj', 'assistant', 'assistant_anim', 'client'].includes(currentUser.role);
             if(isReadOnly) {
-                let sBtn = document.getElementById('stageWheelBtn');
-                let fBtn = document.getElementById('fsWheelBtn');
-                if(sBtn && sBtn.style.display !== 'none') sBtn.style.display = 'none';
-                if(fBtn && fBtn.style.display !== 'none') fBtn.style.display = 'none';
+                let sBtn = document.getElementById('stageWheelBtn'); let fBtn = document.getElementById('fsWheelBtn');
+                if(sBtn) sBtn.style.display = 'none'; if(fBtn) fBtn.style.display = 'none';
             }
         }, 1000);
 
-        // 2. محرك دوران العجلة (الفيزياء والتوقيت)
-        window.currentWheelDeg = 0;
-        window.usedWheelItems = []; 
+        // 2. تحديث ورسم العجلة حسب المكتبة (The Brain)
+        window.refreshWheelData = function() {
+            let availableTypes = {};
+            // قراءة المكتبة وجبد الأقسام اللي مازالت ما تلعبتش
+            Object.keys(libraryData).forEach(k => {
+                if (!window.usedWheelItems.includes(k)) {
+                    let type = libraryData[k].type;
+                    if(type === 'أخرى') type = libraryData[k].customType || 'متنوع';
+                    availableTypes[type] = true;
+                }
+            });
+
+            window.activeWheelSlices = Object.keys(availableTypes);
+            // قسم الجوكر الثابت
+            window.activeWheelSlices.push("عاود الكرّة 🔄");
+            
+            drawDynamicWheel();
+        };
+
+        window.drawDynamicWheel = function() {
+            let canvas = document.getElementById('spinWheelCanvas');
+            if(!canvas) return;
+            let ctx = canvas.getContext('2d');
+            let w = canvas.width; let h = canvas.height;
+            let radius = w / 2;
+            
+            ctx.clearRect(0, 0, w, h);
+            
+            let slices = window.activeWheelSlices;
+            let numSlices = slices.length;
+            if(numSlices === 0) return;
+            
+            let sliceAngle = (2 * Math.PI) / numSlices;
+            
+            for (let i = 0; i < numSlices; i++) {
+                // تدوير المورصو باش يبدا من الفوق بالضبط
+                let startAngle = i * sliceAngle - (Math.PI / 2) - (sliceAngle / 2);
+                let endAngle = startAngle + sliceAngle;
+                
+                ctx.beginPath();
+                ctx.moveTo(radius, radius);
+                ctx.arc(radius, radius, radius, startAngle, endAngle);
+                ctx.closePath();
+                
+                // التلوين
+                ctx.fillStyle = (slices[i] === "عاود الكرّة 🔄") ? "#333" : window.wheelColors[i % window.wheelColors.length];
+                ctx.fill();
+                ctx.lineWidth = 3; ctx.strokeStyle = "#fff"; ctx.stroke();
+                
+                // الكتيبة
+                ctx.save();
+                ctx.translate(radius, radius);
+                ctx.rotate(startAngle + sliceAngle / 2);
+                ctx.textAlign = "right"; ctx.fillStyle = "#fff"; ctx.font = "900 18px Cairo";
+                ctx.shadowColor = "rgba(0,0,0,0.8)"; ctx.shadowBlur = 4;
+                ctx.fillText(slices[i], radius - 15, 6);
+                ctx.restore();
+            }
+        };
 
         window.openWheelModal = function() {
+            window.refreshWheelData(); // رسم العجلة ديراكت
             document.getElementById('wheelOfFortuneModal').style.display = 'flex';
             let isReadOnly = currentUser && ['dj', 'assistant', 'assistant_anim', 'client'].includes(currentUser.role);
             if(isReadOnly) {
@@ -2174,13 +2236,13 @@
                 document.getElementById('spinWheelBtn').style.display = 'block';
                 document.getElementById('wheelDjNotice').style.display = 'none';
             }
-            document.getElementById('wheelResultBox').innerHTML = "في انتظار دوران العجلة...";
+            document.getElementById('wheelResultBox').innerHTML = window.activeWheelSlices.length === 1 ? "<span style='color:#E10600;'>المخزن فارغ تماماً! الرجاء إضافة فقرات جديدة.</span>" : "في انتظار دوران العجلة...";
+            document.getElementById('spinWheelBtn').disabled = window.activeWheelSlices.length === 1;
         };
 
-        window.closeWheelModal = function() {
-            document.getElementById('wheelOfFortuneModal').style.display = 'none';
-        };
+        window.closeWheelModal = function() { document.getElementById('wheelOfFortuneModal').style.display = 'none'; };
 
+        // 3. الدوران وإرسال الإشارة للـ DJ
         window.spinTheWheel = function() {
             let btn = document.getElementById('spinWheelBtn');
             btn.disabled = true; btn.style.animation = 'none'; btn.innerText = '🌀 جاري الدوران...';
@@ -2193,16 +2255,22 @@
 
             if (currentUser && ['animateur', 'admin', 'admin_assistant'].includes(currentUser.role)) {
                 let path = isArchivedEvent ? 'BechaEventsData/archived_events/'+currentEventIndex : 'BechaEventsData/events/'+currentEventIndex;
-                db.ref(path + '/wheelSync').set({ deg: window.currentWheelDeg, time: randomTime, timestamp: Date.now() });
+                // نبعثو الزاوية، الوقت، و الأقسام المتبقية باش الـ DJ يرسم نفس العجلة
+                db.ref(path + '/wheelSync').set({ 
+                    deg: window.currentWheelDeg, 
+                    time: randomTime, 
+                    slices: window.activeWheelSlices,
+                    timestamp: Date.now() 
+                });
             }
 
             executeSpinAnimation(window.currentWheelDeg, randomTime);
         };
 
         window.executeSpinAnimation = function(deg, time) {
-            let wheelImg = document.getElementById('spinWheelImg');
-            wheelImg.style.transition = `transform ${time}ms cubic-bezier(0.25, 0.1, 0.15, 1)`;
-            wheelImg.style.transform = `rotate(${deg}deg)`;
+            let wheelContainer = document.getElementById('dynamicWheelContainer');
+            wheelContainer.style.transition = `transform ${time}ms cubic-bezier(0.25, 0.1, 0.15, 1)`;
+            wheelContainer.style.transform = `rotate(${deg}deg)`;
 
             setTimeout(() => {
                 calculateWheelResult(deg);
@@ -2211,61 +2279,79 @@
             }, time);
         };
 
-        // 3. قراءة الإبرة حسب تصميم الصورة (cercle jeux2.jpg)
+        // 4. الحساب الرياضي للإبرة
         window.calculateWheelResult = function(deg) {
-            let actualDeg = deg % 360;
-            let sections = ["غني", "شكرا", "تحدي", "عاود", "يتم", "هدية", "نكتة", "مسابقة"];
-            let index = Math.floor(((actualDeg + 22.5) % 360) / 45) % 8;
-            let result = sections[index];
-
+            let numSlices = window.activeWheelSlices.length;
+            let sliceDeg = 360 / numSlices;
+            // المعادلة السحرية لحساب الـ Index الصحيح حسب الدوران
+            let actualDeg = (360 - (deg % 360)) % 360; 
+            let index = Math.floor(((actualDeg + (sliceDeg / 2)) % 360) / sliceDeg) % numSlices;
+            
+            let result = window.activeWheelSlices[index];
             let resultBox = document.getElementById('wheelResultBox');
             
-            if(result === "عاود") {
+            if(result === "عاود الكرّة 🔄") {
                 resultBox.innerHTML = `<span style="color:#17a2b8; font-size:28px;">🔄 عاود الكرّة! الزهر ما حبكش</span>`;
                 window.playBeepSound('buzzer');
-            } else if (result === "شكرا" || result === "يتم" || result === "هدية") {
-                resultBox.innerHTML = `<span style="color:#ff9800; font-size:28px;">🎁 ${result}</span>`;
-                window.playBeepSound('success');
             } else {
-                resultBox.innerHTML = `<span style="color:#198754; font-size:24px;">🎯 النتيجة: <b>${result}</b></span><br><button class="btn btn-outline" style="border-color:#198754; color:#198754; margin-top:10px; width:100%;" onclick="fetchSmartLibraryItem('${result}')">📦 سحب فقرة جديدة من المخزن</button>`;
+                resultBox.innerHTML = `<span style="color:#198754; font-size:24px;">🎯 النتيجة: <b>${result}</b></span><br><button class="btn btn-outline" style="border-color:#198754; color:#198754; margin-top:10px; width:100%;" onclick="fetchSmartLibraryItem('${result}')">📦 سحب الفقرة من المخزن وبدء التحدي</button>`;
                 window.playBeepSound('success');
             }
         };
 
-        // 4. نظام المخزن والحرق (لا تكرار للفقرات)
+        // 5. سحب اللعبة وحرقها آلياً في Firebase
         window.fetchSmartLibraryItem = function(sectionType) {
             let availableItems = Object.keys(libraryData).map(k => ({id: k, ...libraryData[k]})).filter(item => {
-                return (item.type.includes(sectionType) || item.name.includes(sectionType)) && !window.usedWheelItems.includes(item.id);
+                let type = item.type === 'أخرى' ? (item.customType || 'متنوع') : item.type;
+                return type === sectionType && !window.usedWheelItems.includes(item.id);
             });
 
             let resultBox = document.getElementById('wheelResultBox');
             if(availableItems.length > 0) {
                 let selected = availableItems[0];
-                window.usedWheelItems.push(selected.id); 
+                
+                // 📡 الضربة السحرية: نسجلو اللعبة المحروقة في الـ Firebase ديراكت
+                let path = isArchivedEvent ? 'BechaEventsData/archived_events/'+currentEventIndex : 'BechaEventsData/events/'+currentEventIndex;
+                let updatedUsedItems = [...window.usedWheelItems, selected.id];
+                db.ref(path + '/usedWheelItems').set(updatedUsedItems);
+                
                 resultBox.innerHTML = `<div style="color:#fff; text-align:right; width:100%;">
                     <h3 style="color:#ffc107; margin-top:0; border-bottom:1px dashed #555; padding-bottom:5px;">⭐ ${selected.name}</h3>
                     <p style="font-size:16px; margin:5px 0;">🎤 <b>المنشط:</b> ${selected.animText || '---'}</p>
                     <p style="font-size:14px; margin:5px 0; color:#aaa;">🎧 <b>DJ:</b> ${selected.djText || '---'}</p>
-                </div>`;
-            } else {
-                resultBox.innerHTML = `<span style="color:#E10600; font-size:16px;">⚠️ مخزن "${sectionType}" فارغ! لم يتبق ألعاب جديدة هنا.</span><br><button class="btn btn-outline" style="border-color:#ffc107; color:#ffc107; margin-top:10px; width:100%;" onclick="spinTheWheel()">🔄 زحلقة إجبارية (دور مرة أخرى)</button>`;
+                </div><div style="color:#17a2b8; font-size:12px; margin-top:10px;">تم تسجيل الحذف في قاعدة البيانات ✔️</div>`;
             }
         };
 
-        // 5. استقبال إشارة الـ DJ (المرآة السحرية للعجلة)
+        // 6. رادار الـ DJ والذاكرة الحية للعجلة
         window.wheelSyncListenerRef = null;
+        window.wheelMemoryListenerRef = null;
+
         window.startWheelSyncListener = function() {
             let path = isArchivedEvent ? 'BechaEventsData/archived_events/'+currentEventIndex : 'BechaEventsData/events/'+currentEventIndex;
-            if(window.wheelSyncListenerRef) db.ref(path + '/wheelSync').off('value', window.wheelSyncListenerRef);
             
+            // أ. رادار الحركة (الدوران) - خاص بالـ DJ
+            if(window.wheelSyncListenerRef) db.ref(path + '/wheelSync').off('value', window.wheelSyncListenerRef);
             window.wheelSyncListenerRef = db.ref(path + '/wheelSync').on('value', snap => {
                 let data = snap.val();
                 if (data && currentUser && ['dj', 'assistant', 'client'].includes(currentUser.role)) {
+                    window.activeWheelSlices = data.slices || [];
                     if(document.getElementById('wheelOfFortuneModal').style.display !== 'flex') {
                         window.openWheelModal();
                     }
+                    window.drawDynamicWheel(); 
                     document.getElementById('wheelResultBox').innerHTML = "جاري اختيار التحدي... 🥁";
                     executeSpinAnimation(data.deg, data.time);
+                }
+            });
+
+            // ب. رادار الذاكرة (الألعاب المحروقة) - يخدم للناس الكل (منشط + DJ)
+            if(window.wheelMemoryListenerRef) db.ref(path + '/usedWheelItems').off('value', window.wheelMemoryListenerRef);
+            window.wheelMemoryListenerRef = db.ref(path + '/usedWheelItems').on('value', snap => {
+                window.usedWheelItems = snap.val() || [];
+                // كان العجلة محلولة، نعاودو نرسموها باش تتقلص لايف عند الناس الكل
+                if(document.getElementById('wheelOfFortuneModal').style.display === 'flex') {
+                    window.refreshWheelData();
                 }
             });
         };
