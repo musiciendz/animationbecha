@@ -230,7 +230,7 @@
     </div>
 
     <div id="a4PreviewModal" class="modal-overlay" style="z-index: 12000;">
-        <div style="background: white; border-radius: 10px; overflow: hidden; max-width: 700px; width: 95%;">
+        <div style="background: white; border-radius: 10px; overflow-y: auto; max-height: 90vh; max-width: 700px; width: 95%;">
             <div id="a4Paper">
                 <h1 style="color: var(--primary-red); margin: 0; font-size: 28px;">BECHA EVENTS KIDS</h1>
                 <h3 style="margin: 5px 0 20px 0; color: #555; border-bottom: 2px dashed #ccc; padding-bottom: 10px;" id="a4InstName">برنامج حفل: --</h3>
@@ -817,24 +817,20 @@
             container.insertAdjacentHTML('beforeend', html); updateNumbers();
         }
 
-        // الحسّاس اللي يفيق بالتبديل في القائمة
-       // 👁️ الحسّاس اللي يفيق بالتبديل في القائمة (نسخة مطورة)
+       // 👁️ الحسّاس اللي يفيق بالتبديل في القائمة (حماية قصوى)
         window.toggleRowFields = function(sel) {
             let row = sel.closest('.prog-row'); 
             let val = sel.value;
             let otherInput = row.querySelector('.other-type'); 
             
-            // إظهار/إخفاء خانة "أخرى"
             otherInput.style.display = (val === 'أخرى') ? 'block' : 'none';
 
-            // نتأكدو اللي المستعمل مدير (خاطر العميل ما يشوفش المكتبة)
+            // 🛑 الحماية القصوى: العميل عمرو ما يرى المكتبة
             let isManager = currentUser && currentUser.role !== 'client';
 
-            // 1. إظهار/إخفاء الزر القديم (كان مازال موجود)
             let oldLibBtn = row.querySelector('.inline-lib-btn');
             if (oldLibBtn) oldLibBtn.style.display = (val === 'فقرة تنشيطية' && isManager) ? 'block' : 'none';
 
-            // 2. إظهار/إخفاء الزر الجديد في المحرر الذكي (Mini-Word)
             let smartLibBtn = row.querySelector('.smart-lib-btn');
             if (smartLibBtn) smartLibBtn.style.display = (val === 'فقرة تنشيطية' && isManager) ? 'inline-block' : 'none';
         };
@@ -875,9 +871,15 @@
                 let custom = type === 'أخرى' ? r.querySelector('.other-type').value.trim() : ''; 
                 let rawDet = r.querySelector('.prog-details').value.trim(); 
                 
-                // تنظيف الكود السري للطباعة (باش العميل ما يشوفش كلمة LIB)
+                // 🛑 السر القاضي: الطباعة للجمهور! أي فقرة تنشيطية تتفسخ تفاصيلها للتشويق
                 let cleanDet = rawDet;
-                if (cleanDet.startsWith('LIB::')) { let parts = cleanDet.split('::'); cleanDet = parts[2] || 'فقرة تنشيطية'; }
+                if (type === 'فقرة تنشيطية') {
+                    cleanDet = ''; // فارغة تماماً (الجمهور ما يشوف شيء)
+                } else {
+                    // تنظيف أي أكواد للفقرات الأخرى إن وجدت
+                    let libMatch = cleanDet.match(/LIB::([^:<]+)::([^<]+)/); 
+                    if (libMatch) { cleanDet = libMatch[2].trim(); }
+                }
 
                 tableHtml += `<tr><td>${i+1}</td><td style="font-weight:bold;">${custom || type}</td>`;
                 if (hasAnyDetails) tableHtml += `<td>${cleanDet}</td>`;
