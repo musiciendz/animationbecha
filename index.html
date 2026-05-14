@@ -1951,11 +1951,14 @@
             document.getElementById('fsContent').innerHTML = contentHtml;
         };
 
-        // 5. دوال لوحة التحكم الحية (الكرونو + النقاط)
+       // 5. دوال لوحة التحكم الحية (المرآة السحرية للـ DJ)
         window.renderLiveTools = function(hasScore, hasChrono) {
             let container = document.getElementById('liveToolsContainer');
             if(!container) return;
             let html = '';
+            
+            // 🛑 هل المستخدم مجرد متفرج (DJ أو مساعد أو عميل)؟
+            let isReadOnly = currentUser && ['dj', 'assistant', 'assistant_anim', 'client'].includes(currentUser.role);
 
             // ⏱️ الكرونو
             if(hasChrono) {
@@ -1964,11 +1967,14 @@
                 let mins = Math.floor(window.liveGameStats.chrono / 60).toString().padStart(2, '0');
                 let secs = (window.liveGameStats.chrono % 60).toString().padStart(2, '0');
 
-                html += `
-                <div style="text-align:center; margin-bottom:20px; padding-bottom:20px; border-bottom:${hasScore?'1px dashed #444':'none'};">
+                html += `<div style="text-align:center; margin-bottom:20px; padding-bottom:20px; border-bottom:${hasScore?'1px dashed #444':'none'};">
                     <div class="${blinkClass}" style="font-size:70px; font-weight:900; color:${chronoColor}; font-family:monospace; line-height:1; margin-bottom:15px; text-shadow:0 0 10px ${chronoColor};">
                         ${mins}:${secs}
-                    </div>
+                    </div>`;
+                
+                // أزرار التحكم في الكرونو تظهر كان للمنشط/المدير
+                if(!isReadOnly) {
+                    html += `
                     <div style="display:flex; justify-content:center; gap:10px; flex-wrap:wrap; margin-bottom:15px;">
                         <button class="btn btn-outline" style="border-color:#aaa; color:#aaa;" onclick="window.setLiveChrono(30)">30ث</button>
                         <button class="btn btn-outline" style="border-color:#aaa; color:#aaa;" onclick="window.setLiveChrono(60)">1دق</button>
@@ -1983,40 +1989,42 @@
                             `<button class="btn btn-red" style="font-size:20px; padding:10px 30px;" onclick="window.pauseLiveChrono()">⏸️ إيقاف</button>`
                         }
                         <button class="btn btn-dark" style="font-size:20px; padding:10px 20px;" onclick="window.resetLiveChrono()">🔄 تصفير</button>
-                    </div>
-                </div>`;
+                    </div>`;
+                } else {
+                    html += `<div style="color:#aaa; font-weight:bold;">👁️ وضع المراقبة (المنشط يتحكم في الوقت)</div>`;
+                }
+                html += `</div>`;
             }
 
             // 🏆 النقاط
             if(hasScore) {
                 let isFrozen = hasChrono && window.liveGameStats.isTimeUp;
-                html += `
-                <div>
+                html += `<div>
                     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
                         <h3 style="color:#ffc107; margin:0;">🏆 النقاط</h3>
-                        <div>
+                        ${!isReadOnly ? `<div>
                             <button class="btn btn-green" onclick="window.addLivePlayer()">➕ بطل جديد</button>
                             <button class="btn btn-outline" style="border-color:#dc3545; color:#dc3545;" onclick="window.resetLiveScoreboard()">🔄 طرح جديد</button>
-                        </div>
+                        </div>` : ''}
                     </div>
                     <div style="display:flex; gap:15px; overflow-x:auto; padding-bottom:10px; justify-content:center;">`;
 
                 if(window.liveGameStats.players.length === 0) {
-                    html += `<div style="color:#777;">اضغط "بطل جديد" لإضافة المشاركين للركح.</div>`;
+                    html += `<div style="color:#777;">${!isReadOnly ? 'اضغط "بطل جديد" لإضافة المشاركين للركح.' : 'في انتظار المنشط لإضافة المشاركين...'}</div>`;
                 }
 
                 window.liveGameStats.players.forEach((p, idx) => {
                     html += `
                     <div style="background:#2b2b2b; border:2px solid ${isFrozen ? '#E10600' : '#ff9800'}; border-radius:12px; padding:15px; min-width:140px; text-align:center; position:relative; opacity:${isFrozen?'0.7':'1'}; transition:0.3s;">
-                        <button onclick="window.removeLivePlayer(${idx})" style="position:absolute; top:5px; left:5px; background:transparent; border:none; color:#dc3545; cursor:pointer; font-size:16px;">❌</button>
-                        <input type="text" value="${p.name}" onchange="window.editLivePlayerName(${idx}, this.value)" style="background:transparent; border:none; border-bottom:1px solid #555; color:white; font-size:18px; font-weight:bold; text-align:center; width:90%; font-family:'Cairo'; margin-bottom:10px; padding-bottom:5px;">
+                        ${!isReadOnly ? `<button onclick="window.removeLivePlayer(${idx})" style="position:absolute; top:5px; left:5px; background:transparent; border:none; color:#dc3545; cursor:pointer; font-size:16px;">❌</button>` : ''}
+                        <input type="text" value="${p.name}" onchange="window.editLivePlayerName(${idx}, this.value)" style="background:transparent; border:none; border-bottom:1px solid #555; color:white; font-size:18px; font-weight:bold; text-align:center; width:90%; font-family:'Cairo'; margin-bottom:10px; padding-bottom:5px;" ${isReadOnly ? 'disabled' : ''}>
                         <div style="font-size:45px; font-weight:900; color:${p.score > 0 ? '#198754' : (p.score < 0 ? '#dc3545' : 'white')}; margin-bottom:15px; line-height:1;">
                             ${p.score}
                         </div>
-                        <div style="display:flex; gap:5px;">
+                        ${!isReadOnly ? `<div style="display:flex; gap:5px;">
                             <button class="btn btn-green" style="flex:1; font-size:24px; padding:0;" onclick="window.changeLiveScore(${idx}, 1)" ${isFrozen?'disabled':''}>+</button>
                             <button class="btn btn-red" style="flex:1; font-size:24px; padding:0;" onclick="window.changeLiveScore(${idx}, -1)" ${isFrozen?'disabled':''}>-</button>
-                        </div>
+                        </div>` : ''}
                     </div>`;
                 });
                 html += `</div>`;
@@ -2026,14 +2034,19 @@
             container.innerHTML = html;
         };
 
+        // 📡 إرسال البيانات للـ Firebase (المنشط يبث للـ DJ)
+        window.syncLiveGameToFirebase = function() {
+            if (currentUser && ['animateur', 'admin', 'admin_assistant'].includes(currentUser.role)) {
+                let path = isArchivedEvent ? 'BechaEventsData/archived_events/'+currentEventIndex : 'BechaEventsData/events/'+currentEventIndex;
+                db.ref(path + '/liveGameStats').set(window.liveGameStats);
+            }
+        };
+
         window.addLivePlayer = function() { window.liveGameStats.players.push({name: `مشارك ${window.liveGameStats.players.length + 1}`, score: 0}); window.refreshLiveTools(); };
         window.removeLivePlayer = function(idx) { window.liveGameStats.players.splice(idx, 1); window.refreshLiveTools(); };
-        window.editLivePlayerName = function(idx, newName) { window.liveGameStats.players[idx].name = newName; };
+        window.editLivePlayerName = function(idx, newName) { window.liveGameStats.players[idx].name = newName; window.syncLiveGameToFirebase(); };
         window.changeLiveScore = function(idx, delta) { window.liveGameStats.players[idx].score += delta; if(delta > 0) window.playBeepSound('success'); window.refreshLiveTools(); };
-        window.resetLiveScoreboard = function() {
-            if(confirm("تحب تصفر النقاط فقط؟\n(اضغط Cancel كان تحب تفسخ الأسامي زادة)")) { window.liveGameStats.players.forEach(p => p.score = 0); } 
-            else { window.liveGameStats.players = []; } window.refreshLiveTools();
-        };
+        window.resetLiveScoreboard = function() { if(confirm("تحب تصفر النقاط فقط؟\n(اضغط Cancel كان تحب تفسخ الأسامي زادة)")) { window.liveGameStats.players.forEach(p => p.score = 0); } else { window.liveGameStats.players = []; } window.refreshLiveTools(); };
 
         window.setLiveChrono = function(sec) { window.liveGameStats.chrono = sec; window.liveGameStats.isTimeUp = false; window.refreshLiveTools(); };
         window.adjustLiveChrono = function(sec) { window.liveGameStats.chrono += sec; if(window.liveGameStats.chrono < 0) window.liveGameStats.chrono = 0; window.liveGameStats.isTimeUp = false; window.refreshLiveTools(); };
@@ -2059,6 +2072,33 @@
             let p = window.currentFsLibParts[window.currentFsSubIndex]; if(!p) return;
             let m = p.match(/LIB::([^:<]+)::([^<]+)/);
             if(m && libraryData[m[1]]) { window.renderLiveTools(libraryData[m[1]].hasScore, libraryData[m[1]].hasChrono); }
+            window.syncLiveGameToFirebase(); // 📡 تحديث الـ DJ بعد أي تغيير
+        };
+
+        // 📺 استقبال البيانات للـ DJ (المرآة السحرية)
+        window.liveGameListenerRef = null;
+        window.startLiveGameListener = function() {
+            let path = isArchivedEvent ? 'BechaEventsData/archived_events/'+currentEventIndex : 'BechaEventsData/events/'+currentEventIndex;
+            if(window.liveGameListenerRef) db.ref(path + '/liveGameStats').off('value', window.liveGameListenerRef);
+            
+            window.liveGameListenerRef = db.ref(path + '/liveGameStats').on('value', snap => {
+                let data = snap.val();
+                if (data && currentUser && ['dj', 'assistant', 'assistant_anim', 'client'].includes(currentUser.role)) {
+                    // الـ DJ يقرأ البيانات الجاية ويسمع التيك تاك
+                    if(data.chrono <= 10 && data.chrono > 0 && data.isChronoRunning && data.chrono !== window.liveGameStats.chrono) window.playBeepSound('tick');
+                    if(data.isTimeUp && !window.liveGameStats.isTimeUp) window.playBeepSound('buzzer');
+                    
+                    window.liveGameStats = data;
+                    if(document.getElementById('fullscreenTeleprompter').style.display === 'flex') {
+                        let container = document.getElementById('liveToolsContainer');
+                        if(container) {
+                            let p = window.currentFsLibParts[window.currentFsSubIndex]; if(!p) return;
+                            let m = p.match(/LIB::([^:<]+)::([^<]+)/);
+                            if(m && libraryData[m[1]]) { window.renderLiveTools(libraryData[m[1]].hasScore, libraryData[m[1]].hasChrono); }
+                        }
+                    }
+                }
+            });
         };
     </script>
 </body>
