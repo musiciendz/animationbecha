@@ -2106,50 +2106,63 @@
            🎡 نظام دائرة الحظ التفاعلية (الروليت) + المرآة السحرية للـ DJ 
            ========================================================= */
         
-        // 1. زراعة الواجهة والفلسة العائمة أوتوماتيكياً في الصفحة
-        setTimeout(() => {
-            let wheelHtml = `
-            <!-- الفلسة العائمة للمنشط (تظهر كان فوق الركح) -->
-            <button id="floatingWheelBtn" onclick="openWheelModal()" style="display:none; position:fixed; bottom:90px; left:20px; width:60px; height:60px; border-radius:50%; background:#ffc107; color:#333; font-size:30px; border:3px solid #fff; box-shadow:0 5px 15px rgba(0,0,0,0.4); z-index:9000; cursor:pointer; transition:0.3s; padding:0; line-height:1;">🎡</button>
+        // 1. زراعة الواجهة والأزرار الثابتة أوتوماتيكياً في الصفحة
+        setInterval(() => {
+            // أ. زراعة نافذة العجلة (Modal)
+            if(!document.getElementById('wheelOfFortuneModal')) {
+                let wheelModalHtml = `
+                <div id="wheelOfFortuneModal" class="modal-overlay" style="z-index: 130000;">
+                    <div class="modal-box" style="text-align: center; background: #111; border: 4px solid #ffc107; max-width: 600px; width:95%;">
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 20px;">
+                            <h2 style="color: #ffc107; margin: 0;">🎡 عجلة الحظ والتحديات</h2>
+                            <button class="btn btn-dark" onclick="closeWheelModal()">❌ إغلاق</button>
+                        </div>
+                        
+                        <div style="position: relative; width: 280px; height: 280px; margin: 0 auto 30px auto;">
+                            <div style="position: absolute; top: -15px; left: 50%; transform: translateX(-50%); width: 0; height: 0; border-left: 15px solid transparent; border-right: 15px solid transparent; border-top: 35px solid #E10600; z-index: 10; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5));"></div>
+                            <img id="spinWheelImg" src="cercle jeux2.jpg" style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover; transition: transform cubic-bezier(0.25, 0.1, 0.15, 1); box-shadow: 0 0 20px rgba(255,193,7,0.4);">
+                        </div>
 
-            <!-- نافذة العجلة العملاقة -->
-            <div id="wheelOfFortuneModal" class="modal-overlay" style="z-index: 130000;">
-                <div class="modal-box" style="text-align: center; background: #111; border: 4px solid #ffc107; max-width: 600px; width:95%;">
-                    <div style="display: flex; justify-content: space-between; margin-bottom: 20px;">
-                        <h2 style="color: #ffc107; margin: 0;">🎡 عجلة الحظ والتحديات</h2>
-                        <button class="btn btn-dark" onclick="closeWheelModal()">❌ إغلاق</button>
-                    </div>
-                    
-                    <div style="position: relative; width: 280px; height: 280px; margin: 0 auto 30px auto;">
-                        <!-- الإبرة الحمراء -->
-                        <div style="position: absolute; top: -15px; left: 50%; transform: translateX(-50%); width: 0; height: 0; border-left: 15px solid transparent; border-right: 15px solid transparent; border-top: 35px solid #E10600; z-index: 10; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5));"></div>
-                        <!-- العجلة (الصورة) -->
-                        <img id="spinWheelImg" src="cercle jeux2.jpg" style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover; transition: transform cubic-bezier(0.25, 0.1, 0.15, 1); box-shadow: 0 0 20px rgba(255,193,7,0.4);">
-                    </div>
+                        <button id="spinWheelBtn" class="btn btn-green" style="font-size: 24px; padding: 15px 30px; width: 100%; font-weight: 900; animation: pulse 1.5s infinite; box-shadow: 0 5px 15px rgba(25,135,84,0.5);" onclick="spinTheWheel()">🎲 آه لو لعبت يا زهر!</button>
+                        
+                        <div id="wheelDjNotice" style="display: none; color: #17a2b8; font-size: 18px; font-weight: bold; margin-top: 15px;">👁️ وضع المراقبة (المنشط يتحكم في العجلة)</div>
 
-                    <!-- زر المنشط -->
-                    <button id="spinWheelBtn" class="btn btn-green" style="font-size: 24px; padding: 15px 30px; width: 100%; font-weight: 900; animation: pulse 1.5s infinite; box-shadow: 0 5px 15px rgba(25,135,84,0.5);" onclick="spinTheWheel()">🎲 آه لو لعبت يا زهر!</button>
-                    
-                    <!-- رسالة وضع المراقبة للـ DJ -->
-                    <div id="wheelDjNotice" style="display: none; color: #17a2b8; font-size: 18px; font-weight: bold; margin-top: 15px;">👁️ وضع المراقبة (المنشط يتحكم في العجلة)</div>
-
-                    <!-- صندوق النتيجة والمخزن -->
-                    <div id="wheelResultBox" style="margin-top: 20px; padding: 15px; background: #222; border: 2px dashed #555; border-radius: 10px; color: white; font-size: 20px; font-weight: bold; min-height: 60px; display: flex; align-items: center; justify-content: center; flex-direction: column;">
-                        في انتظار دوران العجلة...
+                        <div id="wheelResultBox" style="margin-top: 20px; padding: 15px; background: #222; border: 2px dashed #555; border-radius: 10px; color: white; font-size: 20px; font-weight: bold; min-height: 60px; display: flex; align-items: center; justify-content: center; flex-direction: column;">
+                            في انتظار دوران العجلة...
+                        </div>
                     </div>
-                </div>
-            </div>`;
-            document.body.insertAdjacentHTML('beforeend', wheelHtml);
-            
-            // إظهار الفلسة العائمة كان للمنشط والإدارة
-            if(currentUser && !['client', 'dj', 'assistant'].includes(currentUser.role)) {
-                document.getElementById('floatingWheelBtn').style.display = 'block';
+                </div>`;
+                document.body.insertAdjacentHTML('beforeend', wheelModalHtml);
             }
-        }, 1500);
+
+            // ب. زراعة الزر في واجهة الركح المباشر (Dashboard) بجنب زر الأسماء
+            let stageBtns = document.getElementById('stageActionButtons');
+            if (stageBtns && !document.getElementById('stageWheelBtn')) {
+                stageBtns.insertAdjacentHTML('beforeend', `<button id="stageWheelBtn" class="btn btn-outline" style="border-color:#ffc107; color:#ffc107; font-size:18px; padding:12px; font-weight:bold; flex:1;" onclick="openWheelModal()">🎡 دائرة الحظ</button>`);
+            }
+
+            // ج. زراعة الزر في الشاشة العملاقة (Plein Écran) بجنب الصاروخ
+            let fsHeaderControls = document.querySelector('.fs-header div');
+            if (fsHeaderControls && !document.getElementById('fsWheelBtn')) {
+                let exitBtn = fsHeaderControls.querySelector('.btn-red');
+                if(exitBtn) {
+                    exitBtn.insertAdjacentHTML('beforebegin', `<button id="fsWheelBtn" class="fs-zoom-btn" onclick="openWheelModal()" title="دائرة الحظ" style="color:#ffc107; margin-right:15px; font-size:26px;">🎡</button>`);
+                }
+            }
+
+            // د. إخفاء الأزرار على الـ DJ والعميل (باش نعطيو الصلاحية كان للمنشط)
+            let isReadOnly = currentUser && ['dj', 'assistant', 'assistant_anim', 'client'].includes(currentUser.role);
+            if(isReadOnly) {
+                let sBtn = document.getElementById('stageWheelBtn');
+                let fBtn = document.getElementById('fsWheelBtn');
+                if(sBtn && sBtn.style.display !== 'none') sBtn.style.display = 'none';
+                if(fBtn && fBtn.style.display !== 'none') fBtn.style.display = 'none';
+            }
+        }, 1000);
 
         // 2. محرك دوران العجلة (الفيزياء والتوقيت)
         window.currentWheelDeg = 0;
-        window.usedWheelItems = []; // مخزن الألعاب المحروقة
+        window.usedWheelItems = []; 
 
         window.openWheelModal = function() {
             document.getElementById('wheelOfFortuneModal').style.display = 'flex';
@@ -2173,14 +2186,11 @@
             btn.disabled = true; btn.style.animation = 'none'; btn.innerText = '🌀 جاري الدوران...';
             document.getElementById('wheelResultBox').innerHTML = "جاري اختيار التحدي... 🥁";
             
-            // وقت اعتباطي بين 3 و 6 ثواني (القنبلة الموقوتة)
             let randomTime = Math.floor(Math.random() * 3000) + 3000;
-            // دورات إضافية عشوائية + زاوية الوقوف
             let extraSpins = 5 * 360; 
             let randomAngle = Math.floor(Math.random() * 360);
             window.currentWheelDeg += extraSpins + randomAngle;
 
-            // 📡 إرسال الإشارة للـ DJ باش يتفرج لايف
             if (currentUser && ['animateur', 'admin', 'admin_assistant'].includes(currentUser.role)) {
                 let path = isArchivedEvent ? 'BechaEventsData/archived_events/'+currentEventIndex : 'BechaEventsData/events/'+currentEventIndex;
                 db.ref(path + '/wheelSync').set({ deg: window.currentWheelDeg, time: randomTime, timestamp: Date.now() });
@@ -2194,7 +2204,6 @@
             wheelImg.style.transition = `transform ${time}ms cubic-bezier(0.25, 0.1, 0.15, 1)`;
             wheelImg.style.transform = `rotate(${deg}deg)`;
 
-            // بعد ما تاقف العجلة، نحسبو النتيجة
             setTimeout(() => {
                 calculateWheelResult(deg);
                 let btn = document.getElementById('spinWheelBtn');
@@ -2205,9 +2214,7 @@
         // 3. قراءة الإبرة حسب تصميم الصورة (cercle jeux2.jpg)
         window.calculateWheelResult = function(deg) {
             let actualDeg = deg % 360;
-            // ترتيب الأقسام هندسياً عكس عقارب الساعة انطلاقاً من نقطة الصفر (غني)
             let sections = ["غني", "شكرا", "تحدي", "عاود", "يتم", "هدية", "نكتة", "مسابقة"];
-            // كل قسم 45 درجة، نزيدو 22.5 باش السنتر يجي مريقل
             let index = Math.floor(((actualDeg + 22.5) % 360) / 45) % 8;
             let result = sections[index];
 
@@ -2227,23 +2234,20 @@
 
         // 4. نظام المخزن والحرق (لا تكرار للفقرات)
         window.fetchSmartLibraryItem = function(sectionType) {
-            // نلوجو على ألعاب من نفس النوع وما تلعبوش قبل
             let availableItems = Object.keys(libraryData).map(k => ({id: k, ...libraryData[k]})).filter(item => {
                 return (item.type.includes(sectionType) || item.name.includes(sectionType)) && !window.usedWheelItems.includes(item.id);
             });
 
             let resultBox = document.getElementById('wheelResultBox');
             if(availableItems.length > 0) {
-                // سحب أول لعبة من المخزن وحرقها
                 let selected = availableItems[0];
-                window.usedWheelItems.push(selected.id); // 🔥 حرق اللعبة
+                window.usedWheelItems.push(selected.id); 
                 resultBox.innerHTML = `<div style="color:#fff; text-align:right; width:100%;">
                     <h3 style="color:#ffc107; margin-top:0; border-bottom:1px dashed #555; padding-bottom:5px;">⭐ ${selected.name}</h3>
                     <p style="font-size:16px; margin:5px 0;">🎤 <b>المنشط:</b> ${selected.animText || '---'}</p>
                     <p style="font-size:14px; margin:5px 0; color:#aaa;">🎧 <b>DJ:</b> ${selected.djText || '---'}</p>
                 </div>`;
             } else {
-                // كان المخزن فرغ، زحلقة ذكية (دور العجلة مرة أخرى)
                 resultBox.innerHTML = `<span style="color:#E10600; font-size:16px;">⚠️ مخزن "${sectionType}" فارغ! لم يتبق ألعاب جديدة هنا.</span><br><button class="btn btn-outline" style="border-color:#ffc107; color:#ffc107; margin-top:10px; width:100%;" onclick="spinTheWheel()">🔄 زحلقة إجبارية (دور مرة أخرى)</button>`;
             }
         };
@@ -2257,9 +2261,8 @@
             window.wheelSyncListenerRef = db.ref(path + '/wheelSync').on('value', snap => {
                 let data = snap.val();
                 if (data && currentUser && ['dj', 'assistant', 'client'].includes(currentUser.role)) {
-                    // الـ DJ يرى العجلة تدور بنفس التوقيت والزاوية
                     if(document.getElementById('wheelOfFortuneModal').style.display !== 'flex') {
-                        window.openWheelModal(); // تفتحلو العجلة أوتوماتيكيا كي المنشط يدورها
+                        window.openWheelModal();
                     }
                     document.getElementById('wheelResultBox').innerHTML = "جاري اختيار التحدي... 🥁";
                     executeSpinAnimation(data.deg, data.time);
