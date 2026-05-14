@@ -1176,21 +1176,10 @@
 
             el.addEventListener('input', () => { if(editor.innerHTML !== el.value) editor.innerHTML = el.value; });
 
-           // 🛑 السحر الجديد هوني: العسّاس اللي يفيق بالتعديل البرمجي (Sync Fix) - نسخة مصلحة
-            let proto = (el.tagName && el.tagName.toLowerCase() === 'textarea') ? HTMLTextAreaElement.prototype : HTMLInputElement.prototype;
-            const descriptor = Object.getOwnPropertyDescriptor(proto, 'value');
-            
-            if (descriptor) {
-                Object.defineProperty(el, 'value', {
-                    get: function() { return descriptor.get.call(this); },
-                    set: function(val) {
-                        descriptor.set.call(this, val); // يعبي الخانة القديمة
-                        if (editor.innerHTML !== val) {
-                            editor.innerHTML = val || ''; // يجبد الكتيبة للمربع الذكي ديراكت
-                        }
-                    }
-                });
-            }
+            wrapper.appendChild(toolbar);
+            wrapper.appendChild(editor);
+            el.parentNode.insertBefore(wrapper, el.nextSibling);
+        }
 
             wrapper.appendChild(toolbar);
             wrapper.appendChild(editor);
