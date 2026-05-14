@@ -1297,7 +1297,7 @@
 
         // 4. ميكانيكا الشاشة العملاقة (التنقل، التكبير، الساعة)
         let currentFsIndex = 0; let fsBaseFontSize = 32;
-        function openFsStep(idx) {
+       function openFsStep(idx) {
             if(!currentEventData || !currentEventData.eventProgram) return;
             let prog = currentEventData.eventProgram;
             if(idx < 0 || idx >= prog.length) return;
@@ -1306,9 +1306,9 @@
             let item = prog[idx];
             let displayType = item.type === 'أخرى' ? (item.customType || 'فقرة متنوعة') : item.type;
             let isDone = item.completed;
+            
+            // 1. تحديث العنوان مع حالة الانتهاء
             document.getElementById('fsTitle').innerText = `الفقرة ${idx+1}: ${displayType} ${isDone ? '(✅ انتهت)' : ''}`;
-            let fsContent = document.getElementById('fsContent');
-            fsContent.style.opacity = isDone ? '0.3' : '1'; // تولي باهتة كان وفات
             
             let contentHtml = ''; let rawDet = item.details || '';
             
@@ -1324,8 +1324,14 @@
                 contentHtml = rawDet; 
             }
             
-            let fsContent = document.getElementById('fsContent');
-            fsContent.innerHTML = contentHtml; fsContent.style.fontSize = fsBaseFontSize + 'px';
+            // 2. صبان المحتوى والتحكم في الشفافية (متغير معرّف مرة وحدة برك)
+            let fsContentElem = document.getElementById('fsContent');
+            fsContentElem.innerHTML = contentHtml; 
+            fsContentElem.style.fontSize = fsBaseFontSize + 'px';
+            
+            // تبهيت الشاشة كان الفقرة وفات
+            fsContentElem.style.opacity = isDone ? '0.3' : '1';
+            
             document.getElementById('fullscreenTeleprompter').style.display = 'flex';
             
             if(!window.fsClockInterval) {
