@@ -1177,26 +1177,24 @@
             let inputElem = document.getElementById(targetLibInputId);
             if(inputElem) {
                 let newVal = `LIB::${libId}::${libName}`;
+                let currentVal = inputElem.value || "";
                 
-                // 1. قاعدة القفة: أعمل فاصل وزيد اللعبة
-                if(inputElem.value && inputElem.value.includes('LIB::')) {
-                    if(!inputElem.value.includes(newVal)) {
-                        inputElem.value += '|||' + newVal; 
-                    }
-                } else {
+                // 1. نظام القفة: نلصقو اللعبة الجديدة بجنب القديمة
+                if (currentVal.includes('LIB::') && !currentVal.includes(newVal)) {
+                    inputElem.value = currentVal + '|||' + newVal; 
+                } else if (!currentVal.includes(newVal)) {
                     inputElem.value = newVal; 
                 }
                 
-                // 🛑 أمر عسكري: إخفاء الخانة القديمة فوراً
-                inputElem.style.display = 'none'; 
+                // 2. ⚡ الضربة الكهربائية: إجبار السيستام على تسجيل التغييرات (باش ما يفسخش القديم)
+                inputElem.setAttribute('value', inputElem.value);
+                inputElem.dispatchEvent(new Event('input', { bubbles: true }));
+                inputElem.dispatchEvent(new Event('change', { bubbles: true }));
                 
-                // 🎨 استدعاء الرسّام
-                if(typeof window.renderLibTags === 'function') {
-                    window.renderLibTags(targetLibInputId);
-                }
+                // 3. تصفير الرادار باش يفيق ويعاود يرسم البادجات الجدد ديراكت
+                inputElem.dataset.renderedVal = ''; 
             }
         }
-        // تسكير نافذة المكتبة
         document.getElementById('libSelectModal').style.display = 'none';
         }
         /* =========================================================
