@@ -1347,7 +1347,7 @@
         function navigateFs(dir) { let prog = currentEventData.eventProgram; let nextIdx = currentFsIndex + dir; if(nextIdx >= 0 && nextIdx < prog.length) openFsStep(nextIdx); }
         function zoomFsText(dir) { fsBaseFontSize += (dir * 4); if(fsBaseFontSize < 16) fsBaseFontSize = 16; if(fsBaseFontSize > 80) fsBaseFontSize = 80; document.getElementById('fsContent').style.fontSize = fsBaseFontSize + 'px'; }
 
-        // 5. تعديل دالة جلب فقرة من المكتبة باش تقراها الخانة الذكية
+        // 5. تعديل دالة جلب فقرة من المكتبة باش تقراها الخانة الذكية (النسخة المصفحة)
         window.selectLibItemForProg = function(libId, libName) {
             let currentRows = document.querySelectorAll('.prog-row'); let isDuplicated = false; let dupIndex = -1;
             currentRows.forEach((row, i) => { let detailsInput = row.querySelector('.prog-details').value; if(detailsInput.includes(libName)) { isDuplicated = true; dupIndex = i + 1; } });
@@ -1356,8 +1356,23 @@
             if(targetLibInputId) {
                 let inputElem = document.getElementById(targetLibInputId);
                 if(inputElem) {
-                    inputElem.value = `LIB::${libId}::${libName}`;
-                    inputElem.dispatchEvent(new Event('input', { bubbles: true })); // يعلم المربع الذكي اللي فمة تغيير
+                    let newVal = "LIB::" + libId + "::" + libName;
+                    let oldVal = inputElem.value || "";
+                    
+                    // 🛑 إلصاق الألعاب بجنب بعضهم بالفاصل |||
+                    if (oldVal.indexOf("LIB::") !== -1) {
+                        if (oldVal.indexOf(libId) === -1) {
+                            inputElem.value = oldVal + "|||" + newVal;
+                        }
+                    } else {
+                        inputElem.value = newVal;
+                    }
+                    
+                    // ⚡ إجبار السيستام على الحفظ وتحديث الرادار
+                    inputElem.setAttribute('value', inputElem.value);
+                    inputElem.dispatchEvent(new Event('input', { bubbles: true }));
+                    inputElem.dispatchEvent(new Event('change', { bubbles: true }));
+                    inputElem.dataset.renderedVal = ""; 
                 }
             }
             document.getElementById('libSelectModal').style.display = 'none';
