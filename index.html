@@ -181,6 +181,21 @@
             max-height: 85vh !important;
             overflow-y: auto !important;
         }
+        /* 🚨 نظام شارة الركح (Curtain Alert) */
+        @keyframes flashAlert {
+            0% { box-shadow: inset 0 0 0px transparent; }
+            50% { box-shadow: inset 0 0 30px #E10600, inset 0 0 80px #E10600; }
+            100% { box-shadow: inset 0 0 0px transparent; }
+        }
+        .curtain-alert-active { animation: flashAlert 1s infinite !important; }
+        #curtainBanner {
+            position: fixed; top: 0; left: 0; width: 100%; background: #E10600; color: white; text-align: center; font-size: 22px; font-weight: 900; padding: 15px; z-index: 999999; display: none; border-bottom: 4px solid #fff; box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+        }
+        
+        /* 👥 دليل الأسماء في الشاشة العملاقة */
+        #fsCheatSheet {
+            display: none; position: absolute; top: 75px; left: 20px; background: rgba(0,0,0,0.95); border: 2px solid #ffc107; border-radius: 12px; padding: 20px; min-width: 280px; color: white; z-index: 100000; font-size: 20px; line-height: 1.8; text-align: right; box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
     </style>
 </head>
 <body>
@@ -191,6 +206,8 @@
     <div id="watermarkContainer"></div>
     <!-- 🌟 الشاشة العملاقة للمنشط (Teleprompter) -->
     <div id="fullscreenTeleprompter">
+        <div id="curtainBanner"></div>
+    <div id="fsCheatSheet"></div>
         <div class="fs-header">
             <h2 id="fsTitle" class="fs-title">--</h2>
             <div style="display:flex; align-items:center;">
@@ -198,6 +215,7 @@
                 <span id="fsTimer" style="color:#17a2b8; font-size:22px; font-weight:bold; margin-left:20px; font-family: monospace;">00:00</span>
                 <button class="fs-zoom-btn" onclick="zoomFsText(1)" title="تكبير الخط">🔍+</button>
                 <button class="fs-zoom-btn" onclick="zoomFsText(-1)" title="تصغير الخط">🔍-</button>
+                <button class="fs-zoom-btn" onclick="toggleFsCheatSheet()" title="ورقة الأسماء" style="color:#ffc107; margin-right:15px;">👥</button>
                 <button class="btn btn-red" style="padding: 8px 15px; font-size:16px;" onclick="closeFullscreen()">❌ خروج</button>
             </div>
         </div>
@@ -557,6 +575,13 @@
             <button id="btnStartEvent" class="btn btn-green" style="width:100%; margin-bottom: 20px; font-size: 18px; padding: 15px; display: none; box-shadow: 0 4px 15px rgba(25, 135, 84, 0.4); animation: pulse 2s infinite;" onclick="startEventNow()">🎬 إعطاء شارة الانطلاق (فتح النظام)</button>
             <div id="clientStageNotice" style="display:none; background:#f0fdf4; color:#198754; padding:10px; border-radius:8px; margin-bottom:15px; font-weight:bold; font-size:14px; text-align:right;">🎬 الحفل بدأ بالفعل! يمكنك المتابعة من هنا.</div>
             <div id="stageContent">
+                <!-- 🎛️ أزرار التحكم السريع في الركح -->
+                <div id="stageActionButtons" style="display:flex; gap:10px; margin-bottom:15px; flex-wrap:wrap;">
+                    <button class="btn btn-dark" style="flex:1; font-size:18px; padding:12px; font-weight:bold;" onclick="startSmartFullscreen()">🖥️ الشاشة العملاقة (هبوط ذكي)</button>
+                    <button class="btn btn-info" style="font-size:18px; padding:12px; font-weight:bold;" onclick="showCheatSheetAlert()">👥 الأسماء</button>
+                </div>
+                <!-- 🚨 زر شارة فتح الستار -->
+                <button id="curtainTriggerBtn" class="btn btn-green" style="width:100%; margin-bottom:20px; font-size:20px; font-weight:bold; padding:15px; display:none; animation: pulse 2s infinite;" onclick="toggleCurtainAlert()">🚨 إعطاء شارة الانطلاق للركح</button>
                 <div id="teleprompterWrapper" style="background: #fffdf5; border: 3px solid #ffc107; border-radius: 15px; margin-bottom: 25px;">
                     <div style="padding:15px; background:#ffc107; color:#333; font-weight:900; font-size:18px; cursor:pointer; display:flex; justify-content:space-between; border-radius: 11px 11px 0 0;" onclick="toggleTeleprompter()"><span>🎤 الكلمة الترحيبية</span> <span id="teleIcon">➖</span></div>
                     <div id="teleprompterView" style="padding: 25px; font-size: 20px; line-height: 1.8; font-weight: 800; color: #222;"></div>
@@ -950,7 +975,18 @@
         }
         function startBackstageListener() { let path = isArchivedEvent ? 'BechaEventsData/archived_events/'+currentEventIndex : 'BechaEventsData/events/'+currentEventIndex; backstageProgRef = db.ref(path + '/eventProgram'); backstageProgRef.on('value', snap => { if(document.getElementById('backstageSection').style.display !== 'none') { let prog = snap.val() || []; let rows = document.querySelectorAll('.prog-row'); prog.forEach((p, i) => { if(rows[i]) { if(p.completed) rows[i].classList.add('locked'); else rows[i].classList.remove('locked'); } }); } }); }
 
-        function openStageLive() { renderTeleprompter(); let path = isArchivedEvent ? 'BechaEventsData/archived_events/'+currentEventIndex : 'BechaEventsData/events/'+currentEventIndex; liveProgRef = db.ref(path + '/eventProgram'); liveProgRef.on('value', snap => { let progData = snap.val() || []; currentEventData.eventProgram = progData; renderStageTimeline(progData); }); }
+        function openStageLive() { 
+            renderTeleprompter(); 
+            let path = isArchivedEvent ? 'BechaEventsData/archived_events/'+currentEventIndex : 'BechaEventsData/events/'+currentEventIndex; 
+            liveProgRef = db.ref(path + '/eventProgram'); 
+            liveProgRef.on('value', snap => { 
+                let progData = snap.val() || []; 
+                currentEventData.eventProgram = progData; 
+                renderStageTimeline(progData); 
+            }); 
+            // تشغيل عساس الشارة
+            monitorCurtainAlert();
+        }
         
         function renderTeleprompter() { 
             let d = currentEventData.institutionDetails || {}; let team = currentEventData.assignedTeam || []; let bechaTeam = team.filter(n => n !== "مديرة المؤسسة").join('، '); let hrs = new Date().getHours(); let timeWord = hrs < 12 ? 'صبحية' : (hrs < 18 ? 'عشوية' : 'سهرة'); let educatorsHtml = ''; if(d.educators && d.educators.length > 0) { educatorsHtml = '<br><br><b>تحية شكر وعرفان لكل أنيسة كانت أم ثانية لصغارنا:</b><br>'; let praises = ['يعطيك الصحة على كل لحظة تعب ومحبة! ❤️👏', 'شكراً على إبداعك وصبرك مع النجوم! 🌟👏', 'مجهود يذكر فيشكر.. برافو! 💐👏', 'تعبك ماراحش خسارة.. يعطيك ألف صحة! 🌸👏']; d.educators.forEach((edu, i) => { educatorsHtml += `- الأنيسة <b>${edu}</b>: ${praises[i % praises.length]}<br>`; }); } let coachesHtml = ''; if(d.coaches && d.coaches.length > 0) { coachesHtml = '<br><b>وتحية تقدير لمدربينا اللي ميزوا صغارنا بتأطيرهم:</b><br>'; d.coaches.forEach((c, i) => { coachesHtml += `- المدرب <b>${c.name}</b> (${c.spec}): يعطيك الصحة على المجهود والتميز! 🏅👏<br>`; }); } let staffHtml = ''; if(d.staff && d.staff.length > 0) { let staffNames = d.staff.map(s => s.name).join('، '); staffHtml = `<br><b>منساوش زادة الجنود الخفاء، تحية للعمّال والشركاء:</b><br>${staffNames}.. برافو ليكم الناس الكل! 🙌<br>`; }
@@ -1234,7 +1270,11 @@
                 }
 
                 // إضافة الزر السحري للمنشط والإدارة
+                let playBtnOpacity = item.completed ? '0.4' : '1';
                 let playBtn = '';
+                if(currentUser.role === 'animateur' || currentUser.role === 'admin' || currentUser.role === 'admin_assistant') {
+                    playBtn = `<button class="btn btn-dark" style="margin-right:10px; border-radius:10px; font-size:14px; padding:8px 12px; display:flex; align-items:center; gap:5px; opacity:${playBtnOpacity}; transition:0.3s;" onclick="event.stopPropagation(); openFsStep(${idx})">🖥️ عرض</button>`;
+                }
                 if(currentUser.role === 'animateur' || currentUser.role === 'admin' || currentUser.role === 'admin_assistant') {
                     playBtn = `<button class="btn btn-dark" style="margin-right:10px; border-radius:10px; font-size:14px; padding:8px 12px; display:flex; align-items:center; gap:5px;" onclick="event.stopPropagation(); openFsStep(${idx})">🖥️ عرض</button>`;
                 }
@@ -1265,7 +1305,10 @@
             
             let item = prog[idx];
             let displayType = item.type === 'أخرى' ? (item.customType || 'فقرة متنوعة') : item.type;
-            document.getElementById('fsTitle').innerText = `الفقرة ${idx+1}: ${displayType}`;
+            let isDone = item.completed;
+            document.getElementById('fsTitle').innerText = `الفقرة ${idx+1}: ${displayType} ${isDone ? '(✅ انتهت)' : ''}`;
+            let fsContent = document.getElementById('fsContent');
+            fsContent.style.opacity = isDone ? '0.3' : '1'; // تولي باهتة كان وفات
             
             let contentHtml = ''; let rawDet = item.details || '';
             
@@ -1375,7 +1418,106 @@
                 localStorage.setItem('bechaSmartProgTypes', JSON.stringify(savedTypes)); // يخبيها طول العمر
             }
         }
+        /* =========================================================
+           🚀 أنظمة الريجي الذكية (الأسماء، الشارة، الهبوط المظلي)
+           ========================================================= */
         
+        // 1. دليل الأسماء (Cheat Sheet)
+        function getNamesHtml() {
+            if(!currentEventData) return '';
+            let d = currentEventData.institutionDetails || {};
+            let html = `<b>المديرة:</b> ${d.managerName || '--'}<br>`;
+            if(d.founderName) html += `<b>الباعث:</b> ${d.founderName}<br>`;
+            if(d.educators && d.educators.length) html += `<b>المربيات:</b> ${d.educators.join('، ')}<br>`;
+            if(d.coaches && d.coaches.length) html += `<b>المدربون:</b> ${d.coaches.map(c=>c.name).join('، ')}<br>`;
+            if(d.staff && d.staff.length) html += `<b>العمال:</b> ${d.staff.map(s=>s.name).join('، ')}<br>`;
+            return html;
+        }
+        window.showCheatSheetAlert = function() {
+            alert("📋 قائمة الأسماء:\n\n" + getNamesHtml().replace(/<b>/g, '').replace(/<\/b>/g, '').replace(/<br>/g, '\n'));
+        };
+        window.toggleFsCheatSheet = function() {
+            let el = document.getElementById('fsCheatSheet');
+            if(el.style.display === 'block') { el.style.display = 'none'; }
+            else { el.innerHTML = `<h3 style="color:#ffc107; margin-top:0;">👥 أسماء المؤسسة</h3>` + getNamesHtml(); el.style.display = 'block'; }
+        };
+
+        // 2. الهبوط الذكي في الشاشة العملاقة (Auto-Jump)
+        window.startSmartFullscreen = function() {
+            if(!currentEventData || !currentEventData.eventProgram) return;
+            let prog = currentEventData.eventProgram;
+            let startIdx = 0;
+            // يلوج على أول فقرة مازالت ما وفاتش
+            for(let i=0; i<prog.length; i++) {
+                if(!prog[i].completed) { startIdx = i; break; }
+            }
+            openFsStep(startIdx);
+        };
+
+        // 3. نظام شارة الركح (الإنذار) مع الصلاحيات الصارمة
+        window.toggleCurtainAlert = function() {
+            let path = isArchivedEvent ? 'BechaEventsData/archived_events/'+currentEventIndex : 'BechaEventsData/events/'+currentEventIndex;
+            db.ref(path + '/curtainAlert').once('value').then(snap => {
+                let current = snap.val() || {active: false};
+                
+                if(current.active) {
+                    // 🛑 شكون ينجم يوقفها؟ كان المنشط والمدير
+                    if(currentUser.role === 'animateur' || currentUser.role === 'admin') {
+                        db.ref(path + '/curtainAlert').set({active: false});
+                    } else {
+                        alert("🛑 عذراً! المنشط أو المدير فقط يمكنهما إيقاف الشارة!");
+                    }
+                } else {
+                    // 🟢 شكون ينجم يشغلها؟ الإدارة، المساعدين، والـ DJ
+                    if(['admin', 'admin_assistant', 'assistant_anim', 'dj'].includes(currentUser.role)) {
+                        let roleAr = currentUser.role === 'admin' ? 'المدير' : currentUser.role === 'admin_assistant' ? 'مساعد المدير' : currentUser.role === 'assistant_anim' ? 'مساعد المنشط' : 'الـ DJ';
+                        db.ref(path + '/curtainAlert').set({active: true, senderName: currentUser.pseudo, senderRole: roleAr});
+                    } else {
+                        alert("🛑 ليس لديك صلاحية لإعطاء شارة الانطلاق!");
+                    }
+                }
+            });
+        };
+
+        let alertListener = null;
+        function monitorCurtainAlert() {
+            let path = isArchivedEvent ? 'BechaEventsData/archived_events/'+currentEventIndex : 'BechaEventsData/events/'+currentEventIndex;
+            if(alertListener) db.ref(path + '/curtainAlert').off('value', alertListener);
+            
+            alertListener = db.ref(path + '/curtainAlert').on('value', snap => {
+                let alertData = snap.val() || {active: false};
+                let banner = document.getElementById('curtainBanner');
+                let triggerBtn = document.getElementById('curtainTriggerBtn');
+                
+                // إظهار زر الإنذار كان للي عندهم الحق (مخفي على العميل)
+                if(triggerBtn && currentUser && currentUser.role !== 'client') {
+                    triggerBtn.style.display = 'block';
+                }
+
+                if(alertData.active) {
+                    document.body.classList.add('curtain-alert-active');
+                    document.getElementById('fullscreenTeleprompter').classList.add('curtain-alert-active');
+                    if(banner) {
+                        banner.innerHTML = `🚨 العرض جاهز! أمر بفتح الستار من طرف: ${alertData.senderName} (${alertData.senderRole}) 🚨`;
+                        banner.style.display = 'block';
+                    }
+                    if(triggerBtn) {
+                        triggerBtn.className = 'btn btn-red';
+                        triggerBtn.innerHTML = '🛑 إيقاف شارة الركح';
+                        triggerBtn.style.animation = 'none';
+                    }
+                } else {
+                    document.body.classList.remove('curtain-alert-active');
+                    document.getElementById('fullscreenTeleprompter').classList.remove('curtain-alert-active');
+                    if(banner) banner.style.display = 'none';
+                    if(triggerBtn) {
+                        triggerBtn.className = 'btn btn-green';
+                        triggerBtn.innerHTML = '🚨 إعطاء شارة الانطلاق للركح';
+                        triggerBtn.style.animation = 'pulse 2s infinite';
+                    }
+                }
+            });
+        }
     </script>
 </body>
 </html>
