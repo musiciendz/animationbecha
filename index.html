@@ -808,6 +808,8 @@
         function addStaff(r='', n='') { let d = !currentUser.perms.bs_edit ? 'disabled' : ''; let del = currentUser.perms.bs_edit ? `<button class="btn btn-red" onclick="this.parentElement.remove()">🗑</button>` : ''; document.getElementById('staffList').insertAdjacentHTML('beforeend', `<div style="display:flex; gap:10px; margin-bottom:10px;"><input type="text" class="staff-role" placeholder="الصفة" value="${r}" style="flex:1;" ${d}><input type="text" class="staff-name" placeholder="الاسم" value="${n}" style="flex:1;" ${d}>${del}</div>`); }
         
         function addProgramItem(t='', d='', comp=false, customType='') {
+            // 🛡️ حماية الكود من التكسير (Escape HTML Quotes)
+            let safeD = (typeof d === 'string') ? d.replace(/"/g, '&quot;') : '';
             // تحديث الاسم القديم أوتوماتيكياً للحفلات المسجلة
             if (t === 'تنشيط وألغاز') t = 'فقرة تنشيطية';
 
@@ -841,7 +843,7 @@
                 <input type="text" class="other-type" placeholder="نوع الفقرة..." value="${customType}" style="display:${showOther}; width:100%; margin-top:8px;" ${dis}>
                 
                 <div style="display:flex; gap:8px; margin-top:8px; align-items:center;">
-                    <input type="text" id="${inputId}" class="prog-details" placeholder="تفاصيل..." value="${d}" style="flex:1; ${clientSecretStyle}" ${dis}>
+                    <input type="text" id="${inputId}" class="prog-details" placeholder="تفاصيل..." value="${safeD}" style="flex:1;" ${dis}>
                     <button class="btn btn-outline inline-lib-btn" style="border-color:#ff9800; color:#ff9800; display:${showLibBtn}; padding: 10px;" onclick="openLibSelectModal('${inputId}')" ${dis}>✨</button>
                 </div>
                 ${clientSecretNotice}
