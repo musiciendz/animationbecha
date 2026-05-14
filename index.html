@@ -1176,8 +1176,10 @@
 
             el.addEventListener('input', () => { if(editor.innerHTML !== el.value) editor.innerHTML = el.value; });
 
-            // 🛑 السحر الجديد هوني: العسّاس اللي يفيق بالتعديل البرمجي (Sync Fix)
-            const descriptor = Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype, 'value') || Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value');
+           // 🛑 السحر الجديد هوني: العسّاس اللي يفيق بالتعديل البرمجي (Sync Fix) - نسخة مصلحة
+            let proto = (el.tagName && el.tagName.toLowerCase() === 'textarea') ? HTMLTextAreaElement.prototype : HTMLInputElement.prototype;
+            const descriptor = Object.getOwnPropertyDescriptor(proto, 'value');
+            
             if (descriptor) {
                 Object.defineProperty(el, 'value', {
                     get: function() { return descriptor.get.call(this); },
