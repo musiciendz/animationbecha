@@ -1769,18 +1769,49 @@
             modal.style.display = 'flex';
         };
 
-        window.playEmergencyGame = function(libId) {
+       window.playEmergencyGame = function(libId) {
             document.getElementById('fsEmergencyModal').style.display = 'none';
             let libData = libraryData[libId]; if(!libData) return;
             
             let contentHtml = `<div style="color:#0dcaf0; font-size:1.2em; margin-bottom:20px; border-bottom:2px solid #555; padding-bottom:10px;">🚀 ارتجال مباشر: ${libData.name}</div>`;
-            if(libData.animText) contentHtml += `<div style="color:#e3f2fd; margin-bottom:15px; line-height:1.6;">🎤 <b>نص المنشط:</b><br>${libData.animText}</div>`;
-            if(libData.djText) contentHtml += `<div style="color:#f3e5f5; font-size:0.8em; opacity:0.9; margin-top:30px;">🎧 <b>DJ:</b> ${libData.djText}</div>`;
-            if(libData.assistText) contentHtml += `<div style="color:#fff3e0; font-size:0.8em; opacity:0.9;">🏃‍♂️ <b>المساعد:</b> ${libData.assistText}</div>`;
+            if(libData.animText) contentHtml += `<div style="color:#e3f2fd; margin-bottom:15px; line-height:1.6;">🎤 <b>نص المنشط:</b><br>${libData.animText.replace(/\n/g,'<br>')}</div>`;
             
+            // 🎬 زر الكاريوكي السحري في الإرتجال
+            let isKaraoke = (libData.type === 'كاريوكي / فيديو' || libData.type === 'الأغنية المترجمة' || libData.name.includes('كاريوكي'));
+            if(isKaraoke && ['animateur', 'admin', 'admin_assistant'].includes(currentUser.role)) {
+                contentHtml += `
+                <div id="karaokeContainer" style="margin-top:30px; text-align:center; background:#1a1a1a; padding:20px; border-radius:15px; border:2px dashed #0dcaf0;">
+                    <label id="karaokeUploadLabel" class="btn btn-green" style="font-size:24px; padding:15px 30px; cursor:pointer; display:inline-block; animation: pulse 1.5s infinite;">
+                        📂 إختر فيديو الأغنية من الفلاشة (USB)
+                        <input type="file" accept="video/*" style="display:none;" onchange="window.loadLocalVideo(event)">
+                    </label>
+                    <div id="localVideoPlayerContainer" style="margin-top:20px; width:100%; display:none;">
+                        <video id="localVideoElement" controls style="width:100%; border-radius:15px; border:4px solid #ffc107; box-shadow:0 10px 30px rgba(0,0,0,0.5);"></video>
+                    </div>
+                </div>`;
+            }
+
+            let hasGame = false;
+            if(libData.hasChrono || libData.hasScore) {
+                hasGame = true; 
+                if(window.liveGameStats.activeLibId !== libId) {
+                    window.pauseLiveChrono(); 
+                    window.liveGameStats = { activeLibId: libId, players: [], chrono: 0, timerInterval: null, isChronoRunning: false, isTimeUp: false };
+                }
+                contentHtml += `<div id="liveToolsContainer" style="background:#1a1a1a; border:2px solid #555; border-radius:15px; padding:20px; margin-top:30px;"></div>`;
+                setTimeout(() => { window.renderLiveTools(libData.hasScore, libData.hasChrono); }, 50);
+            }
+
             document.getElementById('fsTitle').innerText = `🚀 فقرة ارتجال حي (خارج البرنامج الرسمي)`;
             document.getElementById('fsContent').innerHTML = contentHtml;
             document.getElementById('fsContent').style.opacity = '1';
+            document.getElementById('fullscreenTeleprompter').style.display = 'flex'; // تأكيد الفتح
+
+            // 📡 إرسال الإرتجال للـ DJ باش يختطفو
+            if (currentUser && ['animateur', 'admin', 'admin_assistant'].includes(currentUser.role)) {
+                let path = isArchivedEvent ? 'BechaEventsData/archived_events/'+currentEventIndex : 'BechaEventsData/events/'+currentEventIndex;
+                db.ref(path + '/djForceSync/game').set(hasGame ? { active: true, isEmergency: true, libId: libId } : { active: false });
+            }
         };
         /* =========================================
            🎨 رسّام البادجات (النسخة الإجبارية المضادة للأخطاء)
@@ -2461,6 +2492,8 @@
         window.djSyncListenerRef = null;
        // 4. رادار الإختطاف للـ DJ (الطيار الآلي المطور)
         window.djSyncListenerRef = null;
+        // 4. رادار الإختطاف للـ DJ (الطيار الآلي المطور للارتجال)
+        window.djSyncListenerRef = null;
         window.startDjSyncListener = function() {
             let path = isArchivedEvent ? 'BechaEventsData/archived_events/'+currentEventIndex : 'BechaEventsData/events/'+currentEventIndex;
             if(window.djSyncListenerRef) db.ref(path + '/djForceSync').off('value', window.djSyncListenerRef);
@@ -2489,12 +2522,17 @@
                                 </div>
                             </div>
                         `;
-                        return; // نوقفو اللوجيك هوني باش ما يتكتبش فوقو اللعبة
+                        return; 
                     }
 
-                    // 3. اختطاف الشاشة العملاقة للعبة
+                    // 3. اختطاف الشاشة العملاقة للعبة (برنامج أو ارتجال)
                     if (syncData.game && syncData.game.active) {
-                        if (window.currentFsIndex !== syncData.game.fsIndex || window.currentFsSubIndex !== syncData.game.subIndex || fsModal.style.display !== 'flex') {
+                        if (syncData.game.isEmergency) {
+                            // اختطاف الـ DJ للارتجال المباشر 🚀
+                            if (fsModal.style.display !== 'flex' || document.getElementById('fsTitle').innerText !== '🚀 فقرة ارتجال حي (خارج البرنامج الرسمي)') {
+                                window.playEmergencyGame(syncData.game.libId);
+                            }
+                        } else if (window.currentFsIndex !== syncData.game.fsIndex || window.currentFsSubIndex !== syncData.game.subIndex || fsModal.style.display !== 'flex') {
                             window.currentFsSubIndex = syncData.game.subIndex || 0;
                             window.openFsStep(syncData.game.fsIndex); 
                         }
