@@ -2255,7 +2255,10 @@
 
             if (currentUser && ['animateur', 'admin', 'admin_assistant'].includes(currentUser.role)) {
                 let path = isArchivedEvent ? 'BechaEventsData/archived_events/'+currentEventIndex : 'BechaEventsData/events/'+currentEventIndex;
-                // نبعثو الزاوية، الوقت، و الأقسام المتبقية باش الـ DJ يرسم نفس العجلة
+                
+                // 📡 تصفير شاشة النتيجة عند الـ DJ قبل الدوران
+                db.ref(path + '/wheelResultHTML').set("جاري اختيار التحدي... 🥁");
+                
                 db.ref(path + '/wheelSync').set({ 
                     deg: window.currentWheelDeg, 
                     time: randomTime, 
@@ -2273,29 +2276,38 @@
             wheelContainer.style.transform = `rotate(${deg}deg)`;
 
             setTimeout(() => {
-                calculateWheelResult(deg);
-                let btn = document.getElementById('spinWheelBtn');
-                if(btn) { btn.disabled = false; btn.style.animation = 'pulse 1.5s infinite'; btn.innerText = '🎲 آه لو لعبت يا زهر!'; }
+                // 🛑 منع الـ DJ من الحساب والسحب!
+                let isReadOnly = currentUser && ['dj', 'assistant', 'client'].includes(currentUser.role);
+                
+                if(!isReadOnly) {
+                    calculateWheelResult(deg); // المنشط فقط يحسب النتيجة
+                    let btn = document.getElementById('spinWheelBtn');
+                    if(btn) { btn.disabled = false; btn.style.animation = 'pulse 1.5s infinite'; btn.innerText = '🎲 آه لو لعبت يا زهر!'; }
+                }
             }, time);
         };
 
-        // 4. الحساب الرياضي للإبرة
+        // 4. الحساب الرياضي للإبرة (للمنشط فقط)
         window.calculateWheelResult = function(deg) {
             let numSlices = window.activeWheelSlices.length;
             let sliceDeg = 360 / numSlices;
-            // المعادلة السحرية لحساب الـ Index الصحيح حسب الدوران
             let actualDeg = (360 - (deg % 360)) % 360; 
             let index = Math.floor(((actualDeg + (sliceDeg / 2)) % 360) / sliceDeg) % numSlices;
             
             let result = window.activeWheelSlices[index];
             let resultBox = document.getElementById('wheelResultBox');
+            let path = isArchivedEvent ? 'BechaEventsData/archived_events/'+currentEventIndex : 'BechaEventsData/events/'+currentEventIndex;
             
             if(result === "عاود الكرّة 🔄") {
-                resultBox.innerHTML = `<span style="color:#17a2b8; font-size:28px;">🔄 عاود الكرّة! الزهر ما حبكش</span>`;
+                let finalHtml = `<span style="color:#17a2b8; font-size:28px;">🔄 عاود الكرّة! الزهر ما حبكش</span>`;
+                resultBox.innerHTML = finalHtml;
                 window.playBeepSound('buzzer');
+                db.ref(path + '/wheelResultHTML').set(finalHtml); // إرسال للـ DJ
             } else {
                 resultBox.innerHTML = `<span style="color:#198754; font-size:24px;">🎯 النتيجة: <b>${result}</b></span><br><button class="btn btn-outline" style="border-color:#198754; color:#198754; margin-top:10px; width:100%;" onclick="fetchSmartLibraryItem('${result}')">📦 سحب الفقرة من المخزن وبدء التحدي</button>`;
                 window.playBeepSound('success');
+                // إرسال للـ DJ باش يستنى المنشط يختار
+                db.ref(path + '/wheelResultHTML').set(`<span style="color:#198754; font-size:24px;">🎯 النتيجة: <b>${result}</b></span><br><div style="color:#aaa; font-size:14px; margin-top:10px;">⏳ في انتظار المنشط لسحب الفقرة...</div>`);
             }
         };
 
@@ -2307,51 +2319,61 @@
             });
 
             let resultBox = document.getElementById('wheelResultBox');
+            let path = isArchivedEvent ? 'BechaEventsData/archived_events/'+currentEventIndex : 'BechaEventsData/events/'+currentEventIndex;
+
             if(availableItems.length > 0) {
                 let selected = availableItems[0];
-                
-                // 📡 الضربة السحرية: نسجلو اللعبة المحروقة في الـ Firebase ديراكت
-                let path = isArchivedEvent ? 'BechaEventsData/archived_events/'+currentEventIndex : 'BechaEventsData/events/'+currentEventIndex;
                 let updatedUsedItems = [...window.usedWheelItems, selected.id];
                 db.ref(path + '/usedWheelItems').set(updatedUsedItems);
                 
-                resultBox.innerHTML = `<div style="color:#fff; text-align:right; width:100%;">
+                let finalHtml = `<div style="color:#fff; text-align:right; width:100%;">
                     <h3 style="color:#ffc107; margin-top:0; border-bottom:1px dashed #555; padding-bottom:5px;">⭐ ${selected.name}</h3>
                     <p style="font-size:16px; margin:5px 0;">🎤 <b>المنشط:</b> ${selected.animText || '---'}</p>
                     <p style="font-size:14px; margin:5px 0; color:#aaa;">🎧 <b>DJ:</b> ${selected.djText || '---'}</p>
-                </div><div style="color:#17a2b8; font-size:12px; margin-top:10px;">تم تسجيل الحذف في قاعدة البيانات ✔️</div>`;
+                </div>`;
+
+                resultBox.innerHTML = finalHtml + `<div style="color:#17a2b8; font-size:12px; margin-top:10px;">تم سحب الفقرة بنجاح ✔️</div>`;
+                
+                // 📡 إرسال الفقرة المسحوبة للـ DJ
+                db.ref(path + '/wheelResultHTML').set(finalHtml);
             }
         };
 
         // 6. رادار الـ DJ والذاكرة الحية للعجلة
         window.wheelSyncListenerRef = null;
         window.wheelMemoryListenerRef = null;
+        window.wheelResultListenerRef = null;
 
         window.startWheelSyncListener = function() {
             let path = isArchivedEvent ? 'BechaEventsData/archived_events/'+currentEventIndex : 'BechaEventsData/events/'+currentEventIndex;
             
-            // أ. رادار الحركة (الدوران) - خاص بالـ DJ
+            // أ. رادار الحركة (الدوران)
             if(window.wheelSyncListenerRef) db.ref(path + '/wheelSync').off('value', window.wheelSyncListenerRef);
             window.wheelSyncListenerRef = db.ref(path + '/wheelSync').on('value', snap => {
                 let data = snap.val();
                 if (data && currentUser && ['dj', 'assistant', 'client'].includes(currentUser.role)) {
                     window.activeWheelSlices = data.slices || [];
-                    if(document.getElementById('wheelOfFortuneModal').style.display !== 'flex') {
-                        window.openWheelModal();
-                    }
+                    if(document.getElementById('wheelOfFortuneModal').style.display !== 'flex') window.openWheelModal();
                     window.drawDynamicWheel(); 
-                    document.getElementById('wheelResultBox').innerHTML = "جاري اختيار التحدي... 🥁";
                     executeSpinAnimation(data.deg, data.time);
                 }
             });
 
-            // ب. رادار الذاكرة (الألعاب المحروقة) - يخدم للناس الكل (منشط + DJ)
+            // ب. رادار الذاكرة (الألعاب المحروقة)
             if(window.wheelMemoryListenerRef) db.ref(path + '/usedWheelItems').off('value', window.wheelMemoryListenerRef);
             window.wheelMemoryListenerRef = db.ref(path + '/usedWheelItems').on('value', snap => {
                 window.usedWheelItems = snap.val() || [];
-                // كان العجلة محلولة، نعاودو نرسموها باش تتقلص لايف عند الناس الكل
-                if(document.getElementById('wheelOfFortuneModal').style.display === 'flex') {
-                    window.refreshWheelData();
+                if(document.getElementById('wheelOfFortuneModal').style.display === 'flex') window.refreshWheelData();
+            });
+
+            // ج. رادار النتيجة النهائية (المرآة الصامتة للـ DJ)
+            if(window.wheelResultListenerRef) db.ref(path + '/wheelResultHTML').off('value', window.wheelResultListenerRef);
+            window.wheelResultListenerRef = db.ref(path + '/wheelResultHTML').on('value', snap => {
+                let htmlContent = snap.val();
+                // الـ DJ يطبع النتيجة اللي جاتو من المنشط مباشرة
+                if (htmlContent && currentUser && ['dj', 'assistant', 'client'].includes(currentUser.role)) {
+                    let resBox = document.getElementById('wheelResultBox');
+                    if(resBox) resBox.innerHTML = htmlContent;
                 }
             });
         };
