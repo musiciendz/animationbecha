@@ -1108,6 +1108,7 @@
         
         // 1. محرك المحرر الذكي (يغلف الخانة العادية ويردها وورد)
         // 1. محرك المحرر الذكي (يغلف الخانة العادية ويردها وورد) - نسخة مطورة بالتزامن
+        // 1. محرك المحرر الذكي (يغلف الخانة العادية ويردها وورد) - نسخة مطورة ونهائية
         function wrapWithRichEditor(el) {
             if (el.dataset.richified) return;
             el.dataset.richified = "true";
@@ -1143,6 +1144,7 @@
             colorWrap.innerHTML = '🎨 <input type="color" class="color-picker-input" title="لون النص">';
             colorWrap.querySelector('input').oninput = (e) => { document.execCommand('foreColor', false, e.target.value); editor.focus(); updateOrig(); };
             toolbar.appendChild(colorWrap);
+
             // 📚 إضافة زر "المكتبة" المخفي داخل شريط الأدوات الذكي (يظهر كان للمدير)
             let libBtn = document.createElement('button');
             libBtn.className = 'rich-btn smart-lib-btn';
@@ -1174,18 +1176,13 @@
             let observer = new MutationObserver(() => { editor.contentEditable = !el.disabled; });
             observer.observe(el, { attributes: true, attributeFilter: ['disabled'] });
 
+            // التزامن الذكي والنظيف (بلا مشاكل)
             el.addEventListener('input', () => { if(editor.innerHTML !== el.value) editor.innerHTML = el.value; });
 
             wrapper.appendChild(toolbar);
             wrapper.appendChild(editor);
             el.parentNode.insertBefore(wrapper, el.nextSibling);
         }
-
-            wrapper.appendChild(toolbar);
-            wrapper.appendChild(editor);
-            el.parentNode.insertBefore(wrapper, el.nextSibling);
-        }
-
         // 2. المراقب الآلي (يعس على الخانات الجدد ويركب عليهم المحرر)
         function initGlobalRichText() {
             const selectors = '.prog-details, #customTeleprompterInput, #libItemAnim, #libItemDJ, #libItemAssist';
