@@ -1173,28 +1173,35 @@
             currentRows.forEach((row, i) => { let detailsInput = row.querySelector('.prog-details').value; if(detailsInput.includes(libName)) { isDuplicated = true; dupIndex = i + 1; } });
             if(isDuplicated) { if(!confirm(`⚠️ انتبه! فقرة "${libName}" موجودة ديجا في البرنامج (الفقرة رقم ${dupIndex}).\nمتأكد تحب تعاودها مرة أخرى؟`)) { return; } }
             
-           if(targetLibInputId) {
+           // صبان الداتا في السطر الصحيح //
+        if(targetLibInputId) {
             let inputElem = document.getElementById(targetLibInputId);
             if(inputElem) {
-                let newVal = `LIB::${libId}::${libName}`;
-                let currentVal = inputElem.value || "";
+                let newVal = "LIB::" + libId + "::" + libName;
+                let oldVal = inputElem.value || "";
                 
-                // 1. نظام القفة: نلصقو اللعبة الجديدة بجنب القديمة
-                if (currentVal.includes('LIB::') && !currentVal.includes(newVal)) {
-                    inputElem.value = currentVal + '|||' + newVal; 
-                } else if (!currentVal.includes(newVal)) {
-                    inputElem.value = newVal; 
+                // 🛑 الدبابة: كان الخانة فيها كود، نلصقو الجديد بـ ||| 
+                if (oldVal.indexOf("LIB::") !== -1) {
+                    // نثبتو اللي اللعبة ما تزادتش مرتين
+                    if (oldVal.indexOf(libId) === -1) {
+                        inputElem.value = oldVal + "|||" + newVal;
+                    }
+                } else {
+                    // كان فارغة، نصبو اللعبة الأولى
+                    inputElem.value = newVal;
                 }
                 
-                // 2. ⚡ الضربة الكهربائية: إجبار السيستام على تسجيل التغييرات (باش ما يفسخش القديم)
+                // ⚡ إجبار السيستام على الحفظ (باش السارق ما يتدخلش)
                 inputElem.setAttribute('value', inputElem.value);
-                inputElem.dispatchEvent(new Event('input', { bubbles: true }));
-                inputElem.dispatchEvent(new Event('change', { bubbles: true }));
+                let evt = document.createEvent("HTMLEvents");
+                evt.initEvent("input", false, true);
+                inputElem.dispatchEvent(evt);
                 
-                // 3. تصفير الرادار باش يفيق ويعاود يرسم البادجات الجدد ديراكت
-                inputElem.dataset.renderedVal = ''; 
+                // تصفير الرادار باش يرسم البادجات الزوز بجنب بعضهم
+                inputElem.dataset.renderedVal = ""; 
             }
         }
+        // تسكير النافذة
         document.getElementById('libSelectModal').style.display = 'none';
         }
         /* =========================================================
