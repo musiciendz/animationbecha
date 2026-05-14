@@ -196,6 +196,10 @@
         #fsCheatSheet {
             display: none; position: absolute; top: 75px; left: 20px; background: rgba(0,0,0,0.95); border: 2px solid #ffc107; border-radius: 12px; padding: 20px; min-width: 280px; color: white; z-index: 100000; font-size: 20px; line-height: 1.8; text-align: right; box-shadow: 0 10px 30px rgba(0,0,0,0.5);
         }
+        /* 📦 نظام العنقود والكوكتيل التنشيطي (Multi-Select Tags) */
+        .lib-tag { display:inline-flex; align-items:center; background:#fff3e0; border:2px solid #ff9800; color:#e65100; padding:6px 12px; border-radius:20px; margin:5px 5px 0 0; font-size:14px; font-weight:bold; box-shadow:0 2px 4px rgba(0,0,0,0.1); transition:0.3s; }
+        .lib-tag .del-tag { color:#dc3545; cursor:pointer; margin-right:8px; font-size:14px; font-weight:900; background:white; border-radius:50%; width:22px; height:22px; display:flex; justify-content:center; align-items:center; box-shadow:0 1px 3px rgba(0,0,0,0.2); }
+        .lib-tag .del-tag:hover { background:#dc3545; color:white; }
     </style>
 </head>
 <body>
@@ -216,6 +220,7 @@
                 <button class="fs-zoom-btn" onclick="zoomFsText(1)" title="تكبير الخط">🔍+</button>
                 <button class="fs-zoom-btn" onclick="zoomFsText(-1)" title="تصغير الخط">🔍-</button>
                 <button class="fs-zoom-btn" onclick="toggleFsCheatSheet()" title="ورقة الأسماء" style="color:#ffc107; margin-right:15px;">👥</button>
+                <button class="fs-zoom-btn" onclick="openFsEmergencyLib()" title="ارتجال فقرة حية" style="color:#0dcaf0; margin-right:15px; font-size:26px;">🚀</button>
                 <button class="btn btn-red" style="padding: 8px 15px; font-size:16px;" onclick="closeFullscreen()">❌ خروج</button>
             </div>
         </div>
@@ -1160,9 +1165,25 @@
             
             // صبّان الداتا في السطر الصحيح
             if(targetLibInputId) {
-                let inputElem = document.getElementById(targetLibInputId);
-                if(inputElem) inputElem.value = `LIB::${libId}::${libName}`;
+            let inputElem = document.getElementById(targetLibInputId);
+            if(inputElem) {
+                let newVal = `LIB::${libId}::${libName}`;
+                // إذا كانت الخانة معبية ديجا بلعبة من المكتبة، زيد اللعبة الجديدة بجنبها
+                if(inputElem.value && inputElem.value.includes('LIB::')) {
+                    if(!inputElem.value.includes(newVal)) {
+                        inputElem.value += '|||' + newVal; 
+                    }
+                } else {
+                    // إذا الخانة فارغة، صب اللعبة الأولى
+                    inputElem.value = newVal; 
+                }
+                
+                // تحديث واجهة البادجات (العنقود) كان الدالة موجودة
+                if(typeof renderLibTags === 'function') {
+                    renderLibTags(targetLibInputId);
+                }
             }
+        }
             document.getElementById('libSelectModal').style.display = 'none';
         }
         /* =========================================================
@@ -1333,49 +1354,7 @@
 
         // 4. ميكانيكا الشاشة العملاقة (التنقل، التكبير، الساعة)
         let currentFsIndex = 0; let fsBaseFontSize = 32;
-       function openFsStep(idx) {
-            if(!currentEventData || !currentEventData.eventProgram) return;
-            let prog = currentEventData.eventProgram;
-            if(idx < 0 || idx >= prog.length) return;
-            currentFsIndex = idx;
-            
-            let item = prog[idx];
-            let displayType = item.type === 'أخرى' ? (item.customType || 'فقرة متنوعة') : item.type;
-            let isDone = item.completed;
-            
-            // 1. تحديث العنوان مع حالة الانتهاء
-            document.getElementById('fsTitle').innerText = `الفقرة ${idx+1}: ${displayType} ${isDone ? '(✅ انتهت)' : ''}`;
-            
-            let contentHtml = ''; let rawDet = item.details || '';
-            
-            if(rawDet.startsWith('LIB::')) {
-                let parts = rawDet.split('::'); let libId = parts[1]; let libData = libraryData[libId];
-                if(libData) {
-                    contentHtml += `<div style="color:#ffc107; font-size:1.2em; margin-bottom:20px; border-bottom:2px solid #555; padding-bottom:10px;">⭐ ${libData.name}</div>`;
-                    if(libData.animText) contentHtml += `<div style="color:#e3f2fd; margin-bottom:15px;">🎤 <b>نص المنشط:</b><br>${libData.animText}</div>`;
-                    if(libData.djText) contentHtml += `<div style="color:#f3e5f5; font-size:0.7em; opacity:0.8; margin-top:30px;">🎧 DJ: ${libData.djText}</div>`;
-                    if(libData.assistText) contentHtml += `<div style="color:#fff3e0; font-size:0.7em; opacity:0.8;">🏃‍♂️ المساعد: ${libData.assistText}</div>`;
-                } else { contentHtml = "⚠️ فقرة محذوفة من المكتبة!"; }
-            } else {
-                contentHtml = rawDet; 
-            }
-            
-            // 2. صبان المحتوى والتحكم في الشفافية (متغير معرّف مرة وحدة برك)
-            let fsContentElem = document.getElementById('fsContent');
-            fsContentElem.innerHTML = contentHtml; 
-            fsContentElem.style.fontSize = fsBaseFontSize + 'px';
-            
-            // تبهيت الشاشة كان الفقرة وفات
-            fsContentElem.style.opacity = isDone ? '0.3' : '1';
-            
-            document.getElementById('fullscreenTeleprompter').style.display = 'flex';
-            
-            if(!window.fsClockInterval) {
-                window.fsClockInterval = setInterval(() => {
-                    document.getElementById('fsTimer').innerText = new Date().toLocaleTimeString('ar-TN', {hour:'2-digit', minute:'2-digit', second:'2-digit'});
-                }, 1000);
-            }
-        }
+       
         function closeFullscreen() { document.getElementById('fullscreenTeleprompter').style.display = 'none'; }
         function navigateFs(dir) { let prog = currentEventData.eventProgram; let nextIdx = currentFsIndex + dir; if(nextIdx >= 0 && nextIdx < prog.length) openFsStep(nextIdx); }
         function zoomFsText(dir) { fsBaseFontSize += (dir * 4); if(fsBaseFontSize < 16) fsBaseFontSize = 16; if(fsBaseFontSize > 80) fsBaseFontSize = 80; document.getElementById('fsContent').style.fontSize = fsBaseFontSize + 'px'; }
@@ -1498,6 +1477,7 @@
             }
             
             return html || '<div style="text-align:center; color:#888;">لا توجد أسماء مسجلة</div>';
+            setTimeout(() => { if (typeof renderLibTags === 'function') renderLibTags(inputId); }, 100);
         }
 
         window.showCheatSheetAlert = function() {
@@ -1599,6 +1579,136 @@
                 }
             });
         }
+        /* =========================================================
+           📦 نظام العنقود (الكوكتيل) + الإرتجال المباشر 🚀
+           ========================================================= */
+        
+        // 1. رسم البادجات والفسخ في الكواليس
+        window.renderLibTags = function(inputId) {
+            let input = document.getElementById(inputId);
+            if(!input) return;
+            let containerId = inputId + '_tags';
+            let container = document.getElementById(containerId);
+            if(!container) {
+                container = document.createElement('div');
+                container.id = containerId;
+                container.style.marginTop = '10px';
+                input.parentNode.appendChild(container);
+            }
+            
+            let val = input.value.trim();
+            if(!val || !val.includes('LIB::')) { container.innerHTML = ''; input.style.display = 'block'; return; }
+            
+            let parts = val.split('|||');
+            let html = '';
+            parts.forEach((p, idx) => {
+                let m = p.match(/LIB::([^:<]+)::([^<]+)/);
+                if(m) {
+                    html += `<div class="lib-tag">⭐ ${m[2]} <span class="del-tag" onclick="removeLibTag('${inputId}', ${idx})" title="حذف">❌</span></div>`;
+                }
+            });
+            container.innerHTML = html;
+            input.style.display = 'none'; // نخفيو الخانة باش يقعدو كان البادجات المزيانين
+        };
+
+        window.removeLibTag = function(inputId, index) {
+            let input = document.getElementById(inputId);
+            let parts = input.value.split('|||');
+            parts.splice(index, 1);
+            input.value = parts.join('|||');
+            renderLibTags(inputId);
+        };
+
+        // 2. تحديث الشاشة العملاقة باش تخدم بنظام السلايدر (كوكتيل الألعاب)
+        window.openFsStep = function(idx) {
+            if(!currentEventData || !currentEventData.eventProgram) return;
+            let prog = currentEventData.eventProgram;
+            if(idx < 0 || idx >= prog.length) return;
+            currentFsIndex = idx;
+            
+            let item = prog[idx];
+            let displayType = item.type === 'أخرى' ? (item.customType || 'فقرة متنوعة') : item.type;
+            let isDone = item.completed;
+            
+            document.getElementById('fsTitle').innerText = `الفقرة ${idx+1}: ${displayType} ${isDone ? '(✅ انتهت)' : ''}`;
+            
+            let rawDet = item.details || '';
+            if(rawDet.includes('LIB::')) {
+                // تقسيم الكوكتيل وتفعيل السلايدر
+                window.currentFsLibParts = rawDet.split('|||');
+                window.currentFsSubIndex = 0;
+                renderFsSubStep();
+            } else {
+                document.getElementById('fsContent').innerHTML = rawDet; 
+            }
+            
+            document.getElementById('fsContent').style.fontSize = fsBaseFontSize + 'px';
+            document.getElementById('fsContent').style.opacity = isDone ? '0.3' : '1';
+            document.getElementById('fullscreenTeleprompter').style.display = 'flex';
+        };
+
+        window.renderFsSubStep = function() {
+            let parts = window.currentFsLibParts;
+            let subIdx = window.currentFsSubIndex;
+            let p = parts[subIdx];
+            if(!p) return;
+            
+            let m = p.match(/LIB::([^:<]+)::([^<]+)/);
+            let contentHtml = '';
+            if(m) {
+                let libId = m[1]; let libData = libraryData[libId];
+                if(libData) {
+                    let counterText = parts.length > 1 ? `<span style="color:#aaa; font-size:0.7em;">(لعبة ${subIdx+1} من ${parts.length})</span>` : '';
+                    contentHtml += `<div style="color:#ffc107; font-size:1.2em; margin-bottom:20px; border-bottom:2px solid #555; padding-bottom:10px;">⭐ ${libData.name} ${counterText}</div>`;
+                    if(libData.animText) contentHtml += `<div style="color:#e3f2fd; margin-bottom:15px; line-height:1.6;">🎤 <b>نص المنشط:</b><br>${libData.animText}</div>`;
+                    if(libData.djText) contentHtml += `<div style="color:#f3e5f5; font-size:0.8em; opacity:0.9; margin-top:30px;">🎧 <b>DJ:</b> ${libData.djText}</div>`;
+                    if(libData.assistText) contentHtml += `<div style="color:#fff3e0; font-size:0.8em; opacity:0.9;">🏃‍♂️ <b>المساعد:</b> ${libData.assistText}</div>`;
+                    
+                    // أزرار التنقل (⏭️) في وسط الشاشة العملاقة
+                    if(parts.length > 1) {
+                        contentHtml += `<div style="margin-top:40px; display:flex; gap:15px; justify-content:center; border-top:1px solid #444; padding-top:20px;">`;
+                        if(subIdx > 0) contentHtml += `<button onclick="window.currentFsSubIndex--; renderFsSubStep();" style="padding:12px 25px; font-size:20px; border-radius:12px; background:#444; color:white; border:none; cursor:pointer;">⏮️ اللعبة السابقة</button>`;
+                        if(subIdx < parts.length - 1) contentHtml += `<button onclick="window.currentFsSubIndex++; renderFsSubStep();" style="padding:12px 25px; font-size:20px; border-radius:12px; background:var(--primary-red); color:white; border:none; cursor:pointer; font-weight:bold; box-shadow:0 4px 10px rgba(225,6,0,0.4);">اللعبة الموالية ⏭️</button>`;
+                        contentHtml += `</div>`;
+                    }
+                }
+            } else { contentHtml = p; }
+            document.getElementById('fsContent').innerHTML = contentHtml;
+        };
+
+        // 3. زر الصاروخ 🚀 (مكتبة الارتجال المباشر)
+        window.openFsEmergencyLib = function() {
+            let html = `<h2 style="color:var(--primary-red); margin-top:0;">🚀 ارتجال فقرة تنشيطية سريعة</h2><div style="display:flex; flex-wrap:wrap; gap:10px; max-height:60vh; overflow-y:auto; padding-right:10px;">`;
+            for(let key in libraryData) {
+                let lib = libraryData[key];
+                html += `<button onclick="playEmergencyGame('${key}')" style="background:#333; color:white; border:1px solid #555; padding:15px; border-radius:10px; font-size:18px; cursor:pointer; flex:1; min-width:200px; text-align:right;">⭐ ${lib.name}</button>`;
+            }
+            html += `</div><button onclick="document.getElementById('fsEmergencyModal').style.display='none'" style="width:100%; margin-top:20px; padding:12px; background:#444; color:white; border-radius:10px; font-size:18px;">❌ رجوع للعرض</button>`;
+            
+            let modal = document.getElementById('fsEmergencyModal');
+            if(!modal) {
+                modal = document.createElement('div');
+                modal.id = 'fsEmergencyModal'; modal.className = 'modal-overlay'; modal.style.zIndex = '9999999';
+                modal.innerHTML = `<div class="modal-box" style="width:90%; max-width:800px; text-align:right;"></div>`;
+                document.body.appendChild(modal);
+            }
+            modal.querySelector('.modal-box').innerHTML = html;
+            modal.style.display = 'flex';
+        };
+
+        window.playEmergencyGame = function(libId) {
+            document.getElementById('fsEmergencyModal').style.display = 'none';
+            let libData = libraryData[libId]; if(!libData) return;
+            
+            let contentHtml = `<div style="color:#0dcaf0; font-size:1.2em; margin-bottom:20px; border-bottom:2px solid #555; padding-bottom:10px;">🚀 ارتجال مباشر: ${libData.name}</div>`;
+            if(libData.animText) contentHtml += `<div style="color:#e3f2fd; margin-bottom:15px; line-height:1.6;">🎤 <b>نص المنشط:</b><br>${libData.animText}</div>`;
+            if(libData.djText) contentHtml += `<div style="color:#f3e5f5; font-size:0.8em; opacity:0.9; margin-top:30px;">🎧 <b>DJ:</b> ${libData.djText}</div>`;
+            if(libData.assistText) contentHtml += `<div style="color:#fff3e0; font-size:0.8em; opacity:0.9;">🏃‍♂️ <b>المساعد:</b> ${libData.assistText}</div>`;
+            
+            document.getElementById('fsTitle').innerText = `🚀 فقرة ارتجال حي (خارج البرنامج الرسمي)`;
+            document.getElementById('fsContent').innerHTML = contentHtml;
+            document.getElementById('fsContent').style.opacity = '1';
+        };
     </script>
 </body>
 </html>
