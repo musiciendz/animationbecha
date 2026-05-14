@@ -591,6 +591,14 @@
             </div>
         </div>
     </div>
+    <!-- 👥 نافذة عرض الأسماء الأنيقة (عوضاً عن الميساج الصغير) -->
+    <div id="namesCheatModal" class="modal-overlay" style="z-index: 120000;">
+        <div class="modal-box" style="text-align: right; max-height: 85vh; overflow-y: auto; width: 95%; max-width: 500px;">
+            <h2 style="color: var(--primary-red); margin-top: 0; border-bottom: 2px solid #eee; padding-bottom: 10px;">👥 قائمة أسماء المؤسسة</h2>
+            <div id="namesCheatContent" style="font-size: 18px; line-height: 1.6; font-weight: bold;"></div>
+            <button class="btn btn-dark" style="width: 100%; margin-top: 20px; font-size: 18px; padding: 12px;" onclick="document.getElementById('namesCheatModal').style.display='none'">❌ إغلاق</button>
+        </div>
+    </div>
     <script>
         const firebaseConfig = { apiKey: "AIzaSyCTTjp34QhF6MPNemwKhoq7385xnJKK_Hg", authDomain: "becha-events-kids.firebaseapp.app", databaseURL: "https://becha-events-kids-default-rtdb.europe-west1.firebasedatabase.app", projectId: "becha-events-kids", storageBucket: "becha-events-kids.appspot.com", messagingSenderId: "763935242130", appId: "1:763935242130:web:490a99e38c53ba0240f34b" };
         firebase.initializeApp(firebaseConfig);
@@ -1429,23 +1437,56 @@
            ========================================================= */
         
         // 1. دليل الأسماء (Cheat Sheet)
-        function getNamesHtml() {
+       // 1. دليل الأسماء (Cheat Sheet) - نسخة مطورة ومنظمة
+        function getNamesHtml(isDark = false) {
             if(!currentEventData) return '';
             let d = currentEventData.institutionDetails || {};
-            let html = `<b>المديرة:</b> ${d.managerName || '--'}<br>`;
-            if(d.founderName) html += `<b>الباعث:</b> ${d.founderName}<br>`;
-            if(d.educators && d.educators.length) html += `<b>المربيات:</b> ${d.educators.join('، ')}<br>`;
-            if(d.coaches && d.coaches.length) html += `<b>المدربون:</b> ${d.coaches.map(c=>c.name).join('، ')}<br>`;
-            if(d.staff && d.staff.length) html += `<b>العمال:</b> ${d.staff.map(s=>s.name).join('، ')}<br>`;
-            return html;
+            let html = '';
+            
+            // اختيار الألوان حسب الشاشة (غامقة أو فاتحة)
+            let textColor = isDark ? '#fff' : '#333';
+            let subColor = isDark ? '#aaa' : '#888';
+
+            if(d.managerName) html += `<div style="margin-bottom:15px; color:${textColor};"><span style="color:var(--primary-red); font-weight:900;">👑 المديرة:</span><br><div style="padding-right: 15px;">▪︎ ${d.managerName}</div></div>`;
+            
+            if(d.founderName) html += `<div style="margin-bottom:15px; color:${textColor};"><span style="color:var(--primary-red); font-weight:900;">🏛️ الباعث:</span><br><div style="padding-right: 15px;">▪︎ ${d.founderName}</div></div>`;
+            
+            if(d.educators && d.educators.length) {
+                html += `<div style="margin-bottom:15px; color:${textColor};"><span style="color:#198754; font-weight:900;">👩‍🏫 المربيات:</span><br>`;
+                d.educators.forEach(e => { html += `<div style="padding-right: 15px;">▪︎ ${e}</div>`; });
+                html += `</div>`;
+            }
+            
+            if(d.coaches && d.coaches.length) {
+                html += `<div style="margin-bottom:15px; color:${textColor};"><span style="color:#ff9800; font-weight:900;">🎯 المدربون:</span><br>`;
+                d.coaches.forEach(c => { html += `<div style="padding-right: 15px;">▪︎ ${c.name} <span style="font-size:0.8em; color:${subColor};">(${c.spec})</span></div>`; });
+                html += `</div>`;
+            }
+            
+            if(d.staff && d.staff.length) {
+                html += `<div style="margin-bottom:15px; color:${textColor};"><span style="color:#9b59b6; font-weight:900;">🤝 العمال/الشركاء:</span><br>`;
+                d.staff.forEach(s => { html += `<div style="padding-right: 15px;">▪︎ ${s.name} <span style="font-size:0.8em; color:${subColor};">(${s.role})</span></div>`; });
+                html += `</div>`;
+            }
+            
+            return html || '<div style="text-align:center; color:#888;">لا توجد أسماء مسجلة</div>';
         }
+
         window.showCheatSheetAlert = function() {
-            alert("📋 قائمة الأسماء:\n\n" + getNamesHtml().replace(/<b>/g, '').replace(/<\/b>/g, '').replace(/<br>/g, '\n'));
+            // إظهار النافذة الكبيرة المخصصة للركح (ألوان فاتحة)
+            document.getElementById('namesCheatContent').innerHTML = getNamesHtml(false);
+            document.getElementById('namesCheatModal').style.display = 'flex';
         };
+
         window.toggleFsCheatSheet = function() {
             let el = document.getElementById('fsCheatSheet');
-            if(el.style.display === 'block') { el.style.display = 'none'; }
-            else { el.innerHTML = `<h3 style="color:#ffc107; margin-top:0;">👥 أسماء المؤسسة</h3>` + getNamesHtml(); el.style.display = 'block'; }
+            if(el.style.display === 'block') { 
+                el.style.display = 'none'; 
+            } else { 
+                // إظهار النافذة الشفافة المخصصة للشاشة العملاقة (ألوان غامقة)
+                el.innerHTML = `<h3 style="color:#ffc107; margin-top:0; border-bottom:1px solid #555; padding-bottom:10px;">👥 أسماء المؤسسة</h3>` + getNamesHtml(true); 
+                el.style.display = 'block'; 
+            }
         };
 
         // 2. الهبوط الذكي في الشاشة العملاقة (Auto-Jump)
