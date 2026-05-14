@@ -1178,23 +1178,25 @@
             if(inputElem) {
                 let newVal = `LIB::${libId}::${libName}`;
                 
-                // 1. قاعدة "القفة": كان فما لعبة مسجلة، ما تفسخهاش! أعمل فاصل (|||) وزيد الجديدة
+                // 1. قاعدة القفة: أعمل فاصل وزيد اللعبة
                 if(inputElem.value && inputElem.value.includes('LIB::')) {
                     if(!inputElem.value.includes(newVal)) {
                         inputElem.value += '|||' + newVal; 
                     }
                 } else {
-                    // كان الخانة فارغة، صب اللعبة الأولى
                     inputElem.value = newVal; 
                 }
                 
-                // 2. قاعدة "الرسّام": عيّط للرسّام ديراكت باش يزين البادجات ويخفي الكود الأكحل
-                if(typeof renderLibTags === 'function') {
-                    renderLibTags(targetLibInputId);
+                // 🛑 أمر عسكري: إخفاء الخانة القديمة فوراً
+                inputElem.style.display = 'none'; 
+                
+                // 🎨 استدعاء الرسّام
+                if(typeof window.renderLibTags === 'function') {
+                    window.renderLibTags(targetLibInputId);
                 }
             }
         }
-        // تسكير نافذة المكتبة بعد الاختيار
+        // تسكير نافذة المكتبة
         document.getElementById('libSelectModal').style.display = 'none';
         }
         /* =========================================================
@@ -1689,6 +1691,49 @@
             document.getElementById('fsTitle').innerText = `🚀 فقرة ارتجال حي (خارج البرنامج الرسمي)`;
             document.getElementById('fsContent').innerHTML = contentHtml;
             document.getElementById('fsContent').style.opacity = '1';
+        };
+        /* =========================================
+           🎨 رسّام البادجات (النسخة الإجبارية المضادة للأخطاء)
+           ========================================= */
+        window.renderLibTags = function(inputId) {
+            let input = document.getElementById(inputId);
+            if(!input) return;
+            let containerId = inputId + '_tags';
+            let container = document.getElementById(containerId);
+            if(!container) {
+                container = document.createElement('div');
+                container.id = containerId;
+                container.style.marginTop = '10px';
+                input.parentNode.appendChild(container);
+            }
+            
+            let val = input.value.trim();
+            if(!val || !val.includes('LIB::')) { 
+                container.innerHTML = ''; 
+                input.style.display = 'block'; 
+                return; 
+            }
+            
+            let parts = val.split('|||');
+            let html = '';
+            parts.forEach((p, idx) => {
+                let m = p.match(/LIB::([^:<]+)::([^<]+)/);
+                if(m) {
+                    // الستايلات مدمجة داخل الكود باش تضمن ظهورها 100%
+                    html += `<div class="lib-tag" style="display:inline-flex; align-items:center; background:#fff3e0; border:2px solid #ff9800; color:#e65100; padding:6px 12px; border-radius:20px; margin:5px 5px 0 0; font-size:14px; font-weight:bold; box-shadow:0 2px 4px rgba(0,0,0,0.1);">⭐ ${m[2]} <span style="color:#dc3545; cursor:pointer; margin-right:8px; font-size:14px; font-weight:900; background:white; border-radius:50%; width:22px; height:22px; display:inline-flex; justify-content:center; align-items:center; box-shadow:0 1px 3px rgba(0,0,0,0.2);" onclick="removeLibTag('${inputId}', ${idx})" title="حذف">❌</span></div>`;
+                }
+            });
+            container.innerHTML = html;
+            input.style.display = 'none'; // تأكيد الإخفاء مرة ثانية
+        };
+
+        window.removeLibTag = function(inputId, index) {
+            let input = document.getElementById(inputId);
+            if(!input) return;
+            let parts = input.value.split('|||');
+            parts.splice(index, 1);
+            input.value = parts.join('|||');
+            window.renderLibTags(inputId); // عاود ارسم من جديد
         };
     </script>
 </body>
