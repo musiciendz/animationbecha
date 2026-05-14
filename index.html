@@ -859,6 +859,7 @@
 
        // 👁️ الحسّاس اللي يفيق بالتبديل في القائمة (حماية قصوى)
         // 👁️ الحسّاس الذكي: حماية القائمة وإخفاء التفاصيل على العميل
+       // 👁️ الحسّاس الذكي: التبديل بين المربع الذكي ونظام البادجات
         window.toggleRowFields = function(sel) {
             let row = sel.closest('.prog-row'); 
             let val = sel.value.trim();
@@ -870,22 +871,31 @@
             let isClient = currentUser && currentUser.role === 'client';
             let isSecret = (val === 'فقرة تنشيطية');
 
-            // 1. أزرار المكتبة (تظهر كان للإدارة)
+            // 1. زر المكتبة الأصلي يرجع يخدم كان للمدير في الفقرة التنشيطية
             let oldLibBtn = row.querySelector('.inline-lib-btn');
             if (oldLibBtn) oldLibBtn.style.display = (isSecret && isManager) ? 'block' : 'none';
-            let smartLibBtn = row.querySelector('.smart-lib-btn');
-            if (smartLibBtn) smartLibBtn.style.display = (isSecret && isManager) ? 'inline-block' : 'none';
 
-            // 2. 🛑 الضربة القاضية: إخفاء المحرر الذكي كلياً عن العميل
+            // 2. التحكم في المربع الذكي والخانة
             let detailsInput = row.querySelector('.prog-details');
             if (detailsInput) {
                 let richBox = detailsInput.nextElementSibling;
                 if (richBox && richBox.classList.contains('rich-editor-box')) {
-                    // كان عميل وفقرة تنشيطية، خبي المربع الذكي.. وإلا خليه يظهر
-                    richBox.style.display = (isClient && isSecret) ? 'none' : 'flex';
-                } else {
-                    // حماية إضافية للخانة العادية
-                    detailsInput.style.display = (isClient && isSecret) ? 'none' : 'block';
+                    if (isSecret) {
+                        richBox.style.display = 'none'; // 🛑 طرد المربع الذكي
+                        if (isClient) {
+                            detailsInput.style.display = 'none'; // إخفاء على العميل
+                        } else {
+                            // تفعيل نظام البادجات
+                            if (typeof renderLibTags === 'function') {
+                                renderLibTags(detailsInput.id);
+                            } else {
+                                detailsInput.style.display = 'block';
+                            }
+                        }
+                    } else {
+                        richBox.style.display = 'flex'; // 🟢 إرجاع المربع الذكي لباقي الفقرات
+                        detailsInput.style.display = 'none'; // إخفاء الخانة الأصلية
+                    }
                 }
             }
         };
@@ -1193,89 +1203,59 @@
         // 1. محرك المحرر الذكي (يغلف الخانة العادية ويردها وورد)
         // 1. محرك المحرر الذكي (يغلف الخانة العادية ويردها وورد) - نسخة مطورة بالتزامن
         // 1. محرك المحرر الذكي (يغلف الخانة العادية ويردها وورد) - نسخة مطورة ونهائية
+       // محرك المحرر الذكي (مع قانون منع الجولان في الفقرات التنشيطية)
         function wrapWithRichEditor(el) {
             if (el.dataset.richified) return;
             el.dataset.richified = "true";
-            el.style.display = 'none'; 
+
+            let row = el.closest('.prog-row');
+            let select = row ? row.querySelector('.prog-type') : null;
+            let val = select ? select.value.trim() : '';
+            let isSecret = (val === 'فقرة تنشيطية');
+            let isClient = currentUser && currentUser.role === 'client';
 
             let wrapper = document.createElement('div');
             wrapper.className = 'rich-editor-box';
-            
-            // 🛑 الحماية القصوى: إخفاء المحرر كلياً إذا كان المستعمل "عميل" والفقرة "تنشيطية"
-            let row = el.closest('.prog-row');
-            let select = row ? row.querySelector('.prog-type') : null;
-            let isSecret = select && select.value.trim() === 'فقرة تنشيطية';
-            let isClient = currentUser && currentUser.role === 'client';
-            
-            if (isClient && isSecret) {
-                wrapper.style.display = 'none'; // طفي عليه الضو ديراكت
+
+            // 🛑 قانون المنع: إذا فقرة تنشيطية، المربع الذكي يختفي تماماً
+            if (isSecret) {
+                wrapper.style.display = 'none';
+                // إظهار الخانة الأصلية للمدير (باش البادجات تخدم)، وإخفاؤها على العميل
+                el.style.display = isClient ? 'none' : 'block'; 
             } else {
                 wrapper.style.display = 'flex';
+                el.style.display = 'none'; // الخانة الأصلية تتخبى ورا المربع الذكي
             }
-            
+
             let toolbar = document.createElement('div');
-            
+            toolbar.className = 'rich-toolbar';
+
             let btns = [
-                { icon: '𝐁', cmd: 'bold', title: 'Gras' },
-                { icon: '𝐼', cmd: 'italic', title: 'Italique' },
-                { icon: 'U̲', cmd: 'underline', title: 'Souligné' },
-                { icon: '⫷', cmd: 'justifyRight', title: 'يمين' }, 
-                { icon: '≣', cmd: 'justifyCenter', title: 'وسط' },
-                { icon: '⫸', cmd: 'justifyLeft', title: 'يسار' }
+                { i: '🎨', cmd: 'foreColor', val: '#ff0000', title: 'لون أحمر' },
+                { i: '◀', cmd: 'justifyRight', title: 'يمين' },
+                { i: '≡', cmd: 'justifyCenter', title: 'وسط' },
+                { i: '▶', cmd: 'justifyLeft', title: 'يسار' },
+                { i: 'U', cmd: 'underline', title: 'تسطير' },
+                { i: 'I', cmd: 'italic', title: 'مائل' },
+                { i: 'B', cmd: 'bold', title: 'عريض' }
             ];
-            
+
             btns.forEach(b => {
                 let btn = document.createElement('button');
-                btn.className = 'rich-btn';
-                btn.innerHTML = b.icon;
-                btn.title = b.title;
-                btn.type = 'button';
-                btn.onclick = (e) => { e.preventDefault(); document.execCommand(b.cmd, false, null); editor.focus(); updateOrig(); };
+                btn.className = 'rich-btn'; btn.innerHTML = b.i; btn.title = b.title; btn.type = 'button';
+                btn.onclick = (e) => { e.preventDefault(); document.execCommand(b.cmd, false, b.val || null); editArea.focus(); };
                 toolbar.appendChild(btn);
             });
 
-            let colorWrap = document.createElement('div');
-            colorWrap.className = 'color-picker-wrapper rich-btn';
-            colorWrap.innerHTML = '🎨 <input type="color" class="color-picker-input" title="لون النص">';
-            colorWrap.querySelector('input').oninput = (e) => { document.execCommand('foreColor', false, e.target.value); editor.focus(); updateOrig(); };
-            toolbar.appendChild(colorWrap);
+            let editArea = document.createElement('div');
+            editArea.className = 'rich-content'; editArea.contentEditable = !el.disabled;
+            editArea.innerHTML = el.value;
 
-            // 📚 إضافة زر "المكتبة" المخفي داخل شريط الأدوات الذكي (يظهر كان للمدير)
-            let libBtn = document.createElement('button');
-            libBtn.className = 'rich-btn smart-lib-btn';
-            libBtn.innerHTML = '📚 المكتبة';
-            libBtn.title = 'إختر من المكتبة';
-            libBtn.type = 'button';
-            libBtn.style.display = 'none'; // مخفي في البداية
-            libBtn.style.color = 'var(--primary-red)';
-            libBtn.style.fontWeight = 'bold';
-            libBtn.style.marginLeft = '10px';
-            libBtn.onclick = (e) => { 
-                e.preventDefault(); 
-                if(typeof openLibSelectModal === 'function') {
-                    openLibSelectModal(el.id); // يحل نافذة المكتبة ويربطها بالخانة هذي
-                }
-            };
-            toolbar.appendChild(libBtn);
-
-            let editor = document.createElement('div');
-            editor.className = 'rich-content';
-            editor.contentEditable = !el.disabled;
-            editor.innerHTML = el.value || '';
-
-            const updateOrig = () => { el.value = editor.innerHTML; };
-            editor.onkeyup = updateOrig;
-            editor.onblur = updateOrig;
-            editor.onpaste = () => setTimeout(updateOrig, 10);
-
-            let observer = new MutationObserver(() => { editor.contentEditable = !el.disabled; });
-            observer.observe(el, { attributes: true, attributeFilter: ['disabled'] });
-
-            // التزامن الذكي والنظيف (بلا مشاكل)
-            el.addEventListener('input', () => { if(editor.innerHTML !== el.value) editor.innerHTML = el.value; });
+            editArea.oninput = () => { el.value = editArea.innerHTML; };
+            el.addEventListener('input', () => { if(el.value !== editArea.innerHTML) editArea.innerHTML = el.value; });
 
             wrapper.appendChild(toolbar);
-            wrapper.appendChild(editor);
+            wrapper.appendChild(editArea);
             el.parentNode.insertBefore(wrapper, el.nextSibling);
         }
         // 2. المراقب الآلي (يعس على الخانات الجدد ويركب عليهم المحرر)
