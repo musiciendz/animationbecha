@@ -2243,6 +2243,20 @@
             }
         };
 
+       // 🔄 تحديث الواجهة فقط (بدون إرسال للسيرفر باش ما نخنقوش الكونكسيون)
+        window.updateLiveToolsUI = function() {
+            if(!window.currentFsLibParts) return;
+            let p = window.currentFsLibParts[window.currentFsSubIndex]; if(!p) return;
+            let m = p.match(/LIB::([^:<]+)::([^<]+)/);
+            if(m && libraryData[m[1]]) { window.renderLiveTools(libraryData[m[1]].hasScore, libraryData[m[1]].hasChrono); }
+        };
+
+        // 📡 تحديث الواجهة + إرسال للسيرفر (خاصة بالنقاط والأزرار اليدوية)
+        window.refreshLiveTools = function() {
+            window.updateLiveToolsUI();
+            window.syncLiveGameToFirebase(); 
+        };
+
         window.addLivePlayer = function() { window.liveGameStats.players.push({name: `مشارك ${window.liveGameStats.players.length + 1}`, score: 0}); window.refreshLiveTools(); };
         window.removeLivePlayer = function(idx) { window.liveGameStats.players.splice(idx, 1); window.refreshLiveTools(); };
         window.editLivePlayerName = function(idx, newName) { window.liveGameStats.players[idx].name = newName; window.syncLiveGameToFirebase(); };
@@ -2251,9 +2265,16 @@
 
         window.setLiveChrono = function(sec) { window.liveGameStats.chrono = sec; window.liveGameStats.isTimeUp = false; window.refreshLiveTools(); };
         window.adjustLiveChrono = function(sec) { window.liveGameStats.chrono += sec; if(window.liveGameStats.chrono < 0) window.liveGameStats.chrono = 0; window.liveGameStats.isTimeUp = false; window.refreshLiveTools(); };
+        
+        // ⏱️ الكرونو الذكي للمنشط (الطيار الآلي)
         window.startLiveChrono = function() {
             if(window.liveGameStats.chrono <= 0 || window.liveGameStats.isChronoRunning) return;
             window.liveGameStats.isChronoRunning = true; window.liveGameStats.isTimeUp = false;
+            
+            // 📡 نبعثو للسيرفر مرة وحدة برك بلي الكرونو بدا!
+            window.refreshLiveTools(); 
+
+            // ⏱️ الكرونو الداخلي يخدم من غير ما يبعث انترنات كل ثانية
             window.liveGameStats.timerInterval = setInterval(() => {
                 window.liveGameStats.chrono--;
                 if(window.liveGameStats.chrono <= 10 && window.liveGameStats.chrono > 0) window.playBeepSound('tick');
@@ -2261,22 +2282,25 @@
                     clearInterval(window.liveGameStats.timerInterval); window.liveGameStats.chrono = 0;
                     window.liveGameStats.isChronoRunning = false; window.liveGameStats.isTimeUp = true;
                     window.playBeepSound('buzzer');
+                    window.refreshLiveTools(); // تحديث أخير للسيرفر بلي الوقت وفى
+                } else {
+                    window.updateLiveToolsUI(); // تحديث الشاشة متاعنا فقط
                 }
-                window.refreshLiveTools();
             }, 1000);
-            window.refreshLiveTools();
         };
-        window.pauseLiveChrono = function() { window.liveGameStats.isChronoRunning = false; clearInterval(window.liveGameStats.timerInterval); window.refreshLiveTools(); };
-        window.resetLiveChrono = function() { window.pauseLiveChrono(); window.liveGameStats.chrono = 0; window.liveGameStats.isTimeUp = false; window.refreshLiveTools(); };
         
-        window.refreshLiveTools = function() {
-            let p = window.currentFsLibParts[window.currentFsSubIndex]; if(!p) return;
-            let m = p.match(/LIB::([^:<]+)::([^<]+)/);
-            if(m && libraryData[m[1]]) { window.renderLiveTools(libraryData[m[1]].hasScore, libraryData[m[1]].hasChrono); }
-            window.syncLiveGameToFirebase(); // 📡 تحديث الـ DJ بعد أي تغيير
+        window.pauseLiveChrono = function() { 
+            window.liveGameStats.isChronoRunning = false; 
+            clearInterval(window.liveGameStats.timerInterval); 
+            window.refreshLiveTools(); // 📡 نبعثو للسيرفر بلي قصينا
+        };
+        window.resetLiveChrono = function() { 
+            window.pauseLiveChrono(); 
+            window.liveGameStats.chrono = 0; window.liveGameStats.isTimeUp = false; 
+            window.refreshLiveTools(); 
         };
 
-        // 📺 استقبال البيانات للـ DJ (المرآة السحرية)
+        // 📺 استقبال البيانات للـ DJ (الطيار الآلي المستقل)
         window.liveGameListenerRef = null;
         window.startLiveGameListener = function() {
             let path = isArchivedEvent ? 'BechaEventsData/archived_events/'+currentEventIndex : 'BechaEventsData/events/'+currentEventIndex;
@@ -2285,18 +2309,30 @@
             window.liveGameListenerRef = db.ref(path + '/liveGameStats').on('value', snap => {
                 let data = snap.val();
                 if (data && currentUser && ['dj', 'assistant', 'assistant_anim', 'client'].includes(currentUser.role)) {
-                    // الـ DJ يقرأ البيانات الجاية ويسمع التيك تاك
+                    
+                    // تنظيف أي كرونو قديم يخدم عند الـ DJ
+                    if(window.liveGameStats && window.liveGameStats.timerInterval) clearInterval(window.liveGameStats.timerInterval);
+                    
                     if(data.chrono <= 10 && data.chrono > 0 && data.isChronoRunning && data.chrono !== window.liveGameStats.chrono) window.playBeepSound('tick');
                     if(data.isTimeUp && !window.liveGameStats.isTimeUp) window.playBeepSound('buzzer');
                     
                     window.liveGameStats = data;
-                    if(document.getElementById('fullscreenTeleprompter').style.display === 'flex') {
-                        let container = document.getElementById('liveToolsContainer');
-                        if(container) {
-                            let p = window.currentFsLibParts[window.currentFsSubIndex]; if(!p) return;
-                            let m = p.match(/LIB::([^:<]+)::([^<]+)/);
-                            if(m && libraryData[m[1]]) { window.renderLiveTools(libraryData[m[1]].hasScore, libraryData[m[1]].hasChrono); }
-                        }
+                    window.updateLiveToolsUI(); // تحديث الشاشة بالمعطيات الجاية
+
+                    // ⏱️ كان المنشط بعثلي بلي الكرونو يخدم، الـ DJ يولي يخدمو وحدو داخلياً من غير انترنات!
+                    if (data.isChronoRunning && data.chrono > 0) {
+                        window.liveGameStats.timerInterval = setInterval(() => {
+                            window.liveGameStats.chrono--;
+                            if(window.liveGameStats.chrono <= 10 && window.liveGameStats.chrono > 0) window.playBeepSound('tick');
+                            if(window.liveGameStats.chrono <= 0) {
+                                clearInterval(window.liveGameStats.timerInterval);
+                                window.liveGameStats.chrono = 0;
+                                window.liveGameStats.isChronoRunning = false;
+                                window.liveGameStats.isTimeUp = true;
+                                window.playBeepSound('buzzer');
+                            }
+                            window.updateLiveToolsUI(); // الشاشة تتبدل وحدها كل ثانية
+                        }, 1000);
                     }
                 }
             });
