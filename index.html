@@ -3013,6 +3013,58 @@
                 } 
             }); 
         };
+        // --- 1. إنقاذ دالة المكتبة المفقودة ---
+        window.loadLibraryData = function() { 
+            db.ref('BechaEventsData/library').on('value', snap => { 
+                libraryData = snap.val() || {}; 
+                if(typeof window.updateLibraryTabs === 'function') window.updateLibraryTabs();
+                
+                let libScreen = document.getElementById('libraryScreen');
+                if(libScreen && libScreen.classList.contains('active-screen') && typeof window.renderLibrary === 'function') {
+                    window.renderLibrary(typeof activeLibFilter !== 'undefined' ? activeLibFilter : 'all');
+                }
+                
+                let stageSec = document.getElementById('stageSection');
+                if(stageSec && stageSec.style.display === 'block' && currentEventData && currentEventData.eventProgram && typeof window.renderStageTimeline === 'function') { 
+                    window.renderStageTimeline(currentEventData.eventProgram); 
+                } 
+            }); 
+        };
+        // باش تخدم وين ما يعيطلها الكود
+        function loadLibraryData() { window.loadLibraryData(); }
+        function openLibraryScreen() { window.showScreen('libraryScreen'); window.loadLibraryData(); }
+
+        // --- 2. دالة الموافقة الأمنية (مع ميزة الدخول المباشر للشاشة العملاقة للموظفين) ---
+        window.acceptSecurityConsent = function() {
+            window.loadLibraryData();
+            document.getElementById('antiScreenModal').style.display = 'none';
+            
+            if(currentUser && currentUser.role !== 'admin') { 
+                setupWatermark(); 
+                document.getElementById('antiScreenshotBanner').style.display = 'block'; 
+                startPresenceTracker(); 
+            }
+            
+            let pendingSec = document.getElementById(pendingSectionId);
+            if(pendingSec) pendingSec.style.display = 'block'; 
+            
+            if(pendingSectionId === 'backstageSection') { 
+                loadBackstageData(); startBackstageListener(); applyBackstagePermissions(); 
+            }
+            
+            if(pendingSectionId === 'stageSection') { 
+                openStageLive(); applyStagePermissions(); monitorEventStart(); 
+                
+                // 🚀 الدخول المباشر: الـ DJ والموظف ينقز ديراكت للشاشة العملاقة!
+                if (currentUser && ['dj', 'assistant', 'assistant_anim'].includes(currentUser.role)) {
+                    setTimeout(() => {
+                        window.startSmartFullscreen();
+                    }, 1500); // نستناو ثانية ونص باش البرنامج يتيليشارجا من السيرفر
+                }
+            }
+            startPresenceTracker(); 
+        };
+        function acceptSecurityConsent() { window.acceptSecurityConsent(); }
     </script>
 </body>
 </html>
