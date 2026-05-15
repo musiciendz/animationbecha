@@ -1132,7 +1132,15 @@
         };
 
         // 2. دالة الزر الأخضر ✔️ في الشاشة العملاقة (للمنشط والمدير)
+       // 2. دالة الزر الأخضر ✔️ في الشاشة العملاقة (للمنشط والمدير)
         window.markCurrentStepCompleted = function() {
+            // 🚀 حالة الارتجال: الزر الأخضر يولي يغلق الارتجال ويرجعك للبرنامج
+            if (document.getElementById('fsTitle').innerText.includes('ارتجال')) {
+                window.closeFullscreen(); 
+                return;
+            }
+
+            // 📋 حالة البرنامج العادي: يشطب الفقرة وينقز للي بعدها
             if(!currentUser.perms.timeline) return;
             let idx = window.currentFsIndex;
             let prog = currentEventData.eventProgram;
@@ -2316,13 +2324,28 @@
         };
 
        // 🔄 تحديث الواجهة فقط (بدون إرسال للسيرفر باش ما نخنقوش الكونكسيون)
+       // 🔄 تحديث الواجهة فقط (بدون إرسال للسيرفر باش ما نخنقوش الكونكسيون)
         window.updateLiveToolsUI = function() {
-            if(!window.currentFsLibParts) return;
-            let p = window.currentFsLibParts[window.currentFsSubIndex]; if(!p) return;
-            let m = p.match(/LIB::([^:<]+)::([^<]+)/);
-            if(m && libraryData[m[1]]) { window.renderLiveTools(libraryData[m[1]].hasScore, libraryData[m[1]].hasChrono); }
+            let activeId = null;
+            
+            // 🧠 هل نحن في حالة ارتجال حي؟
+            if (document.getElementById('fsTitle').innerText.includes('ارتجال')) {
+                activeId = window.liveGameStats.activeLibId;
+            } 
+            // 🧠 أو في البرنامج الرسمي؟
+            else if (window.currentFsLibParts) {
+                let p = window.currentFsLibParts[window.currentFsSubIndex]; 
+                if(p) {
+                    let m = p.match(/LIB::([^:<]+)::([^<]+)/);
+                    if (m) activeId = m[1];
+                }
+            }
+            
+            // رسم التحديث
+            if(activeId && libraryData[activeId]) { 
+                window.renderLiveTools(libraryData[activeId].hasScore, libraryData[activeId].hasChrono); 
+            }
         };
-
         // 📡 تحديث الواجهة + إرسال للسيرفر (خاصة بالنقاط والأزرار اليدوية)
         window.refreshLiveTools = function() {
             window.updateLiveToolsUI();
