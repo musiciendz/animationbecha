@@ -356,7 +356,10 @@
 
     <header id="mainAppHeader" style="display:none;">
         <div class="top-bar">
-            <div id="live-clock" class="clock-text">🕒 --:--</div>
+            <div style="display:flex; align-items:center; gap:10px;">
+                <div id="live-clock" class="clock-text">🕒 --:--</div>
+                <button class="btn" style="background:rgba(255,255,255,0.2); color:white; padding:4px 10px; font-size:14px; border:1px solid white; cursor:pointer;" onclick="toggleAppFullscreen()" title="شاشة كاملة">⛶</button>
+            </div>
             <div class="logo-container">
                 <span id="headerUserBadge" class="user-badge"></span>
                 <button class="btn btn-dark" style="padding: 5px 10px; font-size: 12px;" onclick="logout()">خروج</button>
@@ -2726,6 +2729,23 @@
         window.closeFullscreen = function() {
             window.closeGlobalVideo(); // سكر الفيديو كانو يخدم
             originalCloseFullscreen(); // سكر الشاشة العملاقة
+        };
+        /* =========================================================
+           🖥️ محرك الشاشة العملاقة للتابلات (Fullscreen API)
+           ========================================================= */
+        window.toggleAppFullscreen = function() {
+            let doc = window.document;
+            let docEl = doc.documentElement;
+
+            let requestFullScreen = docEl.requestFullscreen || docEl.mozRequestFullScreen || docEl.webkitRequestFullScreen || docEl.msRequestFullscreen;
+            let cancelFullScreen = doc.exitFullscreen || doc.mozCancelFullScreen || doc.webkitExitFullscreen || doc.msExitFullscreen;
+
+            if(!doc.fullscreenElement && !doc.mozFullScreenElement && !doc.webkitFullscreenElement && !doc.msFullscreenElement) {
+                requestFullScreen.call(docEl);
+            }
+            else {
+                cancelFullScreen.call(doc);
+            }
         };
     </script>
 </body>
