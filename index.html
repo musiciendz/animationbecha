@@ -2959,6 +2959,60 @@
                 monitorEventStart(); 
             } 
         };
+        let eventStartListener = null;
+        window.monitorEventStart = function() {
+            if(!currentUser || currentUser.role === 'client') return;
+            let path = isArchivedEvent ? 'BechaEventsData/archived_events/'+currentEventIndex : 'BechaEventsData/events/'+currentEventIndex;
+            if(eventStartListener) db.ref(path + '/eventStarted').off('value', eventStartListener);
+            
+            eventStartListener = db.ref(path + '/eventStarted').on('value', snap => {
+                let started = snap.val(); 
+                let isMaestro = (currentUser.role === 'admin_assistant' || currentUser.role === 'admin' || currentUser.role === 'animateur');
+                let startBtn = document.getElementById('btnStartEvent');
+                
+                if (startBtn) {
+                    if (isMaestro) { 
+                        startBtn.style.display = 'block'; 
+                        if (started) { 
+                            startBtn.innerHTML = '⏸️ إيقاف مؤقت (إرجاع الفريق للانتظار)'; 
+                            startBtn.className = 'btn btn-red'; 
+                            startBtn.style.animation = 'none'; 
+                        } else { 
+                            startBtn.innerHTML = '▶️ فتح النظام للجميع'; 
+                            startBtn.className = 'btn btn-green'; 
+                            startBtn.style.animation = 'pulse 2s infinite'; 
+                        } 
+                    } else { 
+                        startBtn.style.display = 'none'; 
+                    }
+                }
+                
+                if(!started && !isMaestro) { 
+                    document.getElementById('waitingInstName').innerText = currentEventData.name; 
+                    document.getElementById('waitingEventTime').innerText = currentEventData.time || '--:--'; 
+                    document.getElementById('waitingRoomScreen').style.display = 'flex'; 
+                    document.getElementById('bottomControlBar').style.display = 'none'; 
+                } else { 
+                    document.getElementById('waitingRoomScreen').style.display = 'none'; 
+                }
+            });
+        };
+
+        window.startEventNow = function() { 
+            let path = isArchivedEvent ? 'BechaEventsData/archived_events/'+currentEventIndex : 'BechaEventsData/events/'+currentEventIndex; 
+            db.ref(path + '/eventStarted').once('value').then(snap => { 
+                let isStarted = snap.val(); 
+                if(isStarted) { 
+                    if(confirm("⚠️ هل أنت متأكد من إيقاف العرض مؤقتاً؟ سيتم إرجاع الموظفين لشاشة الانتظار.")) { 
+                        db.ref(path + '/eventStarted').set(false); 
+                    } 
+                } else { 
+                    if(confirm("⚠️ هل أنت متأكد من فتح النظام للفريق؟")) { 
+                        db.ref(path + '/eventStarted').set(true); 
+                    } 
+                } 
+            }); 
+        };
     </script>
 </body>
 </html>
