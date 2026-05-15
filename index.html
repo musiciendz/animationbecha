@@ -1133,20 +1133,44 @@
 
         // 2. دالة الزر الأخضر ✔️ في الشاشة العملاقة (للمنشط والمدير)
        // 2. دالة الزر الأخضر ✔️ في الشاشة العملاقة (للمنشط والمدير)
+        // 2. دالة الزر الأخضر ✔️ (تولي تخدم في الحالتين من غير بلوكاج)
         window.markCurrentStepCompleted = function() {
-            // 🚀 حالة الارتجال: الزر الأخضر يولي يغلق الارتجال ويرجعك للبرنامج
-            if (document.getElementById('fsTitle').innerText.includes('ارتجال')) {
-                window.closeFullscreen(); 
+            let isImprov = document.getElementById('fsTitle').innerText.includes('ارتجال');
+
+            // 🚀 حالة الارتجال: الزر الأخضر يسكّر الارتجال ويرجعك للبرنامج من غير ما يشطب شيء
+            if (isImprov) {
+                window.closeFullscreen();
                 return;
             }
 
-            // 📋 حالة البرنامج العادي: يشطب الفقرة وينقز للي بعدها
-            if(!currentUser.perms.timeline) return;
+            // 📋 حالة البرنامج العادي: يشطب الفقرة وينقز للي بعدها (Auto-Next)
+            if(!currentUser || !currentUser.perms || !currentUser.perms.timeline) return;
+
             let idx = window.currentFsIndex;
             let prog = currentEventData.eventProgram;
             if(!prog || !prog[idx]) return;
-            if(prog[idx].completed) return; // مستحيل يعاود ينزل عليها كانها محروقة
-            window.toggleStep(idx, false);
+
+            // كان ديجا مسجلة مشطبة، نقز للي بعدها وكهو
+            if(prog[idx].completed) {
+                let nextIdx = idx + 1;
+                if (currentEventData.eventProgram[nextIdx]) {
+                    window.openFsStep(nextIdx);
+                } else {
+                    window.closeFullscreen();
+                }
+                return; 
+            }
+
+            // شطب الفقرة في السيرفر ونقز
+            let path = isArchivedEvent ? 'BechaEventsData/archived_events/'+currentEventIndex : 'BechaEventsData/events/'+currentEventIndex;
+            db.ref(path+'/eventProgram/'+idx+'/completed').set(true).then(() => {
+                let nextIdx = idx + 1;
+                if (currentEventData.eventProgram[nextIdx]) {
+                    window.openFsStep(nextIdx);
+                } else {
+                    window.closeFullscreen();
+                }
+            });
         };
 
         window.declareEventEnd = function() { 
@@ -1938,7 +1962,7 @@
             modal.style.display = 'flex';
         };
 
-       window.playEmergencyGame = function(libId) {
+      window.playEmergencyGame = function(libId) {
             document.getElementById('fsEmergencyModal').style.display = 'none';
             let libData = libraryData[libId]; if(!libData) return;
             
@@ -1974,12 +1998,12 @@
             document.getElementById('fsTitle').innerText = `🚀 فقرة ارتجال حي (خارج البرنامج الرسمي)`;
             document.getElementById('fsContent').innerHTML = contentHtml;
             document.getElementById('fsContent').style.opacity = '1';
-            document.getElementById('fullscreenTeleprompter').style.display = 'flex'; // تأكيد الفتح
+            document.getElementById('fullscreenTeleprompter').style.display = 'flex'; 
 
-            // 📡 إرسال الإرتجال للـ DJ باش يختطفو
+            // 📡 إرسال الإرتجال للـ DJ باش يختطفو (الصلّيحة: ديما نبعثولو Active باش ما يخرجش!)
             if (currentUser && ['animateur', 'admin', 'admin_assistant'].includes(currentUser.role)) {
                 let path = isArchivedEvent ? 'BechaEventsData/archived_events/'+currentEventIndex : 'BechaEventsData/events/'+currentEventIndex;
-                db.ref(path + '/djForceSync/game').set(hasGame ? { active: true, isEmergency: true, libId: libId } : { active: false });
+                db.ref(path + '/djForceSync/game').set({ active: true, isEmergency: true, libId: libId });
             }
         };
         /* =========================================
@@ -2325,21 +2349,25 @@
 
        // 🔄 تحديث الواجهة فقط (بدون إرسال للسيرفر باش ما نخنقوش الكونكسيون)
        // 🔄 تحديث الواجهة فقط (بدون إرسال للسيرفر باش ما نخنقوش الكونكسيون)
+        // 🔄 تحديث الواجهة الذكي (يفرّق بين البرنامج والارتجال)
         window.updateLiveToolsUI = function() {
             let activeId = null;
-            
-            // 🧠 هل نحن في حالة ارتجال حي؟
-            if (document.getElementById('fsTitle').innerText.includes('ارتجال')) {
+            let isImprov = document.getElementById('fsTitle').innerText.includes('ارتجال');
+
+            if (isImprov) {
                 activeId = window.liveGameStats.activeLibId;
-            } 
-            // 🧠 أو في البرنامج الرسمي؟
-            else if (window.currentFsLibParts) {
-                let p = window.currentFsLibParts[window.currentFsSubIndex]; 
+            } else if (window.currentFsLibParts) {
+                let p = window.currentFsLibParts[window.currentFsSubIndex];
                 if(p) {
                     let m = p.match(/LIB::([^:<]+)::([^<]+)/);
                     if (m) activeId = m[1];
                 }
             }
+
+            if(activeId && libraryData[activeId]) {
+                window.renderLiveTools(libraryData[activeId].hasScore, libraryData[activeId].hasChrono);
+            }
+        };
             
             // رسم التحديث
             if(activeId && libraryData[activeId]) { 
