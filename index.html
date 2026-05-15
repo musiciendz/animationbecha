@@ -2260,7 +2260,21 @@
         window.addLivePlayer = function() { window.liveGameStats.players.push({name: `مشارك ${window.liveGameStats.players.length + 1}`, score: 0}); window.refreshLiveTools(); };
         window.removeLivePlayer = function(idx) { window.liveGameStats.players.splice(idx, 1); window.refreshLiveTools(); };
         window.editLivePlayerName = function(idx, newName) { window.liveGameStats.players[idx].name = newName; window.syncLiveGameToFirebase(); };
-        window.changeLiveScore = function(idx, delta) { window.liveGameStats.players[idx].score += delta; if(delta > 0) window.playBeepSound('success'); window.refreshLiveTools(); };
+        // 🚀 نظام تجميع الشحنات (Anti-Spam) للوحة النقاط
+        window.scoreSyncTimer = null;
+        window.changeLiveScore = function(idx, delta) { 
+            window.liveGameStats.players[idx].score += delta; 
+            if(delta > 0) window.playBeepSound('success'); 
+            
+            // 1. تحديث شاشة المنشط في جزء من الثانية (بدون أنترنات)
+            window.updateLiveToolsUI(); 
+            
+            // 2. تجميع الكليكات: نبعثو للسيرفر كان بعد نص ثانية من آخر كليكة
+            if(window.scoreSyncTimer) clearTimeout(window.scoreSyncTimer);
+            window.scoreSyncTimer = setTimeout(() => {
+                window.syncLiveGameToFirebase();
+            }, 500);
+        };
         window.resetLiveScoreboard = function() { if(confirm("تحب تصفر النقاط فقط؟\n(اضغط Cancel كان تحب تفسخ الأسامي زادة)")) { window.liveGameStats.players.forEach(p => p.score = 0); } else { window.liveGameStats.players = []; } window.refreshLiveTools(); };
 
         window.setLiveChrono = function(sec) { window.liveGameStats.chrono = sec; window.liveGameStats.isTimeUp = false; window.refreshLiveTools(); };
