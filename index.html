@@ -692,7 +692,19 @@
 
         function initAudioCtx() { if(!audioCtx) { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); analyser = audioCtx.createAnalyser(); analyser.fftSize = 128; const bufferLength = analyser.frequencyBinCount; dataArray = new Uint8Array(bufferLength); } if(audioCtx.state === 'suspended') { audioCtx.resume(); } }
         function playBeep(type) { initAudioCtx(); const osc = audioCtx.createOscillator(); const gainNode = audioCtx.createGain(); osc.connect(gainNode); gainNode.connect(audioCtx.destination); if(type === 'start') { osc.frequency.value = 800; gainNode.gain.setValueAtTime(0.1, audioCtx.currentTime); osc.start(); osc.stop(audioCtx.currentTime + 0.15); } else { osc.frequency.value = 600; gainNode.gain.setValueAtTime(0.1, audioCtx.currentTime); osc.start(); osc.stop(audioCtx.currentTime + 0.1); const osc2 = audioCtx.createOscillator(); const gain2 = audioCtx.createGain(); osc2.frequency.value = 600; osc2.connect(gain2); gain2.connect(audioCtx.destination); gain2.gain.setValueAtTime(0.1, audioCtx.currentTime); osc2.start(audioCtx.currentTime + 0.15); osc2.stop(audioCtx.currentTime + 0.25); } }
-        function updateClock() { let n = new Date(); let days = ['الأحد', 'الإثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت']; let c = document.getElementById('live-clock'); if(c) c.innerText = `🕒 ${n.toLocaleTimeString('ar-TN', {hour:'2-digit', minute:'2-digit'})} | ${days[n.getDay()]}`; }
+        function updateClock() { 
+            let n = new Date(); 
+            let days = ['الأحد', 'الإثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت']; 
+            let timeStr = n.toLocaleTimeString('ar-TN', {hour:'2-digit', minute:'2-digit'});
+            
+            // تحديث ساعة الكواليس
+            let c = document.getElementById('live-clock'); 
+            if(c) c.innerText = `🕒 ${timeStr} | ${days[n.getDay()]}`; 
+            
+            // ⏰ تحديث ساعة الشاشة العملاقة (باش ما تقعدش 00:00)
+            let fsClock = document.getElementById('fsTimer');
+            if(fsClock) fsClock.innerText = timeStr;
+        }
         setInterval(updateClock, 1000);
         function getTolerantTodayIso() { let d = new Date(); if(d.getHours() < 2) { d.setDate(d.getDate() - 1); } d.setMinutes(d.getMinutes() - d.getTimezoneOffset()); return d.toISOString().slice(0, 10); }
 
