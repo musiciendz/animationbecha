@@ -212,17 +212,23 @@
     <div id="fullscreenTeleprompter">
         <div id="curtainBanner"></div>
     <div id="fsCheatSheet"></div>
-       <div class="fs-header">
+      <div class="fs-header">
             <h2 id="fsTitle" class="fs-title">--</h2>
             <div style="display:flex; align-items:center;">
                 <span id="fsTimer" style="color:#17a2b8; font-size:22px; font-weight:bold; margin-left:20px; font-family: monospace;">00:00</span>
                 
+                <button id="fsCurtainBtn" class="fs-zoom-btn" onclick="toggleCurtainAlert()" title="شارة فتح الستار" style="color:#E10600; margin-right:15px; font-size:26px; animation: pulse 2s infinite;">🚨</button>
+
                 <button class="fs-zoom-btn" onclick="window.toggleAppFullscreen()" title="شاشة كاملة" style="color:#28a745; margin-right:15px; font-weight:bold;">⛶</button>
                 
                 <button class="fs-zoom-btn" onclick="zoomFsText(1)" title="تكبير الخط">🔍+</button>
                 <button class="fs-zoom-btn" onclick="zoomFsText(-1)" title="تصغير الخط">🔍-</button>
-                <button class="fs-zoom-btn" onclick="toggleFsCheatSheet()" title="ورقة الأسماء" style="color:#ffc107; margin-right:15px;">👥</button>
-                <button class="fs-zoom-btn" onclick="openFsEmergencyLib()" title="ارتجال فقرة حية" style="color:#0dcaf0; margin-right:15px; font-size:26px;">🚀</button>
+                
+                <button id="fsCheatSheetBtn" class="fs-zoom-btn" onclick="toggleFsCheatSheet()" title="ورقة الأسماء" style="color:#ffc107; margin-right:15px;">👥</button>
+                <button id="fsRocketBtn" class="fs-zoom-btn" onclick="openFsEmergencyLib()" title="ارتجال فقرة حية" style="color:#0dcaf0; margin-right:15px; font-size:26px;">🚀</button>
+                
+                <button id="fsCompleteStepBtn" class="btn btn-green" style="padding: 8px 15px; font-size:16px; margin-right:10px; display:none;" onclick="markCurrentStepCompleted()">✔️ إنهاء</button>
+
                 <button class="btn btn-red" style="padding: 8px 15px; font-size:16px;" onclick="closeFullscreen()">❌ خروج</button>
             </div>
         </div>
@@ -1110,8 +1116,37 @@
             });
         }
 
-        function toggleStep(idx, state) { if(!currentUser.perms.timeline) return; let path = isArchivedEvent ? 'BechaEventsData/archived_events/'+currentEventIndex : 'BechaEventsData/events/'+currentEventIndex; db.ref(path+'/eventProgram/'+idx+'/completed').set(!state); }
-        function declareEventEnd() { if(!confirm("⚠️ هل أنت متأكد من إعلان انتهاء الحفل؟")) return; let path = isArchivedEvent ? 'BechaEventsData/archived_events/'+currentEventIndex : 'BechaEventsData/events/'+currentEventIndex; db.ref(path + '/eventEnded').set(true); db.ref(path + '/lastMessage').remove(); }
+        // 1. نظام القطار السريع (الشطب والقفز للفقرة الموالية)
+        window.toggleStep = function(idx, state) { 
+            if(!currentUser.perms.timeline) return; 
+            let path = isArchivedEvent ? 'BechaEventsData/archived_events/'+currentEventIndex : 'BechaEventsData/events/'+currentEventIndex; 
+            db.ref(path+'/eventProgram/'+idx+'/completed').set(!state).then(() => {
+                // 🚀 لوجيك الـ Auto-Next (القفزة الجماعية)
+                if (!state === true) { 
+                    let nextIdx = idx + 1;
+                    if (currentEventData.eventProgram[nextIdx]) {
+                        window.openFsStep(nextIdx); // ننقزو للفقرة الجاية ديراكت
+                    }
+                }
+            });
+        };
+
+        // 2. دالة الزر الأخضر ✔️ في الشاشة العملاقة (للمنشط والمدير)
+        window.markCurrentStepCompleted = function() {
+            if(!currentUser.perms.timeline) return;
+            let idx = window.currentFsIndex;
+            let prog = currentEventData.eventProgram;
+            if(!prog || !prog[idx]) return;
+            if(prog[idx].completed) return; // مستحيل يعاود ينزل عليها كانها محروقة
+            window.toggleStep(idx, false);
+        };
+
+        window.declareEventEnd = function() { 
+            if(!confirm("⚠️ هل أنت متأكد من إعلان انتهاء الحفل؟")) return; 
+            let path = isArchivedEvent ? 'BechaEventsData/archived_events/'+currentEventIndex : 'BechaEventsData/events/'+currentEventIndex; 
+            db.ref(path + '/eventEnded').set(true); 
+            db.ref(path + '/lastMessage').remove(); 
+        };
 
         function showFinalReport() { db.ref('BechaEventsData/users_infractions').once('value').then(snap => { let allInfs = snap.val() || {}; let myInfs = allInfs[currentUser.pseudo] || 0; let html = ""; if (currentUser.perms.radar) { html = `<h2 style='color:#198754; margin-top:0;'>🏁 انتهى العرض</h2><h3 style='color:#333;'>📊 تقرير الانضباط:</h3><ul style='list-style:none; padding:0;'>`; let teamPins = currentEventData.teamPins || {}; Object.keys(teamPins).forEach(k => { let name = teamPins[k].name; let count = allInfs[name] || 0; let color = count > 0 ? 'var(--primary-red)' : '#198754'; html += `<li style='margin-bottom:10px; color:${color}; font-weight:bold; font-size:16px;'>${name}: ${count} مخالفات خروج</li>`; }); html += `</ul><button class='btn btn-dark' style='width:100%; margin-top:15px;' onclick='document.getElementById("finalReportModal").style.display="none"'>إغلاق</button>`; } else if (localInfractionsThisSession > 0) { html = `<h2 style='color:var(--primary-red); margin-top:0;'>⛔ تنبيه أخير!</h2><p style='font-size:16px; font-weight:bold;'>تم تسجيل خروجك عدة مرات. مخالفاتك: <b style='color:var(--primary-red); font-size:18px;'>${myInfs}</b>. تم الرفع للإدارة.</p><button class='btn btn-red' style='width:100%; margin-top:15px;' onclick='document.getElementById("finalReportModal").style.display="none"'>أقر بذلك</button>`; } else { html = `<h2 style='color:#198754; margin-top:0;'>🎉 انتهى العرض بنجاح!</h2><button class='btn btn-green' style='width:100%; margin-top:15px;' onclick='document.getElementById("finalReportModal").style.display="none"'>إغلاق</button>`; } document.getElementById('finalReportContent').innerHTML = html; document.getElementById('finalReportModal').style.display = 'flex'; }); }
 
@@ -1728,21 +1763,55 @@
         };
 
         // 2. تحديث الشاشة العملاقة باش تخدم بنظام السلايدر (كوكتيل الألعاب)
-        window.openFsStep = function(idx) {
+       window.openFsStep = function(idx) {
             if(!currentEventData || !currentEventData.eventProgram) return;
             let prog = currentEventData.eventProgram;
             if(idx < 0 || idx >= prog.length) return;
-            currentFsIndex = idx;
             
+            // 🚫 قانون حرق المراكب: الـ DJ والموظفين مستحيل يرجعو لفقرة قديمة محروقة!
+            if (prog[idx].completed && currentUser && !['animateur', 'admin', 'admin_assistant'].includes(currentUser.role)) {
+                return; // بلوكاج وما يتعداش!
+            }
+
+            currentFsIndex = idx;
             let item = prog[idx];
             let displayType = item.type === 'أخرى' ? (item.customType || 'فقرة متنوعة') : item.type;
             let isDone = item.completed;
             
-            document.getElementById('fsTitle').innerText = `الفقرة ${idx+1}: ${displayType} ${isDone ? '(✅ انتهت)' : ''}`;
+            document.getElementById('fsTitle').innerHTML = `الفقرة ${idx+1}: ${displayType} ${isDone ? '<span style="color:#198754;">(✅ اكتملت وتم الحرق)</span>' : ''}`;
             
+            // 🕵️ التحكم في ظهور الأزرار حسب الرتبة وحالة الفقرة
+            let completeBtn = document.getElementById('fsCompleteStepBtn');
+            let cheatSheetBtn = document.getElementById('fsCheatSheetBtn');
+            let rocketBtn = document.getElementById('fsRocketBtn');
+            let prevBtn = document.querySelector('.fs-btn.prev'); // الزر اللوطاني متاع "السابق"
+            
+            if (completeBtn) {
+                // الزر الأخضر ✔️ يظهر كان للمنشط/المدير والفقرة مازالت ما تحرقتش
+                if (['animateur', 'admin', 'admin_assistant'].includes(currentUser.role) && !isDone) {
+                    completeBtn.style.display = 'inline-block';
+                } else {
+                    completeBtn.style.display = 'none';
+                }
+            }
+            
+            // 🔒 السرية المهنية: إخفاء الأسماء والارتجال على الـ DJ والمساعدين
+            let isReadOnly = ['dj', 'assistant', 'assistant_anim', 'client'].includes(currentUser.role);
+            if (cheatSheetBtn) cheatSheetBtn.style.display = isReadOnly ? 'none' : 'inline-block';
+            if (rocketBtn) rocketBtn.style.display = isReadOnly ? 'none' : 'inline-block';
+            
+            // 🚫 إخفاء زر "السابق" إذا الفقرة السابقة محروقة ديجا
+            if (prevBtn) {
+                let prevIdx = idx - 1;
+                if (prevIdx < 0 || (prog[prevIdx] && prog[prevIdx].completed)) {
+                    prevBtn.style.display = 'none'; // السكة مقطوعة!
+                } else {
+                    prevBtn.style.display = 'inline-block';
+                }
+            }
+
             let rawDet = item.details || '';
             if(rawDet.includes('LIB::')) {
-                // تقسيم الكوكتيل وتفعيل السلايدر
                 window.currentFsLibParts = rawDet.split('|||');
                 window.currentFsSubIndex = 0;
                 renderFsSubStep();
@@ -1751,22 +1820,13 @@
             }
             
             document.getElementById('fsContent').style.fontSize = fsBaseFontSize + 'px';
-            document.getElementById('fsContent').style.opacity = isDone ? '0.3' : '1';
+            document.getElementById('fsContent').style.opacity = isDone ? '0.4' : '1';
             document.getElementById('fullscreenTeleprompter').style.display = 'flex';
-        };
 
-        // 1. إغلاق الشاشة العملاقة (وتحرير الـ DJ من كل شيء)
-        window.closeFullscreen = function() { 
-            document.getElementById('fullscreenTeleprompter').style.display = 'none'; 
-            
-            // إيقاف الفيديو كانو يخدم باش ما يقعدش الصوت يدور في الخلفية
-            let videoEl = document.getElementById('localVideoElement');
-            if(videoEl) { videoEl.pause(); videoEl.src = ""; }
-
+            // 📡 إرسال إشارة للـ DJ باش يختطفلو الشاشة ويجيبو معاك للفقرة الحالية
             if (currentUser && ['animateur', 'admin', 'admin_assistant'].includes(currentUser.role)) {
                 let path = isArchivedEvent ? 'BechaEventsData/archived_events/'+currentEventIndex : 'BechaEventsData/events/'+currentEventIndex;
-                db.ref(path + '/djForceSync/game').set({ active: false });
-                db.ref(path + '/djForceSync/video').set({ active: false }); // تحرير الـ DJ من إنذار الكاريوكي
+                db.ref(path + '/djForceSync/game').set({ active: true, fsIndex: idx, subIndex: 0 });
             }
         };
 
