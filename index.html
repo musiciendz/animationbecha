@@ -1171,8 +1171,7 @@
                     window.closeFullscreen();
                 }
             });
-        };
-
+        
         window.declareEventEnd = function() { 
             if(!confirm("⚠️ هل أنت متأكد من إعلان انتهاء الحفل؟")) return; 
             let path = isArchivedEvent ? 'BechaEventsData/archived_events/'+currentEventIndex : 'BechaEventsData/events/'+currentEventIndex; 
