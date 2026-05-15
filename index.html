@@ -212,11 +212,13 @@
     <div id="fullscreenTeleprompter">
         <div id="curtainBanner"></div>
     <div id="fsCheatSheet"></div>
-        <div class="fs-header">
+       <div class="fs-header">
             <h2 id="fsTitle" class="fs-title">--</h2>
             <div style="display:flex; align-items:center;">
-                <!-- الكرونو / الساعة اللايف -->
                 <span id="fsTimer" style="color:#17a2b8; font-size:22px; font-weight:bold; margin-left:20px; font-family: monospace;">00:00</span>
+                
+                <button class="fs-zoom-btn" onclick="window.toggleAppFullscreen()" title="شاشة كاملة" style="color:#28a745; margin-right:15px; font-weight:bold;">⛶</button>
+                
                 <button class="fs-zoom-btn" onclick="zoomFsText(1)" title="تكبير الخط">🔍+</button>
                 <button class="fs-zoom-btn" onclick="zoomFsText(-1)" title="تصغير الخط">🔍-</button>
                 <button class="fs-zoom-btn" onclick="toggleFsCheatSheet()" title="ورقة الأسماء" style="color:#ffc107; margin-right:15px;">👥</button>
