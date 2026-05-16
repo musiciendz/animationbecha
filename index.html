@@ -215,14 +215,20 @@
         <div class="fs-header">
             <h2 id="fsTitle" class="fs-title">--</h2>
             <div style="display:flex; align-items:center;">
-                <!-- الكرونو / الساعة اللايف -->
                 <span id="fsTimer" style="color:#17a2b8; font-size:22px; font-weight:bold; margin-left:20px; font-family: monospace;">00:00</span>
-                <button class="fs-zoom-btn" onclick="zoomFsText(1)" title="تكبير الخط">🔍+</button>
-                <button class="fs-zoom-btn" onclick="zoomFsText(-1)" title="تصغير الخط">🔍-</button>
-                <button class="fs-zoom-btn" onclick="toggleFsCheatSheet()" title="ورقة الأسماء" style="color:#ffc107; margin-right:15px;">👥</button>
-                <button class="fs-zoom-btn" onclick="openFsEmergencyLib()" title="ارتجال فقرة حية" style="color:#0dcaf0; margin-right:15px; font-size:26px;">🚀</button>
+                
+                <button id="fsCurtainBtn" class="fs-zoom-btn" onclick="window.toggleCurtainAlert()" title="شارة فتح الستار" style="color:#E10600; margin-right:15px; font-size:26px; animation: pulse 2s infinite;">🚨</button>
+
+                <button class="fs-zoom-btn" onclick="window.toggleAppFullscreen()" title="شاشة كاملة" style="color:#28a745; margin-right:15px; font-weight:bold;">⛶</button>
+                
+                <button class="fs-zoom-btn" onclick="window.zoomFsText(1)" title="تكبير الخط">🔍+</button>
+                <button class="fs-zoom-btn" onclick="window.zoomFsText(-1)" title="تصغير الخط">🔍-</button>
+                
+                <button id="fsCheatSheetBtn" class="fs-zoom-btn" onclick="window.toggleFsCheatSheet()" title="ورقة الأسماء" style="color:#ffc107; margin-right:15px;">👥</button>
+                <button id="fsRocketBtn" class="fs-zoom-btn" onclick="window.openFsEmergencyLib()" title="ارتجال فقرة حية" style="color:#0dcaf0; margin-right:15px; font-size:26px;">🚀</button>
+                
                 <button id="fsCompleteStepBtn" class="btn btn-green" style="padding: 8px 15px; font-size:16px; margin-right:10px; display:none;" onclick="window.markCurrentStepCompleted()">✔️ إنهاء</button>
-                <button class="btn btn-red" style="padding: 8px 15px; font-size:16px;" onclick="closeFullscreen()">❌ خروج</button>
+                <button class="btn btn-red" style="padding: 8px 15px; font-size:16px;" onclick="window.closeFullscreen()">❌ خروج</button>
             </div>
         </div>
         <div id="fsContent" class="fs-content"></div>
@@ -801,11 +807,31 @@
 
         function setupWatermark() { let wContainer = document.getElementById('watermarkContainer'); wContainer.innerHTML = ''; for(let i=0; i<40; i++) { let span = document.createElement('span'); span.className = 'watermark-text'; span.innerText = currentUser.pseudo; wContainer.appendChild(span); } wContainer.style.display = 'flex'; }
         
-        function applyStagePermissions() { 
-            let tl = document.getElementById('liveProgramTimeline'); tl.style.pointerEvents = currentUser.perms.timeline ? 'auto' : 'none'; document.getElementById('endEventBtn').style.display = currentUser.perms.end_event ? 'block' : 'none'; document.querySelectorAll('.online-text').forEach(el => el.style.display = currentUser.perms.radar ? 'block' : 'none'); 
+        window.applyStagePermissions = function() { 
+            let tl = document.getElementById('liveProgramTimeline'); 
+            tl.style.pointerEvents = currentUser.perms.timeline ? 'auto' : 'none'; 
+            document.getElementById('endEventBtn').style.display = currentUser.perms.end_event ? 'block' : 'none'; 
+            document.querySelectorAll('.online-text').forEach(el => el.style.display = currentUser.perms.radar ? 'block' : 'none'); 
+            
             let teleWrapper = document.getElementById('teleprompterWrapper');
-            if (teleWrapper) { if (currentUser.role === 'assistant_anim' || currentUser.role === 'assistant' || currentUser.role === 'dj') { teleWrapper.style.display = 'none'; } else { teleWrapper.style.display = 'block'; } }
-        }
+            if (teleWrapper) { 
+                if (['assistant_anim', 'assistant', 'dj', 'client'].includes(currentUser.role)) { 
+                    teleWrapper.style.display = 'none'; 
+                } else { 
+                    teleWrapper.style.display = 'block'; 
+                } 
+            }
+            
+            // 🔒 إخفاء زر الأسماء من الركح (السرية المهنية)
+            let stageNamesBtn = document.querySelector('#stageActionButtons .btn-info');
+            if(stageNamesBtn) {
+                if (['assistant_anim', 'assistant', 'dj', 'client'].includes(currentUser.role)) {
+                    stageNamesBtn.style.display = 'none';
+                } else {
+                    stageNamesBtn.style.display = 'inline-block';
+                }
+            }
+        };
 
         function applyBackstagePermissions() { 
             let canEdit = currentUser.perms.bs_edit; 
@@ -1028,21 +1054,32 @@
         }
         function startBackstageListener() { let path = isArchivedEvent ? 'BechaEventsData/archived_events/'+currentEventIndex : 'BechaEventsData/events/'+currentEventIndex; backstageProgRef = db.ref(path + '/eventProgram'); backstageProgRef.on('value', snap => { if(document.getElementById('backstageSection').style.display !== 'none') { let prog = snap.val() || []; let rows = document.querySelectorAll('.prog-row'); prog.forEach((p, i) => { if(rows[i]) { if(p.completed) rows[i].classList.add('locked'); else rows[i].classList.remove('locked'); } }); } }); }
 
-       function openStageLive() { 
-            renderTeleprompter(); 
+       window.openStageLive = function() { 
+            window.renderTeleprompter(); 
             let path = isArchivedEvent ? 'BechaEventsData/archived_events/'+currentEventIndex : 'BechaEventsData/events/'+currentEventIndex; 
             liveProgRef = db.ref(path + '/eventProgram'); 
             liveProgRef.on('value', snap => { 
                 let progData = snap.val() || []; 
                 currentEventData.eventProgram = progData; 
                 window.renderStageTimeline(progData); 
+
+                // 🚀 سحر تحديث الـ Coche للـ DJ مباشرة في الشاشة العملاقة
+                let fsModal = document.getElementById('fullscreenTeleprompter');
+                if (fsModal && fsModal.style.display === 'flex' && window.currentFsIndex !== undefined) {
+                    let currentProg = progData[window.currentFsIndex];
+                    if (currentProg) {
+                        let isDone = currentProg.completed;
+                        let displayType = currentProg.type === 'أخرى' ? (currentProg.customType || 'فقرة متنوعة') : currentProg.type;
+                        document.getElementById('fsTitle').innerHTML = `الفقرة ${window.currentFsIndex+1}: ${displayType} ${isDone ? '<span style="color:#198754;">(✅ اكتملت وتم الحرق)</span>' : ''}`;
+                        document.getElementById('fsContent').style.opacity = isDone ? '0.4' : '1';
+                    }
+                }
             }); 
-            monitorCurtainAlert();
-            // 🚀 تشغيل الطيار الآلي للـ DJ
+            window.monitorCurtainAlert();
             if(typeof window.startLiveGameListener === 'function') window.startLiveGameListener();
             if(typeof window.startDjSyncListener === 'function') window.startDjSyncListener();
             if(typeof window.startWheelSyncListener === 'function') window.startWheelSyncListener();
-        }
+        };
         
         function renderTeleprompter() { 
             let d = currentEventData.institutionDetails || {}; let team = currentEventData.assignedTeam || []; let bechaTeam = team.filter(n => n !== "مديرة المؤسسة").join('، '); let hrs = new Date().getHours(); let timeWord = hrs < 12 ? 'صبحية' : (hrs < 18 ? 'عشوية' : 'سهرة'); let educatorsHtml = ''; if(d.educators && d.educators.length > 0) { educatorsHtml = '<br><br><b>تحية شكر وعرفان لكل أنيسة كانت أم ثانية لصغارنا:</b><br>'; let praises = ['يعطيك الصحة على كل لحظة تعب ومحبة! ❤️👏', 'شكراً على إبداعك وصبرك مع النجوم! 🌟👏', 'مجهود يذكر فيشكر.. برافو! 💐👏', 'تعبك ماراحش خسارة.. يعطيك ألف صحة! 🌸👏']; d.educators.forEach((edu, i) => { educatorsHtml += `- الأنيسة <b>${edu}</b>: ${praises[i % praises.length]}<br>`; }); } let coachesHtml = ''; if(d.coaches && d.coaches.length > 0) { coachesHtml = '<br><b>وتحية تقدير لمدربينا اللي ميزوا صغارنا بتأطيرهم:</b><br>'; d.coaches.forEach((c, i) => { coachesHtml += `- المدرب <b>${c.name}</b> (${c.spec}): يعطيك الصحة على المجهود والتميز! 🏅👏<br>`; }); } let staffHtml = ''; if(d.staff && d.staff.length > 0) { let staffNames = d.staff.map(s => s.name).join('، '); staffHtml = `<br><b>منساوش زادة الجنود الخفاء، تحية للعمّال والشركاء:</b><br>${staffNames}.. برافو ليكم الناس الكل! 🙌<br>`; }
