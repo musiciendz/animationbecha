@@ -212,23 +212,16 @@
     <div id="fullscreenTeleprompter">
         <div id="curtainBanner"></div>
     <div id="fsCheatSheet"></div>
-      <div class="fs-header">
+        <div class="fs-header">
             <h2 id="fsTitle" class="fs-title">--</h2>
             <div style="display:flex; align-items:center;">
+                <!-- الكرونو / الساعة اللايف -->
                 <span id="fsTimer" style="color:#17a2b8; font-size:22px; font-weight:bold; margin-left:20px; font-family: monospace;">00:00</span>
-                
-                <button id="fsCurtainBtn" class="fs-zoom-btn" onclick="toggleCurtainAlert()" title="شارة فتح الستار" style="color:#E10600; margin-right:15px; font-size:26px; animation: pulse 2s infinite;">🚨</button>
-
-                <button class="fs-zoom-btn" onclick="window.toggleAppFullscreen()" title="شاشة كاملة" style="color:#28a745; margin-right:15px; font-weight:bold;">⛶</button>
-                
                 <button class="fs-zoom-btn" onclick="zoomFsText(1)" title="تكبير الخط">🔍+</button>
                 <button class="fs-zoom-btn" onclick="zoomFsText(-1)" title="تصغير الخط">🔍-</button>
-                
-                <button id="fsCheatSheetBtn" class="fs-zoom-btn" onclick="toggleFsCheatSheet()" title="ورقة الأسماء" style="color:#ffc107; margin-right:15px;">👥</button>
-                <button id="fsRocketBtn" class="fs-zoom-btn" onclick="openFsEmergencyLib()" title="ارتجال فقرة حية" style="color:#0dcaf0; margin-right:15px; font-size:26px;">🚀</button>
-                
-                <button id="fsCompleteStepBtn" class="btn btn-green" style="padding: 8px 15px; font-size:16px; margin-right:10px; display:none;" onclick="markCurrentStepCompleted()">✔️ إنهاء</button>
-
+                <button class="fs-zoom-btn" onclick="toggleFsCheatSheet()" title="ورقة الأسماء" style="color:#ffc107; margin-right:15px;">👥</button>
+                <button class="fs-zoom-btn" onclick="openFsEmergencyLib()" title="ارتجال فقرة حية" style="color:#0dcaf0; margin-right:15px; font-size:26px;">🚀</button>
+                <button id="fsCompleteStepBtn" class="btn btn-green" style="padding: 8px 15px; font-size:16px; margin-right:10px; display:none;" onclick="window.markCurrentStepCompleted()">✔️ إنهاء</button>
                 <button class="btn btn-red" style="padding: 8px 15px; font-size:16px;" onclick="closeFullscreen()">❌ خروج</button>
             </div>
         </div>
@@ -364,10 +357,7 @@
 
     <header id="mainAppHeader" style="display:none;">
         <div class="top-bar">
-            <div style="display:flex; align-items:center; gap:10px;">
-                <div id="live-clock" class="clock-text">🕒 --:--</div>
-                <button class="btn" style="background:rgba(255,255,255,0.2); color:white; padding:4px 10px; font-size:14px; border:1px solid white; cursor:pointer;" onclick="toggleAppFullscreen()" title="شاشة كاملة">⛶</button>
-            </div>
+            <div id="live-clock" class="clock-text">🕒 --:--</div>
             <div class="logo-container">
                 <span id="headerUserBadge" class="user-badge"></span>
                 <button class="btn btn-dark" style="padding: 5px 10px; font-size: 12px;" onclick="logout()">خروج</button>
@@ -468,58 +458,29 @@
         <div id="generalLibContainer"></div>
     </div>
 
-   <div id="libFormModal" class="modal-overlay">
-        <div class="modal-box" style="max-width: 750px; width: 95%; padding: 25px;">
-            <h3 id="libFormTitle" style="color:var(--primary-red); margin-top:0; border-bottom: 2px solid #eee; padding-bottom: 10px;">➕ فقرة جديدة</h3>
-            
-            <div style="max-height: 55vh; overflow-y: auto; padding: 10px 15px 10px 0; margin-bottom: 20px; text-align: right;">
-                <input type="hidden" id="libItemId">
-                
-                <label style="font-weight: bold; color: var(--primary-red); display: block; margin-bottom: 5px; font-size: 16px;">📌 اسم اللعبة أو الفقرة:</label>
-                <input type="text" id="libItemName" placeholder="مثال: لغز الفيل..." style="width:100%; margin-bottom:15px; font-size:16px; border: 2px solid #ccc;">
-                
-                <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin-bottom: 20px; border: 1px solid #ccc;">
-                    <label style="font-weight: bold; color: #333; display: block; margin-bottom: 8px;">📂 الدوسي (نوع الفقرة):</label>
-                    <select id="libItemType" style="width:100%; margin-bottom:10px; font-size:16px;" onchange="document.getElementById('libItemCustomType').style.display=(this.value==='أخرى')?'block':'none'">
-                        <option value="لغز / تشنشينة">لغز / تشنشينة</option>
-                        <option value="لعبة حركية">لعبة حركية</option>
-                        <option value="مسابقة فكرية">مسابقة فكرية</option>
-                        <option value="كاريوكي / فيديو">🎤 كاريوكي / فيديو</option>
-                        <option value="أخرى">أخرى (إضافة دوسي جديد)</option>
-                    </select>
-                    <input type="text" id="libItemCustomType" placeholder="اكتب اسم الدوسي الجديد..." style="width:100%; display:none; font-size:16px;">
-                </div>
-
-                <h4 style="color:#17a2b8; margin:10px 0 5px 0;">🎤 نص المنشط:</h4>
-                <textarea id="libItemAnim" style="width:100%; height:60px;" placeholder="ماذا سيقول المنشط..."></textarea>
-                
-                <h4 style="color:#9b59b6; margin:15px 0 5px 0;">🎧 دور الـ DJ:</h4>
-                <textarea id="libItemDJ" style="width:100%; height:50px;" placeholder="الأغاني والمؤثرات المطلوبة..."></textarea>
-                
-                <h4 style="color:#ff9800; margin:15px 0 5px 0;">🏃‍♂️ دور المساعد:</h4>
-                <textarea id="libItemAssist" style="width:100%; height:50px;" placeholder="التحضيرات (كراسي، جوائز...)..."></textarea>
-                
-                <div style="background:#fffdf5; border:2px dashed #17a2b8; padding:15px; border-radius:10px; margin-top:25px; margin-bottom:15px;">
-                    <h4 style="color:#17a2b8; margin:0 0 10px 0;">🎮 أدوات الشاشة العملاقة التفاعلية:</h4>
-                    <label style="display:flex; align-items:center; gap:8px; font-weight:bold; cursor:pointer; margin-bottom:10px; color:#333;">
-                        <input type="checkbox" id="libItemScore" style="width:20px; height:20px;"> 🏆 تفعيل لوحة النقاط للمشاركين (Scoreboard)
-                    </label>
-                    <label style="display:flex; align-items:center; gap:8px; font-weight:bold; cursor:pointer; color:#333;">
-                        <input type="checkbox" id="libItemChrono" style="width:20px; height:20px;"> ⏱️ تفعيل الكرونو (العداد التنازلي)
-                    </label>
-                </div>
-                
-                <label style="display:flex; align-items:center; gap:8px; font-weight:bold; cursor:pointer; color:#E10600; background: #ffeeee; padding: 10px; border-radius: 8px;">
-                    <input type="checkbox" id="libItemFav" style="width:20px; height:20px;"> ⭐ إضافة للمفضلة فوراً
-                </label>
-            </div>
-            
-            <div style="display:flex; gap:10px; border-top: 2px solid #eee; padding-top: 15px;">
-                <button class="btn btn-green" style="flex:1; font-size: 18px; padding: 12px; font-weight:bold;" onclick="window.saveLibItem()">💾 حفظ الفقرة</button>
-                <button class="btn btn-dark" style="flex:1; font-size: 18px; padding: 12px;" onclick="document.getElementById('libFormModal').style.display='none'">❌ إلغاء</button>
-            </div>
+    <div id="libFormModal" class="modal-overlay">
+        <div class="modal-box">
+            <h3 id="libFormTitle" style="color:var(--primary-red); margin-top:0;">➕ فقرة جديدة</h3>
+            <input type="hidden" id="libItemId">
+            <input type="text" id="libItemName" placeholder="📌 اسم الفقرة (مثال: لغز الفيل)" style="width:100%; margin-bottom:10px;">
+            <select id="libItemType" style="width:100%; margin-bottom:15px;" onchange="document.getElementById('libItemCustomType').style.display=(this.value==='أخرى')?'block':'none'">
+                <option value="لغز / تشنشينة">لغز / تشنشينة</option>
+                <option value="لعبة حركية">لعبة حركية</option>
+                <option value="مسابقة فكرية">مسابقة فكرية</option>
+                <option value="أخرى">أخرى</option>
+            </select>
+            <input type="text" id="libItemCustomType" placeholder="اكتب نوع الفقرة..." style="width:100%; margin-bottom:15px; display:none;">
+            <h4 style="color:#17a2b8; margin:10px 0 5px 0;">🎤 نص المنشط:</h4>
+            <textarea id="libItemAnim" style="width:100%; height:60px;" placeholder="ماذا سيقول المنشط..."></textarea>
+            <h4 style="color:#9b59b6; margin:10px 0 5px 0;">🎧 دور الـ DJ:</h4>
+            <textarea id="libItemDJ" style="width:100%; height:50px;" placeholder="الأغاني والمؤثرات المطلوبة..."></textarea>
+            <h4 style="color:#ff9800; margin:10px 0 5px 0;">🏃‍♂️ دور المساعد:</h4>
+            <textarea id="libItemAssist" style="width:100%; height:50px;" placeholder="التحضيرات (كراسي، جوائز...)..."></textarea>
+            <label style="display:flex; align-items:center; gap:8px; margin-top:15px; font-weight:bold; cursor:pointer;"><input type="checkbox" id="libItemFav" style="width:20px; height:20px;"> ⭐ إضافة للمفضلة فوراً</label>
+            <div style="display:flex; gap:10px; margin-top:20px;"><button class="btn btn-green" style="flex:1;" onclick="saveLibItem()">💾 حفظ</button><button class="btn btn-dark" style="flex:1;" onclick="document.getElementById('libFormModal').style.display='none'">❌ إلغاء</button></div>
         </div>
     </div>
+
     <div id="libSelectModal" class="modal-overlay">
         <div class="modal-box" style="max-height:80vh; overflow-y:auto;">
             <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:2px solid #ccc; padding-bottom:10px; margin-bottom:15px;">
@@ -699,17 +660,11 @@
         function initAudioCtx() { if(!audioCtx) { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); analyser = audioCtx.createAnalyser(); analyser.fftSize = 128; const bufferLength = analyser.frequencyBinCount; dataArray = new Uint8Array(bufferLength); } if(audioCtx.state === 'suspended') { audioCtx.resume(); } }
         function playBeep(type) { initAudioCtx(); const osc = audioCtx.createOscillator(); const gainNode = audioCtx.createGain(); osc.connect(gainNode); gainNode.connect(audioCtx.destination); if(type === 'start') { osc.frequency.value = 800; gainNode.gain.setValueAtTime(0.1, audioCtx.currentTime); osc.start(); osc.stop(audioCtx.currentTime + 0.15); } else { osc.frequency.value = 600; gainNode.gain.setValueAtTime(0.1, audioCtx.currentTime); osc.start(); osc.stop(audioCtx.currentTime + 0.1); const osc2 = audioCtx.createOscillator(); const gain2 = audioCtx.createGain(); osc2.frequency.value = 600; osc2.connect(gain2); gain2.connect(audioCtx.destination); gain2.gain.setValueAtTime(0.1, audioCtx.currentTime); osc2.start(audioCtx.currentTime + 0.15); osc2.stop(audioCtx.currentTime + 0.25); } }
         function updateClock() { 
-            let n = new Date(); 
-            let days = ['الأحد', 'الإثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت']; 
+            let n = new Date(); let days = ['الأحد', 'الإثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت']; 
             let timeStr = n.toLocaleTimeString('ar-TN', {hour:'2-digit', minute:'2-digit'});
-            
-            // تحديث ساعة الكواليس
-            let c = document.getElementById('live-clock'); 
-            if(c) c.innerText = `🕒 ${timeStr} | ${days[n.getDay()]}`; 
-            
-            // ⏰ تحديث ساعة الشاشة العملاقة (باش ما تقعدش 00:00)
-            let fsClock = document.getElementById('fsTimer');
-            if(fsClock) fsClock.innerText = timeStr;
+            let c = document.getElementById('live-clock'); if(c) c.innerText = `🕒 ${timeStr} | ${days[n.getDay()]}`; 
+            // ⏰ تحديث ساعة الشاشة العملاقة
+            let fsClock = document.getElementById('fsTimer'); if(fsClock) fsClock.innerText = timeStr;
         }
         setInterval(updateClock, 1000);
         function getTolerantTodayIso() { let d = new Date(); if(d.getHours() < 2) { d.setDate(d.getDate() - 1); } d.setMinutes(d.getMinutes() - d.getTimezoneOffset()); return d.toISOString().slice(0, 10); }
@@ -828,13 +783,19 @@
         function resetTest() { document.getElementById('testResults').style.display = 'none'; document.getElementById('testMicBtn').style.display = 'block'; document.getElementById('testStatusText').innerText = "اضغط مطولاً للتسجيل مرة أخرى"; }
         function proceedAfterTest() { document.getElementById('testRoomScreen').style.display = 'none'; if(currentUser.role === 'admin') { acceptSecurityConsent(); } else { document.getElementById('antiScreenModal').style.display = 'flex'; } }
 
-        function acceptSecurityConsent() {
+        window.acceptSecurityConsent = function() {
             loadLibraryData();
             document.getElementById('antiScreenModal').style.display = 'none';
             if(currentUser.role !== 'admin') { setupWatermark(); document.getElementById('antiScreenshotBanner').style.display = 'block'; startPresenceTracker(); }
             document.getElementById(pendingSectionId).style.display = 'block'; 
             if(pendingSectionId === 'backstageSection') { loadBackstageData(); startBackstageListener(); applyBackstagePermissions(); }
-            if(pendingSectionId === 'stageSection') { openStageLive(); applyStagePermissions(); monitorEventStart(); }
+            if(pendingSectionId === 'stageSection') { 
+                openStageLive(); applyStagePermissions(); monitorEventStart(); 
+                // 🚀 الدخول المباشر للموظفين والـ DJ
+                if (currentUser && ['dj', 'assistant', 'assistant_anim'].includes(currentUser.role)) {
+                    setTimeout(() => { window.startSmartFullscreen(); }, 1500);
+                }
+            }
             startPresenceTracker(); 
         }
 
@@ -1078,9 +1039,6 @@
             }); 
             // تشغيل عساس الشارة
             monitorCurtainAlert();
-            window.startLiveGameListener();
-            window.startWheelSyncListener();
-            window.startDjSyncListener();
         }
         
         function renderTeleprompter() { 
@@ -1116,68 +1074,43 @@
             });
         }
 
-        // 1. نظام القطار السريع (الشطب والقفز للفقرة الموالية)
         window.toggleStep = function(idx, state) { 
             if(!currentUser.perms.timeline) return; 
             let path = isArchivedEvent ? 'BechaEventsData/archived_events/'+currentEventIndex : 'BechaEventsData/events/'+currentEventIndex; 
             db.ref(path+'/eventProgram/'+idx+'/completed').set(!state).then(() => {
-                // 🚀 لوجيك الـ Auto-Next (القفزة الجماعية)
                 if (!state === true) { 
                     let nextIdx = idx + 1;
-                    if (currentEventData.eventProgram[nextIdx]) {
-                        window.openFsStep(nextIdx); // ننقزو للفقرة الجاية ديراكت
-                    }
+                    if (currentEventData.eventProgram[nextIdx]) { window.openFsStep(nextIdx); }
                 }
             });
         };
 
-        // 2. دالة الزر الأخضر ✔️ في الشاشة العملاقة (للمنشط والمدير)
-       // 2. دالة الزر الأخضر ✔️ في الشاشة العملاقة (للمنشط والمدير)
-        // 2. دالة الزر الأخضر ✔️ (تولي تخدم في الحالتين من غير بلوكاج)
         window.markCurrentStepCompleted = function() {
-            let isImprov = document.getElementById('fsTitle').innerText.includes('ارتجال');
+            let fsTitleEl = document.getElementById('fsTitle');
+            let isImprov = fsTitleEl ? fsTitleEl.innerText.includes('ارتجال') : false;
 
-            // 🚀 حالة الارتجال: الزر الأخضر يسكّر الارتجال ويرجعك للبرنامج من غير ما يشطب شيء
-            if (isImprov) {
-                window.closeFullscreen();
-                return;
-            }
+            if (isImprov) { window.closeFullscreen(); return; }
 
-            // 📋 حالة البرنامج العادي: يشطب الفقرة وينقز للي بعدها (Auto-Next)
             if(!currentUser || !currentUser.perms || !currentUser.perms.timeline) return;
-
             let idx = window.currentFsIndex;
             let prog = currentEventData.eventProgram;
             if(!prog || !prog[idx]) return;
 
-            // كان ديجا مسجلة مشطبة، نقز للي بعدها وكهو
             if(prog[idx].completed) {
                 let nextIdx = idx + 1;
-                if (currentEventData.eventProgram[nextIdx]) {
-                    window.openFsStep(nextIdx);
-                } else {
-                    window.closeFullscreen();
-                }
+                if (currentEventData.eventProgram[nextIdx]) { window.openFsStep(nextIdx); } 
+                else { window.closeFullscreen(); }
                 return; 
             }
 
-            // شطب الفقرة في السيرفر ونقز
             let path = isArchivedEvent ? 'BechaEventsData/archived_events/'+currentEventIndex : 'BechaEventsData/events/'+currentEventIndex;
             db.ref(path+'/eventProgram/'+idx+'/completed').set(true).then(() => {
                 let nextIdx = idx + 1;
-                if (currentEventData.eventProgram[nextIdx]) {
-                    window.openFsStep(nextIdx);
-                } else {
-                    window.closeFullscreen();
-                }
+                if (currentEventData.eventProgram[nextIdx]) { window.openFsStep(nextIdx); } 
+                else { window.closeFullscreen(); }
             });
-        
-        window.declareEventEnd = function() { 
-            if(!confirm("⚠️ هل أنت متأكد من إعلان انتهاء الحفل؟")) return; 
-            let path = isArchivedEvent ? 'BechaEventsData/archived_events/'+currentEventIndex : 'BechaEventsData/events/'+currentEventIndex; 
-            db.ref(path + '/eventEnded').set(true); 
-            db.ref(path + '/lastMessage').remove(); 
         };
+        function declareEventEnd() { if(!confirm("⚠️ هل أنت متأكد من إعلان انتهاء الحفل؟")) return; let path = isArchivedEvent ? 'BechaEventsData/archived_events/'+currentEventIndex : 'BechaEventsData/events/'+currentEventIndex; db.ref(path + '/eventEnded').set(true); db.ref(path + '/lastMessage').remove(); }
 
         function showFinalReport() { db.ref('BechaEventsData/users_infractions').once('value').then(snap => { let allInfs = snap.val() || {}; let myInfs = allInfs[currentUser.pseudo] || 0; let html = ""; if (currentUser.perms.radar) { html = `<h2 style='color:#198754; margin-top:0;'>🏁 انتهى العرض</h2><h3 style='color:#333;'>📊 تقرير الانضباط:</h3><ul style='list-style:none; padding:0;'>`; let teamPins = currentEventData.teamPins || {}; Object.keys(teamPins).forEach(k => { let name = teamPins[k].name; let count = allInfs[name] || 0; let color = count > 0 ? 'var(--primary-red)' : '#198754'; html += `<li style='margin-bottom:10px; color:${color}; font-weight:bold; font-size:16px;'>${name}: ${count} مخالفات خروج</li>`; }); html += `</ul><button class='btn btn-dark' style='width:100%; margin-top:15px;' onclick='document.getElementById("finalReportModal").style.display="none"'>إغلاق</button>`; } else if (localInfractionsThisSession > 0) { html = `<h2 style='color:var(--primary-red); margin-top:0;'>⛔ تنبيه أخير!</h2><p style='font-size:16px; font-weight:bold;'>تم تسجيل خروجك عدة مرات. مخالفاتك: <b style='color:var(--primary-red); font-size:18px;'>${myInfs}</b>. تم الرفع للإدارة.</p><button class='btn btn-red' style='width:100%; margin-top:15px;' onclick='document.getElementById("finalReportModal").style.display="none"'>أقر بذلك</button>`; } else { html = `<h2 style='color:#198754; margin-top:0;'>🎉 انتهى العرض بنجاح!</h2><button class='btn btn-green' style='width:100%; margin-top:15px;' onclick='document.getElementById("finalReportModal").style.display="none"'>إغلاق</button>`; } document.getElementById('finalReportContent').innerHTML = html; document.getElementById('finalReportModal').style.display = 'flex'; }); }
 
@@ -1216,104 +1149,48 @@
             }); 
         }
 
-        // صانع مسار المكتبة (الرفوف أو داخل الدوسي)
-        window.updateLibraryTabs = function() {
+        // صانع التبويبات الأوتوماتيكي
+        function updateLibraryTabs() {
             let container = document.getElementById('libTabsContainer');
             if(!container) return;
+            let types = new Set();
+            Object.values(libraryData).forEach(item => { if(item.type) types.add(item.type); });
             
-            if (activeLibFilter === 'all') {
-                container.innerHTML = `<div style="width:100%; padding:10px; background:#fffdf5; border-radius:10px; font-weight:bold; color:var(--primary-red); border:2px dashed var(--primary-red); text-align:center; font-size:16px;">🗄️ الرفوف الرئيسية للمكتبة</div>`;
-            } else {
-                let folderName = activeLibFilter === 'fav' ? '⭐ المفضلات' : `📁 ${activeLibFilter}`;
-                container.innerHTML = `
-                    <div style="display:flex; justify-content:space-between; align-items:center; width:100%; background:#e3f2fd; padding:10px; border-radius:10px; border:2px solid #17a2b8; box-shadow:0 4px 6px rgba(0,0,0,0.05);">
-                        <h4 style="margin:0; color:#17a2b8; font-size:18px;">${folderName}</h4>
-                        <button class="btn btn-info" style="padding:5px 15px; font-size:14px; font-weight:bold;" onclick="activeLibFilter='all'; renderLibrary('all')">🔙 رجوع للرفوف</button>
-                    </div>
-                `;
-            }
-        };
+            let html = `<button class="btn btn-outline" style="white-space:nowrap;" onclick="activeLibFilter='all'; renderLibrary('all')">📂 الكل</button>`;
+            html += `<button class="btn btn-outline" style="white-space:nowrap; border-color:#ff9800; color:#ff9800;" onclick="activeLibFilter='fav'; renderLibrary('fav')">⭐ المفضلات</button>`;
+            
+            types.forEach(t => {
+                html += `<button class="btn btn-outline" style="white-space:nowrap; border-color:#17a2b8; color:#17a2b8;" onclick="activeLibFilter='${t}'; renderLibrary('${t}')">${t}</button>`;
+            });
+            container.innerHTML = html;
+        }
 
-        // مفلتر المكتبة (نظام الدوسيات الذكي)
-        window.renderLibrary = function(filterType = 'all') {
-            let genContainer = document.getElementById('generalLibContainer'); 
-            genContainer.innerHTML = '';
+        // مفلتر المكتبة حسب التبويبة
+        function renderLibrary(filterType = 'all') {
+            let genContainer = document.getElementById('generalLibContainer'); genContainer.innerHTML = '';
             let items = Object.keys(libraryData).map(k => ({id: k, ...libraryData[k]})); 
             items.sort((a, b) => b.updatedAt - a.updatedAt); 
             
-            window.updateLibraryTabs(); // تحديث المسار الفوقاني
+            let filteredItems = items;
+            if(filterType === 'fav') filteredItems = items.filter(i => i.isFav);
+            else if(filterType !== 'all') filteredItems = items.filter(i => i.type === filterType);
 
-            if (filterType === 'all') {
-                // 📂 واجهة الرفوف الرئيسية (الدوسيات)
-                let categories = {};
-                let favCount = 0;
-                
-                items.forEach(item => {
-                    if (item.isFav) favCount++;
-                    let type = item.type === 'أخرى' ? (item.customType || 'متنوع') : item.type;
-                    if (!categories[type]) categories[type] = 0;
-                    categories[type]++;
-                });
+            if(filteredItems.length === 0) { genContainer.innerHTML = '<p style="color:#888; font-size:13px; text-align:center;">لا توجد فقرات في هذا القسم.</p>'; return; }
 
-                let html = `<div style="display:grid; grid-template-columns:1fr 1fr; gap:15px; margin-top:15px;">`;
-                
-                // دوسي المفضلات (ديما موجود)
-                html += `
-                    <div class="dash-card" style="border-color:#ffc107; background:#fffdf5; padding:25px 15px;" onclick="activeLibFilter='fav'; renderLibrary('fav')">
-                        <div style="font-size:45px; margin-bottom:10px; animation: pulse 2s infinite;">⭐</div>
-                        <h3 style="color:#ff9800; margin:0 0 10px 0;">المفضلات</h3>
-                        <span style="font-size:13px; color:#666; font-weight:bold; background:#ffeb3b; padding:4px 10px; border-radius:12px;">${favCount} فقرات</span>
-                    </div>
-                `;
-
-                // الدوسيات الأوتوماتيكية (حسب الأنواع الموجودة)
-                let colors = ['#17a2b8', '#198754', '#E10600', '#6f42c1', '#e83e8c', '#0dcaf0'];
-                let colorIdx = 0;
-                
-                Object.keys(categories).forEach(cat => {
-                    let color = colors[colorIdx % colors.length];
-                    colorIdx++;
-                    html += `
-                        <div class="dash-card" style="border-color:${color}; padding:25px 15px;" onclick="activeLibFilter='${cat}'; renderLibrary('${cat}')">
-                            <div style="font-size:45px; margin-bottom:10px;">📁</div>
-                            <h3 style="color:${color}; margin:0 0 10px 0; font-size:16px;">${cat}</h3>
-                            <span style="font-size:13px; color:#666; font-weight:bold; background:#f8f9fa; padding:4px 10px; border-radius:12px; border:1px solid #ddd;">${categories[cat]} فقرات</span>
-                        </div>
-                    `;
-                });
-                
-                html += `</div>`;
-                genContainer.innerHTML = html;
-
-            } else {
-                // 📋 واجهة اللستة (داخل الدوسي)
-                let filteredItems = items;
-                if(filterType === 'fav') filteredItems = items.filter(i => i.isFav);
-                else filteredItems = items.filter(i => {
-                    let type = i.type === 'أخرى' ? (i.customType || 'متنوع') : i.type;
-                    return type === filterType;
-                });
-
-                if(filteredItems.length === 0) { 
-                    genContainer.innerHTML = '<div style="text-align:center; padding:40px;"><div style="font-size:50px; margin-bottom:15px;">📭</div><p style="color:#888; font-size:18px; font-weight:bold;">الدوسي فارغ.</p></div>'; 
-                    return; 
-                }
-
-                filteredItems.forEach(item => {
-                    let d = new Date(item.updatedAt); let dateStr = d.toLocaleDateString('ar-TN') + ' ' + d.toLocaleTimeString('ar-TN', {hour:'2-digit', minute:'2-digit'}); 
-                    let isFav = item.isFav ? 'active' : '';
-                    let html = `<div class="lib-card" style="margin-top:10px;"><div class="fav-heart ${isFav}" onclick="toggleFavorite('${item.id}', ${!item.isFav}); setTimeout(()=>renderLibrary('${filterType}'), 300);">❤️</div><div class="lib-title">${item.name}</div><div class="lib-date">آخر تحيين: ${dateStr}</div><div style="font-size:13px; color:#555; margin-top:10px; background:#f8f9fa; padding:10px; border-radius:8px;"><b>🎤 المنشط:</b> ${item.animText || '---'}<br><b>🎧 الـ DJ:</b> ${item.djText || '---'}<br><b>🏃‍♂️ المساعد:</b> ${item.assistText || '---'}</div><div class="lib-actions"><button class="btn btn-outline" style="border-color:#17a2b8; color:#17a2b8; flex:1; padding:5px;" onclick="editLibItem('${item.id}')">✏️ تعديل</button><button class="btn btn-outline" style="border-color:#dc3545; color:#dc3545; flex:1; padding:5px;" onclick="deleteLibItem('${item.id}')">🗑️ حذف</button></div></div>`;
-                    genContainer.innerHTML += html;
-                });
-            }
-        };
+            filteredItems.forEach(item => {
+                let d = new Date(item.updatedAt); let dateStr = d.toLocaleDateString('ar-TN') + ' ' + d.toLocaleTimeString('ar-TN', {hour:'2-digit', minute:'2-digit'}); 
+                let isFav = item.isFav ? 'active' : '';
+                let html = `<div class="lib-card"><div class="fav-heart ${isFav}" onclick="toggleFavorite('${item.id}', ${!item.isFav}); setTimeout(()=>renderLibrary('${filterType}'), 300);">❤️</div><div class="lib-title">${item.name} <span style="font-size:12px; color:#666;">(${item.type})</span></div><div class="lib-date">آخر تحيين: ${dateStr}</div><div style="font-size:13px; color:#555; margin-top:10px; background:#f8f9fa; padding:10px; border-radius:8px;"><b>🎤 المنشط:</b> ${item.animText || '---'}<br><b>🎧 الـ DJ:</b> ${item.djText || '---'}<br><b>🏃‍♂️ المساعد:</b> ${item.assistText || '---'}</div><div class="lib-actions"><button class="btn btn-outline" style="border-color:#17a2b8; color:#17a2b8; flex:1; padding:5px;" onclick="editLibItem('${item.id}')">✏️ تعديل</button><button class="btn btn-outline" style="border-color:#dc3545; color:#dc3545; flex:1; padding:5px;" onclick="deleteLibItem('${item.id}')">🗑️ حذف</button></div></div>`;
+                genContainer.innerHTML += html;
+            });
+        }
         function openLibForm() { document.getElementById('libItemId').value = ''; document.getElementById('libItemName').value = ''; document.getElementById('libItemType').value = 'لغز / تشنشينة'; document.getElementById('libItemCustomType').value = ''; document.getElementById('libItemCustomType').style.display = 'none'; document.getElementById('libItemAnim').value = ''; document.getElementById('libItemDJ').value = ''; document.getElementById('libItemAssist').value = ''; document.getElementById('libItemFav').checked = false; document.getElementById('libFormTitle').innerText = '➕ فقرة جديدة'; document.getElementById('libFormModal').style.display = 'flex'; }
 
         function saveLibItem() { let id = document.getElementById('libItemId').value || 'lib_' + Date.now(); let name = document.getElementById('libItemName').value.trim(); if(!name) return alert("الرجاء كتابة اسم الفقرة!"); let isFav = document.getElementById('libItemFav').checked; if (isFav) { let duplicate = Object.keys(libraryData).find(k => libraryData[k].name === name && libraryData[k].isFav && k !== id); if (duplicate) { alert(`⚠️ يا سي حمادي، اسم الفقرة (${name}) موجود ديجا في المفضلات! الرجاء تغيير الاسم أو تعديل الفقرة القديمة.`); return; } } let selectedType = document.getElementById('libItemType').value; let finalType = selectedType === 'أخرى' ? document.getElementById('libItemCustomType').value.trim() : selectedType; if (selectedType === 'أخرى' && !finalType) return alert("الرجاء كتابة نوع الفقرة!"); let itemData = { name: name, type: finalType, animText: document.getElementById('libItemAnim').value.trim(), djText: document.getElementById('libItemDJ').value.trim(), assistText: document.getElementById('libItemAssist').value.trim(), isFav: isFav, updatedAt: Date.now() }; db.ref('BechaEventsData/library/' + id).set(itemData).then(() => { document.getElementById('libFormModal').style.display = 'none'; }); }
 
         function toggleFavorite(id, state) { if (state) { let itemToMove = libraryData[id]; let duplicate = Object.keys(libraryData).find(k => libraryData[k].name === itemToMove.name && libraryData[k].isFav && k !== id); if (duplicate) { alert(`⚠️ لا يمكن تحويلها للمفضلة! اسم الفقرة (${itemToMove.name}) موجود ديجا في المفضلات.`); return; } } db.ref('BechaEventsData/library/' + id + '/isFav').set(state); }
 
-        function editLibItem(id) { let item = libraryData[id]; if(!item) return; document.getElementById('libItemId').value = id; document.getElementById('libItemName').value = item.name; let standardTypes = ['لغز / تشنشينة', 'لعبة حركية', 'مسابقة فكرية', 'كاريوكي / فيديو', 'أخرى']; if(standardTypes.includes(item.type)) { document.getElementById('libItemType').value = item.type; document.getElementById('libItemCustomType').style.display = 'none'; document.getElementById('libItemCustomType').value = ''; } else { document.getElementById('libItemType').value = 'أخرى'; document.getElementById('libItemCustomType').style.display = 'block'; document.getElementById('libItemCustomType').value = item.type; } document.getElementById('libItemAnim').value = item.animText || ''; document.getElementById('libItemDJ').value = item.djText || ''; document.getElementById('libItemAssist').value = item.assistText || ''; document.getElementById('libItemFav').checked = item.isFav; document.getElementById('libFormTitle').innerText = '✏️ تعديل الفقرة'; document.getElementById('libFormModal').style.display = 'flex'; }
+        function editLibItem(id) { let item = libraryData[id]; if(!item) return; document.getElementById('libItemId').value = id; document.getElementById('libItemName').value = item.name; let standardTypes = ['لغز / تشنشينة', 'لعبة حركية', 'مسابقة فكرية', 'أخرى']; if(standardTypes.includes(item.type)) { document.getElementById('libItemType').value = item.type; document.getElementById('libItemCustomType').style.display = 'none'; document.getElementById('libItemCustomType').value = ''; } else { document.getElementById('libItemType').value = 'أخرى'; document.getElementById('libItemCustomType').style.display = 'block'; document.getElementById('libItemCustomType').value = item.type; } document.getElementById('libItemAnim').value = item.animText || ''; document.getElementById('libItemDJ').value = item.djText || ''; document.getElementById('libItemAssist').value = item.assistText || ''; document.getElementById('libItemFav').checked = item.isFav; document.getElementById('libFormTitle').innerText = '✏️ تعديل الفقرة'; document.getElementById('libFormModal').style.display = 'flex'; }
 
         function deleteLibItem(id) { if(confirm("⚠️ متأكد تحب تفسخ هالفقرة نهائياً من المكتبة؟")) { db.ref('BechaEventsData/library/' + id).remove(); } }
 
@@ -1799,146 +1676,71 @@
             let prog = currentEventData.eventProgram;
             if(idx < 0 || idx >= prog.length) return;
             
-            // 🚫 قانون حرق المراكب: الـ DJ والموظفين مستحيل يرجعو لفقرة قديمة محروقة!
-            if (prog[idx].completed && currentUser && !['animateur', 'admin', 'admin_assistant'].includes(currentUser.role)) {
-                return; // بلوكاج وما يتعداش!
-            }
+            // 🚫 الموظفين مستحيل يرجعو لفقرة قديمة محروقة
+            if (prog[idx].completed && currentUser && !['animateur', 'admin', 'admin_assistant'].includes(currentUser.role)) { return; }
 
-            currentFsIndex = idx;
-            let item = prog[idx];
+            currentFsIndex = idx; let item = prog[idx];
             let displayType = item.type === 'أخرى' ? (item.customType || 'فقرة متنوعة') : item.type;
             let isDone = item.completed;
             
             document.getElementById('fsTitle').innerHTML = `الفقرة ${idx+1}: ${displayType} ${isDone ? '<span style="color:#198754;">(✅ اكتملت وتم الحرق)</span>' : ''}`;
             
-            // 🕵️ التحكم في ظهور الأزرار حسب الرتبة وحالة الفقرة
             let completeBtn = document.getElementById('fsCompleteStepBtn');
-            let cheatSheetBtn = document.getElementById('fsCheatSheetBtn');
-            let rocketBtn = document.getElementById('fsRocketBtn');
-            let prevBtn = document.querySelector('.fs-btn.prev'); // الزر اللوطاني متاع "السابق"
+            let cheatSheetBtn = document.querySelector('button[title="ورقة الأسماء"]');
+            let rocketBtn = document.querySelector('button[title="ارتجال فقرة حية"]');
+            let prevBtn = document.querySelector('.fs-btn.prev'); 
             
-            if (completeBtn) {
-                // الزر الأخضر ✔️ يظهر كان للمنشط/المدير والفقرة مازالت ما تحرقتش
-                if (['animateur', 'admin', 'admin_assistant'].includes(currentUser.role) && !isDone) {
-                    completeBtn.style.display = 'inline-block';
-                } else {
-                    completeBtn.style.display = 'none';
-                }
-            }
+            if (completeBtn) { if (['animateur', 'admin', 'admin_assistant'].includes(currentUser.role) && !isDone) { completeBtn.style.display = 'inline-block'; } else { completeBtn.style.display = 'none'; } }
             
             // 🔒 السرية المهنية: إخفاء الأسماء والارتجال على الـ DJ والمساعدين
             let isReadOnly = ['dj', 'assistant', 'assistant_anim', 'client'].includes(currentUser.role);
             if (cheatSheetBtn) cheatSheetBtn.style.display = isReadOnly ? 'none' : 'inline-block';
             if (rocketBtn) rocketBtn.style.display = isReadOnly ? 'none' : 'inline-block';
             
-            // 🚫 إخفاء زر "السابق" إذا الفقرة السابقة محروقة ديجا
-            if (prevBtn) {
-                let prevIdx = idx - 1;
-                if (prevIdx < 0 || (prog[prevIdx] && prog[prevIdx].completed)) {
-                    prevBtn.style.display = 'none'; // السكة مقطوعة!
-                } else {
-                    prevBtn.style.display = 'inline-block';
-                }
-            }
+            // 🚫 إخفاء زر السابق كان الفقرة محروقة
+            if (prevBtn) { let prevIdx = idx - 1; if (prevIdx < 0 || (prog[prevIdx] && prog[prevIdx].completed)) { prevBtn.style.display = 'none'; } else { prevBtn.style.display = 'inline-block'; } }
 
             let rawDet = item.details || '';
-            if(rawDet.includes('LIB::')) {
-                window.currentFsLibParts = rawDet.split('|||');
-                window.currentFsSubIndex = 0;
-                renderFsSubStep();
-            } else {
-                document.getElementById('fsContent').innerHTML = rawDet; 
-            }
+            if(rawDet.includes('LIB::')) { window.currentFsLibParts = rawDet.split('|||'); window.currentFsSubIndex = 0; window.renderFsSubStep(); } 
+            else { document.getElementById('fsContent').innerHTML = rawDet; }
             
             document.getElementById('fsContent').style.fontSize = fsBaseFontSize + 'px';
             document.getElementById('fsContent').style.opacity = isDone ? '0.4' : '1';
             document.getElementById('fullscreenTeleprompter').style.display = 'flex';
 
-            // 📡 إرسال إشارة للـ DJ باش يختطفلو الشاشة ويجيبو معاك للفقرة الحالية
             if (currentUser && ['animateur', 'admin', 'admin_assistant'].includes(currentUser.role)) {
                 let path = isArchivedEvent ? 'BechaEventsData/archived_events/'+currentEventIndex : 'BechaEventsData/events/'+currentEventIndex;
                 db.ref(path + '/djForceSync/game').set({ active: true, fsIndex: idx, subIndex: 0 });
             }
         };
 
-        // 2. ترقية الشاشة العملاقة (لتقبل الفيديوهات من الفلاشة)
         window.renderFsSubStep = function() {
-            let parts = window.currentFsLibParts; let subIdx = window.currentFsSubIndex; let p = parts[subIdx];
+            let parts = window.currentFsLibParts;
+            let subIdx = window.currentFsSubIndex;
+            let p = parts[subIdx];
             if(!p) return;
+            
             let m = p.match(/LIB::([^:<]+)::([^<]+)/);
             let contentHtml = '';
-            let hasGame = false;
-            
             if(m) {
                 let libId = m[1]; let libData = libraryData[libId];
                 if(libData) {
-                    let counterText = parts.length > 1 ? `<span style="color:#aaa; font-size:0.7em;">(فقرة ${subIdx+1} من ${parts.length})</span>` : '';
+                    let counterText = parts.length > 1 ? `<span style="color:#aaa; font-size:0.7em;">(لعبة ${subIdx+1} من ${parts.length})</span>` : '';
                     contentHtml += `<div style="color:#ffc107; font-size:1.2em; margin-bottom:20px; border-bottom:2px solid #555; padding-bottom:10px;">⭐ ${libData.name} ${counterText}</div>`;
-                    if(libData.animText) contentHtml += `<div style="color:#e3f2fd; margin-bottom:15px; line-height:1.6;">🎤 <b>نص المنشط:</b><br>${libData.animText.replace(/\n/g,'<br>')}</div>`;
+                    if(libData.animText) contentHtml += `<div style="color:#e3f2fd; margin-bottom:15px; line-height:1.6;">🎤 <b>نص المنشط:</b><br>${libData.animText}</div>`;
+                    if(libData.djText) contentHtml += `<div style="color:#f3e5f5; font-size:0.8em; opacity:0.9; margin-top:30px;">🎧 <b>DJ:</b> ${libData.djText}</div>`;
+                    if(libData.assistText) contentHtml += `<div style="color:#fff3e0; font-size:0.8em; opacity:0.9;">🏃‍♂️ <b>المساعد:</b> ${libData.assistText}</div>`;
                     
-                    // 🎬 زر الكاريوكي السحري (يظهر كان نوع الفقرة كاريوكي)
-                    let isKaraoke = (libData.type === 'كاريوكي / فيديو' || libData.type === 'الأغنية المترجمة' || libData.name.includes('كاريوكي'));
-                    if(isKaraoke && ['animateur', 'admin', 'admin_assistant'].includes(currentUser.role)) {
-                        contentHtml += `
-                        <div id="karaokeContainer" style="margin-top:30px; text-align:center; background:#1a1a1a; padding:20px; border-radius:15px; border:2px dashed #0dcaf0;">
-                            <label id="karaokeUploadLabel" class="btn btn-green" style="font-size:24px; padding:15px 30px; cursor:pointer; display:inline-block; animation: pulse 1.5s infinite;">
-                                📂 إختر فيديو الأغنية من الفلاشة (USB)
-                                <input type="file" accept="video/*" style="display:none;" onchange="window.loadLocalVideo(event)">
-                            </label>
-                            <div id="localVideoPlayerContainer" style="margin-top:20px; width:100%; display:none;">
-                                <video id="localVideoElement" controls style="width:100%; border-radius:15px; border:4px solid #ffc107; box-shadow:0 10px 30px rgba(0,0,0,0.5);"></video>
-                            </div>
-                        </div>`;
-                    }
-
+                    // أزرار التنقل (⏭️) في وسط الشاشة العملاقة
                     if(parts.length > 1) {
-                        contentHtml += `<div style="margin-top:20px; display:flex; gap:15px; justify-content:center;">`;
-                        if(subIdx > 0) contentHtml += `<button onclick="window.currentFsSubIndex--; renderFsSubStep();" style="padding:10px 20px; font-size:18px; border-radius:12px; background:#444; color:white; border:none; cursor:pointer;">⏮️ السابق</button>`;
-                        if(subIdx < parts.length - 1) contentHtml += `<button onclick="window.currentFsSubIndex++; renderFsSubStep();" style="padding:10px 20px; font-size:18px; border-radius:12px; background:var(--primary-red); color:white; border:none; cursor:pointer; font-weight:bold;">الموالية ⏭️</button>`;
+                        contentHtml += `<div style="margin-top:40px; display:flex; gap:15px; justify-content:center; border-top:1px solid #444; padding-top:20px;">`;
+                        if(subIdx > 0) contentHtml += `<button onclick="window.currentFsSubIndex--; renderFsSubStep();" style="padding:12px 25px; font-size:20px; border-radius:12px; background:#444; color:white; border:none; cursor:pointer;">⏮️ اللعبة السابقة</button>`;
+                        if(subIdx < parts.length - 1) contentHtml += `<button onclick="window.currentFsSubIndex++; renderFsSubStep();" style="padding:12px 25px; font-size:20px; border-radius:12px; background:var(--primary-red); color:white; border:none; cursor:pointer; font-weight:bold; box-shadow:0 4px 10px rgba(225,6,0,0.4);">اللعبة الموالية ⏭️</button>`;
                         contentHtml += `</div>`;
-                    }
-
-                    if(libData.hasChrono || libData.hasScore) {
-                        hasGame = true; 
-                        if(window.liveGameStats.activeLibId !== libId) {
-                            window.pauseLiveChrono(); 
-                            window.liveGameStats = { activeLibId: libId, players: [], chrono: 0, timerInterval: null, isChronoRunning: false, isTimeUp: false };
-                        }
-                        contentHtml += `<div id="liveToolsContainer" style="background:#1a1a1a; border:2px solid #555; border-radius:15px; padding:20px; margin-top:30px;"></div>`;
-                        setTimeout(() => { window.renderLiveTools(libData.hasScore, libData.hasChrono); }, 50);
                     }
                 }
             } else { contentHtml = p; }
-            
             document.getElementById('fsContent').innerHTML = contentHtml;
-
-            if (currentUser && ['animateur', 'admin', 'admin_assistant'].includes(currentUser.role)) {
-                let path = isArchivedEvent ? 'BechaEventsData/archived_events/'+currentEventIndex : 'BechaEventsData/events/'+currentEventIndex;
-                db.ref(path + '/djForceSync/game').set(hasGame ? { active: true, fsIndex: window.currentFsIndex, subIndex: window.currentFsSubIndex } : { active: false });
-            }
-        };
-
-        // 3. محرك تشغيل الفيديو المحلي (بدون أنترنات)
-        window.loadLocalVideo = function(event) {
-            let file = event.target.files[0];
-            if(!file) return;
-            
-            // إنشاء رابط وهمي محلي للفيديو
-            let videoUrl = URL.createObjectURL(file);
-            let videoContainer = document.getElementById('localVideoPlayerContainer');
-            let videoEl = document.getElementById('localVideoElement');
-            let uploadLabel = document.getElementById('karaokeUploadLabel');
-            
-            videoEl.src = videoUrl;
-            videoContainer.style.display = 'block';
-            uploadLabel.style.display = 'none'; // إخفاء زر الاختيار باش تنظاف الشاشة
-            videoEl.play(); // تشغيل أوتوماتيكي
-            
-            // 📡 إرسال إنذار الكاريوكي للـ DJ
-            if (currentUser && ['animateur', 'admin', 'admin_assistant'].includes(currentUser.role)) {
-                let path = isArchivedEvent ? 'BechaEventsData/archived_events/'+currentEventIndex : 'BechaEventsData/events/'+currentEventIndex;
-                db.ref(path + '/djForceSync/video').set({ active: true, name: file.name });
-            }
         };
 
         // 3. زر الصاروخ 🚀 (مكتبة الارتجال المباشر)
@@ -1961,49 +1763,18 @@
             modal.style.display = 'flex';
         };
 
-      window.playEmergencyGame = function(libId) {
+        window.playEmergencyGame = function(libId) {
             document.getElementById('fsEmergencyModal').style.display = 'none';
             let libData = libraryData[libId]; if(!libData) return;
             
             let contentHtml = `<div style="color:#0dcaf0; font-size:1.2em; margin-bottom:20px; border-bottom:2px solid #555; padding-bottom:10px;">🚀 ارتجال مباشر: ${libData.name}</div>`;
-            if(libData.animText) contentHtml += `<div style="color:#e3f2fd; margin-bottom:15px; line-height:1.6;">🎤 <b>نص المنشط:</b><br>${libData.animText.replace(/\n/g,'<br>')}</div>`;
+            if(libData.animText) contentHtml += `<div style="color:#e3f2fd; margin-bottom:15px; line-height:1.6;">🎤 <b>نص المنشط:</b><br>${libData.animText}</div>`;
+            if(libData.djText) contentHtml += `<div style="color:#f3e5f5; font-size:0.8em; opacity:0.9; margin-top:30px;">🎧 <b>DJ:</b> ${libData.djText}</div>`;
+            if(libData.assistText) contentHtml += `<div style="color:#fff3e0; font-size:0.8em; opacity:0.9;">🏃‍♂️ <b>المساعد:</b> ${libData.assistText}</div>`;
             
-            // 🎬 زر الكاريوكي السحري في الإرتجال
-            let isKaraoke = (libData.type === 'كاريوكي / فيديو' || libData.type === 'الأغنية المترجمة' || libData.name.includes('كاريوكي'));
-            if(isKaraoke && ['animateur', 'admin', 'admin_assistant'].includes(currentUser.role)) {
-                contentHtml += `
-                <div id="karaokeContainer" style="margin-top:30px; text-align:center; background:#1a1a1a; padding:20px; border-radius:15px; border:2px dashed #0dcaf0;">
-                    <label id="karaokeUploadLabel" class="btn btn-green" style="font-size:24px; padding:15px 30px; cursor:pointer; display:inline-block; animation: pulse 1.5s infinite;">
-                        📂 إختر فيديو الأغنية من الفلاشة (USB)
-                        <input type="file" accept="video/*" style="display:none;" onchange="window.loadLocalVideo(event)">
-                    </label>
-                    <div id="localVideoPlayerContainer" style="margin-top:20px; width:100%; display:none;">
-                        <video id="localVideoElement" controls style="width:100%; border-radius:15px; border:4px solid #ffc107; box-shadow:0 10px 30px rgba(0,0,0,0.5);"></video>
-                    </div>
-                </div>`;
-            }
-
-            let hasGame = false;
-            if(libData.hasChrono || libData.hasScore) {
-                hasGame = true; 
-                if(window.liveGameStats.activeLibId !== libId) {
-                    window.pauseLiveChrono(); 
-                    window.liveGameStats = { activeLibId: libId, players: [], chrono: 0, timerInterval: null, isChronoRunning: false, isTimeUp: false };
-                }
-                contentHtml += `<div id="liveToolsContainer" style="background:#1a1a1a; border:2px solid #555; border-radius:15px; padding:20px; margin-top:30px;"></div>`;
-                setTimeout(() => { window.renderLiveTools(libData.hasScore, libData.hasChrono); }, 50);
-            }
-
             document.getElementById('fsTitle').innerText = `🚀 فقرة ارتجال حي (خارج البرنامج الرسمي)`;
             document.getElementById('fsContent').innerHTML = contentHtml;
             document.getElementById('fsContent').style.opacity = '1';
-            document.getElementById('fullscreenTeleprompter').style.display = 'flex'; 
-
-            // 📡 إرسال الإرتجال للـ DJ باش يختطفو (الصلّيحة: ديما نبعثولو Active باش ما يخرجش!)
-            if (currentUser && ['animateur', 'admin', 'admin_assistant'].includes(currentUser.role)) {
-                let path = isArchivedEvent ? 'BechaEventsData/archived_events/'+currentEventIndex : 'BechaEventsData/events/'+currentEventIndex;
-                db.ref(path + '/djForceSync/game').set({ active: true, isEmergency: true, libId: libId });
-            }
         };
         /* =========================================
            🎨 رسّام البادجات (النسخة الإجبارية المضادة للأخطاء)
@@ -2103,50 +1874,39 @@
            🚀 التحديث الشامل: نظام التنشيط التفاعلي (النقاط + الكرونو) 🚀
            ========================================================= */
         
-       
+        // 1. زرع أزرار التفعيل في نافذة المكتبة (بدون المساس بالهيكل القديم)
+        setTimeout(() => {
+            let favContainer = document.getElementById('libItemFav');
+            if (favContainer && !document.getElementById('libItemScore')) {
+                let toolsHtml = `
+                    <div style="background:#f8f9fa; border:2px dashed #17a2b8; padding:15px; border-radius:10px; margin-top:15px; margin-bottom:15px;">
+                        <h4 style="color:#17a2b8; margin:0 0 10px 0;">🎮 أدوات الشاشة العملاقة التفاعلية:</h4>
+                        <label style="display:flex; align-items:center; gap:8px; font-weight:bold; cursor:pointer; margin-bottom:10px; color:#333;">
+                            <input type="checkbox" id="libItemScore" style="width:20px; height:20px;"> 🏆 تفعيل لوحة النقاط للمشاركين (Scoreboard)
+                        </label>
+                        <label style="display:flex; align-items:center; gap:8px; font-weight:bold; cursor:pointer; color:#333;">
+                            <input type="checkbox" id="libItemChrono" style="width:20px; height:20px;"> ⏱️ تفعيل الكرونو (العداد التنازلي)
+                        </label>
+                    </div>
+                `;
+                favContainer.parentNode.insertAdjacentHTML('beforebegin', toolsHtml);
+            }
+        }, 1000);
 
         // 2. تحديث دوال الحفظ باش تقرا الأزرار الجدد
-      window.openLibForm = function() {
+        window.openLibForm = function() {
             document.getElementById('libItemId').value = '';
             document.getElementById('libItemName').value = '';
-            
-            // 🧠 الذكاء السياقي: نقراو الدوسي اللي محلول توة
-            let targetType = 'لغز / تشنشينة'; // الديفو
-            if (activeLibFilter !== 'all' && activeLibFilter !== 'fav') {
-                targetType = activeLibFilter;
-            }
-
-            let standardTypes = ['لغز / تشنشينة', 'لعبة حركية', 'مسابقة فكرية', 'كاريوكي / فيديو', 'أخرى'];
-            let typeSelect = document.getElementById('libItemType');
-            let customInput = document.getElementById('libItemCustomType');
-
-            // كان الدوسي موجود في القائمة، نختاروه. كان لا، نحطو "أخرى" ونكتبو اسمو آلياً
-            if (standardTypes.includes(targetType)) {
-                typeSelect.value = targetType;
-                customInput.style.display = 'none';
-                customInput.value = '';
-            } else {
-                typeSelect.value = 'أخرى';
-                customInput.style.display = 'block';
-                customInput.value = targetType;
-            }
-
-            // تنظيف المربع الذكي (الـ Mini-Word)
-            document.querySelectorAll('#libItemAnim, #libItemDJ, #libItemAssist').forEach(el => { 
-                el.value = ''; 
-                if(el.nextElementSibling && el.nextElementSibling.classList.contains('rich-editor-box')) { 
-                    el.nextElementSibling.querySelector('.rich-content').innerHTML = ''; 
-                } 
-            });
-            
-            // الذكاء السياقي للمفضلات
-            document.getElementById('libItemFav').checked = (activeLibFilter === 'fav'); 
-            
+            document.getElementById('libItemType').value = 'لغز / تشنشينة';
+            document.getElementById('libItemCustomType').value = '';
+            document.getElementById('libItemCustomType').style.display = 'none';
+            document.getElementById('libItemAnim').value = '';
+            document.getElementById('libItemDJ').value = '';
+            document.getElementById('libItemAssist').value = '';
+            document.getElementById('libItemFav').checked = false;
             if(document.getElementById('libItemScore')) document.getElementById('libItemScore').checked = false;
             if(document.getElementById('libItemChrono')) document.getElementById('libItemChrono').checked = false;
-            
-            let titleText = activeLibFilter === 'all' ? 'المكتبة العامة' : targetType;
-            document.getElementById('libFormTitle').innerText = '➕ إضافة فقرة إلى: ' + titleText;
+            document.getElementById('libFormTitle').innerText = '➕ فقرة جديدة';
             document.getElementById('libFormModal').style.display = 'flex';
         };
 
@@ -2200,71 +1960,12 @@
         };
 
         // 3. محرك الألعاب الحي (Live Game Engine)
-        window.liveGameStats = { activeLibId: null, players: [], chrono: 0, timerInterval: null, isChronoRunning: false, isTimeUp: false };
+       window.liveGameStats = { activeLibId: null, players: [], chrono: 0, timerInterval: null, isChronoRunning: false, isTimeUp: false };
 
-        window.playBeepSound = function(type) {
-            if(!window.audioCtx) window.audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-            if(window.audioCtx.state === 'suspended') window.audioCtx.resume();
-            const osc = window.audioCtx.createOscillator();
-            const gain = window.audioCtx.createGain();
-            osc.connect(gain); gain.connect(window.audioCtx.destination);
-            if(type === 'tick') {
-                osc.type = 'triangle'; osc.frequency.setValueAtTime(800, window.audioCtx.currentTime);
-                gain.gain.setValueAtTime(0.05, window.audioCtx.currentTime); osc.start(); osc.stop(window.audioCtx.currentTime + 0.05);
-            } else if(type === 'buzzer') {
-                osc.type = 'sawtooth'; osc.frequency.setValueAtTime(150, window.audioCtx.currentTime);
-                gain.gain.setValueAtTime(0.2, window.audioCtx.currentTime); osc.start(); osc.stop(window.audioCtx.currentTime + 1.5);
-            } else if(type === 'success') {
-                osc.type = 'sine'; osc.frequency.setValueAtTime(600, window.audioCtx.currentTime);
-                osc.frequency.exponentialRampToValueAtTime(1200, window.audioCtx.currentTime + 0.1);
-                gain.gain.setValueAtTime(0.1, window.audioCtx.currentTime); osc.start(); osc.stop(window.audioCtx.currentTime + 0.15);
-            }
-        };
-
-        // 4. ترقية الشاشة العملاقة (renderFsSubStep)
-        window.renderFsSubStep = function() {
-            let parts = window.currentFsLibParts; let subIdx = window.currentFsSubIndex; let p = parts[subIdx];
-            if(!p) return;
-            let m = p.match(/LIB::([^:<]+)::([^<]+)/);
-            let contentHtml = '';
-            if(m) {
-                let libId = m[1]; let libData = libraryData[libId];
-                if(libData) {
-                    let counterText = parts.length > 1 ? `<span style="color:#aaa; font-size:0.7em;">(لعبة ${subIdx+1} من ${parts.length})</span>` : '';
-                    contentHtml += `<div style="color:#ffc107; font-size:1.2em; margin-bottom:20px; border-bottom:2px solid #555; padding-bottom:10px;">⭐ ${libData.name} ${counterText}</div>`;
-                    if(libData.animText) contentHtml += `<div style="color:#e3f2fd; margin-bottom:15px; line-height:1.6;">🎤 <b>نص المنشط:</b><br>${libData.animText.replace(/\n/g,'<br>')}</div>`;
-                    
-                    if(parts.length > 1) {
-                        contentHtml += `<div style="margin-top:20px; display:flex; gap:15px; justify-content:center;">`;
-                        if(subIdx > 0) contentHtml += `<button onclick="window.currentFsSubIndex--; renderFsSubStep();" style="padding:10px 20px; font-size:18px; border-radius:12px; background:#444; color:white; border:none; cursor:pointer;">⏮️ اللعبة السابقة</button>`;
-                        if(subIdx < parts.length - 1) contentHtml += `<button onclick="window.currentFsSubIndex++; renderFsSubStep();" style="padding:10px 20px; font-size:18px; border-radius:12px; background:var(--primary-red); color:white; border:none; cursor:pointer; font-weight:bold;">اللعبة الموالية ⏭️</button>`;
-                        contentHtml += `</div>`;
-                    }
-
-                    // 🚀 زراعة البلاتوه التفاعلي
-                    if(libData.hasChrono || libData.hasScore) {
-                        if(window.liveGameStats.activeLibId !== libId) {
-                            window.pauseLiveChrono(); 
-                            window.liveGameStats = { activeLibId: libId, players: [], chrono: 0, timerInterval: null, isChronoRunning: false, isTimeUp: false };
-                        }
-                        contentHtml += `<div id="liveToolsContainer" style="background:#1a1a1a; border:2px solid #555; border-radius:15px; padding:20px; margin-top:30px; box-shadow:0 10px 30px rgba(0,0,0,0.5);"></div>`;
-                        setTimeout(() => { window.renderLiveTools(libData.hasScore, libData.hasChrono); }, 50);
-                    }
-                }
-            } else { contentHtml = p; }
-            document.getElementById('fsContent').innerHTML = contentHtml;
-        };
-
-       // 5. دوال لوحة التحكم الحية (المرآة السحرية للـ DJ)
         window.renderLiveTools = function(hasScore, hasChrono) {
-            let container = document.getElementById('liveToolsContainer');
-            if(!container) return;
-            let html = '';
-            
-            // 🛑 هل المستخدم مجرد متفرج (DJ أو مساعد أو عميل)؟
-            let isReadOnly = currentUser && ['dj', 'assistant', 'assistant_anim', 'client'].includes(currentUser.role);
+            let container = document.getElementById('liveToolsContainer'); if(!container) return;
+            let html = ''; let isReadOnly = currentUser && ['dj', 'assistant', 'assistant_anim', 'client'].includes(currentUser.role);
 
-            // ⏱️ الكرونو
             if(hasChrono) {
                 let chronoColor = window.liveGameStats.isTimeUp ? '#E10600' : (window.liveGameStats.chrono <= 10 && window.liveGameStats.chrono > 0 ? '#ff9800' : '#17a2b8');
                 let blinkClass = window.liveGameStats.isTimeUp ? 'flash-screen' : '';
@@ -2276,7 +1977,6 @@
                         ${mins}:${secs}
                     </div>`;
                 
-                // أزرار التحكم في الكرونو تظهر كان للمنشط/المدير
                 if(!isReadOnly) {
                     html += `
                     <div style="display:flex; justify-content:center; gap:10px; flex-wrap:wrap; margin-bottom:15px;">
@@ -2294,13 +1994,10 @@
                         }
                         <button class="btn btn-dark" style="font-size:20px; padding:10px 20px;" onclick="window.resetLiveChrono()">🔄 تصفير</button>
                     </div>`;
-                } else {
-                    html += `<div style="color:#aaa; font-weight:bold;">👁️ وضع المراقبة (المنشط يتحكم في الوقت)</div>`;
-                }
+                } else { html += `<div style="color:#aaa; font-weight:bold;">👁️ وضع المراقبة (المنشط يتحكم في الوقت)</div>`; }
                 html += `</div>`;
             }
 
-            // 🏆 النقاط
             if(hasScore) {
                 let isFrozen = hasChrono && window.liveGameStats.isTimeUp;
                 html += `<div>
@@ -2313,9 +2010,7 @@
                     </div>
                     <div style="display:flex; gap:15px; overflow-x:auto; padding-bottom:10px; justify-content:center;">`;
 
-                if(window.liveGameStats.players.length === 0) {
-                    html += `<div style="color:#777;">${!isReadOnly ? 'اضغط "بطل جديد" لإضافة المشاركين للركح.' : 'في انتظار المنشط لإضافة المشاركين...'}</div>`;
-                }
+                if(window.liveGameStats.players.length === 0) { html += `<div style="color:#777;">${!isReadOnly ? 'اضغط "بطل جديد" لإضافة المشاركين للركح.' : 'في انتظار المنشط لإضافة المشاركين...'}</div>`; }
 
                 window.liveGameStats.players.forEach((p, idx) => {
                     html += `
@@ -2338,733 +2033,47 @@
             container.innerHTML = html;
         };
 
-        // 📡 إرسال البيانات للـ Firebase (المنشط يبث للـ DJ)
-        window.syncLiveGameToFirebase = function() {
-            if (currentUser && ['animateur', 'admin', 'admin_assistant'].includes(currentUser.role)) {
-                let path = isArchivedEvent ? 'BechaEventsData/archived_events/'+currentEventIndex : 'BechaEventsData/events/'+currentEventIndex;
-                db.ref(path + '/liveGameStats').set(window.liveGameStats);
-            }
-        };
-
-       // 🔄 تحديث الواجهة فقط (بدون إرسال للسيرفر باش ما نخنقوش الكونكسيون)
-       // 🔄 تحديث الواجهة فقط (بدون إرسال للسيرفر باش ما نخنقوش الكونكسيون)
-        // 🔄 تحديث الواجهة الذكي (يفرّق بين البرنامج والارتجال)
         window.updateLiveToolsUI = function() {
-            let activeId = null;
-            let isImprov = document.getElementById('fsTitle').innerText.includes('ارتجال');
-
-            if (isImprov) {
-                activeId = window.liveGameStats.activeLibId;
-            } else if (window.currentFsLibParts) {
-                let p = window.currentFsLibParts[window.currentFsSubIndex];
-                if(p) {
-                    let m = p.match(/LIB::([^:<]+)::([^<]+)/);
-                    if (m) activeId = m[1];
-                }
-            }
-
-            if(activeId && libraryData[activeId]) {
-                window.renderLiveTools(libraryData[activeId].hasScore, libraryData[activeId].hasChrono);
-            }
-        };
+            let activeId = null; let fsTitleEl = document.getElementById('fsTitle');
+            let isImprov = fsTitleEl ? fsTitleEl.innerText.includes('ارتجال') : false;
             
-            // رسم التحديث
-            if(activeId && libraryData[activeId]) { 
-                window.renderLiveTools(libraryData[activeId].hasScore, libraryData[activeId].hasChrono); 
-            }
+            if (isImprov) { activeId = window.liveGameStats.activeLibId; } 
+            else if (window.currentFsLibParts) { let p = window.currentFsLibParts[window.currentFsSubIndex]; if(p) { let m = p.match(/LIB::([^:<]+)::([^<]+)/); if (m) activeId = m[1]; } }
+            
+            if(activeId && libraryData[activeId]) { window.renderLiveTools(libraryData[activeId].hasScore, libraryData[activeId].hasChrono); }
         };
-        // 📡 تحديث الواجهة + إرسال للسيرفر (خاصة بالنقاط والأزرار اليدوية)
-        window.refreshLiveTools = function() {
-            window.updateLiveToolsUI();
-            window.syncLiveGameToFirebase(); 
-        };
+
+        window.syncLiveGameToFirebase = function() { if (currentUser && ['animateur', 'admin', 'admin_assistant'].includes(currentUser.role)) { let path = isArchivedEvent ? 'BechaEventsData/archived_events/'+currentEventIndex : 'BechaEventsData/events/'+currentEventIndex; db.ref(path + '/liveGameStats').set(window.liveGameStats); } };
+        window.refreshLiveTools = function() { window.updateLiveToolsUI(); window.syncLiveGameToFirebase(); };
 
         window.addLivePlayer = function() { window.liveGameStats.players.push({name: `مشارك ${window.liveGameStats.players.length + 1}`, score: 0}); window.refreshLiveTools(); };
         window.removeLivePlayer = function(idx) { window.liveGameStats.players.splice(idx, 1); window.refreshLiveTools(); };
         window.editLivePlayerName = function(idx, newName) { window.liveGameStats.players[idx].name = newName; window.syncLiveGameToFirebase(); };
-        // 🚀 نظام تجميع الشحنات (Anti-Spam) للوحة النقاط
         window.scoreSyncTimer = null;
-        window.changeLiveScore = function(idx, delta) { 
-            window.liveGameStats.players[idx].score += delta; 
-            if(delta > 0) window.playBeepSound('success'); 
-            
-            // 1. تحديث شاشة المنشط في جزء من الثانية (بدون أنترنات)
-            window.updateLiveToolsUI(); 
-            
-            // 2. تجميع الكليكات: نبعثو للسيرفر كان بعد نص ثانية من آخر كليكة
-            if(window.scoreSyncTimer) clearTimeout(window.scoreSyncTimer);
-            window.scoreSyncTimer = setTimeout(() => {
-                window.syncLiveGameToFirebase();
-            }, 500);
-        };
+        window.changeLiveScore = function(idx, delta) { window.liveGameStats.players[idx].score += delta; if(delta > 0) window.playBeepSound('success'); window.updateLiveToolsUI(); if(window.scoreSyncTimer) clearTimeout(window.scoreSyncTimer); window.scoreSyncTimer = setTimeout(() => { window.syncLiveGameToFirebase(); }, 500); };
         window.resetLiveScoreboard = function() { if(confirm("تحب تصفر النقاط فقط؟\n(اضغط Cancel كان تحب تفسخ الأسامي زادة)")) { window.liveGameStats.players.forEach(p => p.score = 0); } else { window.liveGameStats.players = []; } window.refreshLiveTools(); };
 
         window.setLiveChrono = function(sec) { window.liveGameStats.chrono = sec; window.liveGameStats.isTimeUp = false; window.refreshLiveTools(); };
         window.adjustLiveChrono = function(sec) { window.liveGameStats.chrono += sec; if(window.liveGameStats.chrono < 0) window.liveGameStats.chrono = 0; window.liveGameStats.isTimeUp = false; window.refreshLiveTools(); };
-        
-        // ⏱️ الكرونو الذكي للمنشط (الطيار الآلي)
-        window.startLiveChrono = function() {
-            if(window.liveGameStats.chrono <= 0 || window.liveGameStats.isChronoRunning) return;
-            window.liveGameStats.isChronoRunning = true; window.liveGameStats.isTimeUp = false;
-            
-            // 📡 نبعثو للسيرفر مرة وحدة برك بلي الكرونو بدا!
-            window.refreshLiveTools(); 
+        window.startLiveChrono = function() { if(window.liveGameStats.chrono <= 0 || window.liveGameStats.isChronoRunning) return; window.liveGameStats.isChronoRunning = true; window.liveGameStats.isTimeUp = false; window.refreshLiveTools(); window.liveGameStats.timerInterval = setInterval(() => { window.liveGameStats.chrono--; if(window.liveGameStats.chrono <= 10 && window.liveGameStats.chrono > 0) window.playBeepSound('tick'); if(window.liveGameStats.chrono <= 0) { clearInterval(window.liveGameStats.timerInterval); window.liveGameStats.chrono = 0; window.liveGameStats.isChronoRunning = false; window.liveGameStats.isTimeUp = true; window.playBeepSound('buzzer'); window.refreshLiveTools(); } else { window.updateLiveToolsUI(); } }, 1000); };
+        window.pauseLiveChrono = function() { window.liveGameStats.isChronoRunning = false; clearInterval(window.liveGameStats.timerInterval); window.refreshLiveTools(); };
+        window.resetLiveChrono = function() { window.pauseLiveChrono(); window.liveGameStats.chrono = 0; window.liveGameStats.isTimeUp = false; window.refreshLiveTools(); };
 
-            // ⏱️ الكرونو الداخلي يخدم من غير ما يبعث انترنات كل ثانية
-            window.liveGameStats.timerInterval = setInterval(() => {
-                window.liveGameStats.chrono--;
-                if(window.liveGameStats.chrono <= 10 && window.liveGameStats.chrono > 0) window.playBeepSound('tick');
-                if(window.liveGameStats.chrono <= 0) {
-                    clearInterval(window.liveGameStats.timerInterval); window.liveGameStats.chrono = 0;
-                    window.liveGameStats.isChronoRunning = false; window.liveGameStats.isTimeUp = true;
-                    window.playBeepSound('buzzer');
-                    window.refreshLiveTools(); // تحديث أخير للسيرفر بلي الوقت وفى
-                } else {
-                    window.updateLiveToolsUI(); // تحديث الشاشة متاعنا فقط
-                }
-            }, 1000);
-        };
-        
-        window.pauseLiveChrono = function() { 
-            window.liveGameStats.isChronoRunning = false; 
-            clearInterval(window.liveGameStats.timerInterval); 
-            window.refreshLiveTools(); // 📡 نبعثو للسيرفر بلي قصينا
-        };
-        window.resetLiveChrono = function() { 
-            window.pauseLiveChrono(); 
-            window.liveGameStats.chrono = 0; window.liveGameStats.isTimeUp = false; 
-            window.refreshLiveTools(); 
-        };
-
-        // 📺 استقبال البيانات للـ DJ (الطيار الآلي المستقل)
         window.liveGameListenerRef = null;
         window.startLiveGameListener = function() {
             let path = isArchivedEvent ? 'BechaEventsData/archived_events/'+currentEventIndex : 'BechaEventsData/events/'+currentEventIndex;
             if(window.liveGameListenerRef) db.ref(path + '/liveGameStats').off('value', window.liveGameListenerRef);
-            
             window.liveGameListenerRef = db.ref(path + '/liveGameStats').on('value', snap => {
                 let data = snap.val();
                 if (data && currentUser && ['dj', 'assistant', 'assistant_anim', 'client'].includes(currentUser.role)) {
-                    
-                    // تنظيف أي كرونو قديم يخدم عند الـ DJ
                     if(window.liveGameStats && window.liveGameStats.timerInterval) clearInterval(window.liveGameStats.timerInterval);
-                    
                     if(data.chrono <= 10 && data.chrono > 0 && data.isChronoRunning && data.chrono !== window.liveGameStats.chrono) window.playBeepSound('tick');
                     if(data.isTimeUp && !window.liveGameStats.isTimeUp) window.playBeepSound('buzzer');
-                    
-                    window.liveGameStats = data;
-                    window.updateLiveToolsUI(); // تحديث الشاشة بالمعطيات الجاية
-
-                    // ⏱️ كان المنشط بعثلي بلي الكرونو يخدم، الـ DJ يولي يخدمو وحدو داخلياً من غير انترنات!
-                    if (data.isChronoRunning && data.chrono > 0) {
-                        window.liveGameStats.timerInterval = setInterval(() => {
-                            window.liveGameStats.chrono--;
-                            if(window.liveGameStats.chrono <= 10 && window.liveGameStats.chrono > 0) window.playBeepSound('tick');
-                            if(window.liveGameStats.chrono <= 0) {
-                                clearInterval(window.liveGameStats.timerInterval);
-                                window.liveGameStats.chrono = 0;
-                                window.liveGameStats.isChronoRunning = false;
-                                window.liveGameStats.isTimeUp = true;
-                                window.playBeepSound('buzzer');
-                            }
-                            window.updateLiveToolsUI(); // الشاشة تتبدل وحدها كل ثانية
-                        }, 1000);
-                    }
+                    window.liveGameStats = data; window.updateLiveToolsUI();
+                    if (data.isChronoRunning && data.chrono > 0) { window.liveGameStats.timerInterval = setInterval(() => { window.liveGameStats.chrono--; if(window.liveGameStats.chrono <= 10 && window.liveGameStats.chrono > 0) window.playBeepSound('tick'); if(window.liveGameStats.chrono <= 0) { clearInterval(window.liveGameStats.timerInterval); window.liveGameStats.chrono = 0; window.liveGameStats.isChronoRunning = false; window.liveGameStats.isTimeUp = true; window.playBeepSound('buzzer'); } window.updateLiveToolsUI(); }, 1000); }
                 }
             });
         };
-        /* =========================================================
-           🎡 نظام دائرة الحظ الديناميكية الذكية (الرسم الآلي) + المرآة 
-           ========================================================= */
-        
-        window.activeWheelSlices = [];
-        window.usedWheelItems = []; // مخزن الألعاب المحروقة
-        window.wheelColors = ["#E10600", "#198754", "#ff9800", "#17a2b8", "#9b59b6", "#e83e8c", "#6f42c1", "#20c997"];
-        window.currentWheelDeg = 0;
-
-        // 1. زراعة الواجهة
-        setInterval(() => {
-            if(!document.getElementById('wheelOfFortuneModal')) {
-                let wheelModalHtml = `
-                <div id="wheelOfFortuneModal" class="modal-overlay" style="z-index: 130000;">
-                    <div class="modal-box" style="text-align: center; background: #111; border: 4px solid #ffc107; max-width: 600px; width:95%;">
-                        <div style="display: flex; justify-content: space-between; margin-bottom: 20px;">
-                            <h2 style="color: #ffc107; margin: 0;">🎡 عجلة الحظ الذكية</h2>
-                            <button class="btn btn-dark" onclick="closeWheelModal()">❌ إغلاق</button>
-                        </div>
-                        
-                        <div style="position: relative; width: 280px; height: 280px; margin: 0 auto 30px auto;">
-                            <!-- الإبرة الحمراء -->
-                            <div style="position: absolute; top: -15px; left: 50%; transform: translateX(-50%); width: 0; height: 0; border-left: 15px solid transparent; border-right: 15px solid transparent; border-top: 35px solid #E10600; z-index: 15; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.8));"></div>
-                            
-                            <!-- العجلة الديناميكية (رسم آلي) -->
-                            <div id="dynamicWheelContainer" style="width: 100%; height: 100%; position: relative; transition: transform cubic-bezier(0.25, 0.1, 0.15, 1); border-radius: 50%; box-shadow: 0 0 20px rgba(255,193,7,0.4);">
-                                <canvas id="spinWheelCanvas" width="280" height="280" style="width:100%; height:100%; border-radius: 50%;"></canvas>
-                                <!-- اللوجو في الوسط (التصويرة الجديدة) -->
-                                <img src="cercle.png" style="position:absolute; top:50%; left:50%; transform:translate(-50%, -50%); width:90px; height:90px; border-radius:50%; box-shadow: 0 2px 10px rgba(0,0,0,0.8); z-index:10; background:white;">
-                            </div>
-                        </div>
-
-                        <button id="spinWheelBtn" class="btn btn-green" style="font-size: 24px; padding: 15px 30px; width: 100%; font-weight: 900; animation: pulse 1.5s infinite; box-shadow: 0 5px 15px rgba(25,135,84,0.5);" onclick="spinTheWheel()">🎲 آه لو لعبت يا زهر!</button>
-                        
-                        <div id="wheelDjNotice" style="display: none; color: #17a2b8; font-size: 18px; font-weight: bold; margin-top: 15px;">👁️ وضع المراقبة (المنشط يتحكم في العجلة)</div>
-
-                        <div id="wheelResultBox" style="margin-top: 20px; padding: 15px; background: #222; border: 2px dashed #555; border-radius: 10px; color: white; font-size: 20px; font-weight: bold; min-height: 60px; display: flex; align-items: center; justify-content: center; flex-direction: column;">
-                            في انتظار دوران العجلة...
-                        </div>
-                    </div>
-                </div>`;
-                document.body.insertAdjacentHTML('beforeend', wheelModalHtml);
-            }
-
-            // زراعة الأزرار في الركح والشاشة العملاقة
-            let stageBtns = document.getElementById('stageActionButtons');
-            if (stageBtns && !document.getElementById('stageWheelBtn')) {
-                stageBtns.insertAdjacentHTML('beforeend', `<button id="stageWheelBtn" class="btn btn-outline" style="border-color:#ffc107; color:#ffc107; font-size:18px; padding:12px; font-weight:bold; flex:1;" onclick="openWheelModal()">🎡 دائرة الحظ</button>`);
-            }
-
-            let fsHeaderControls = document.querySelector('.fs-header div');
-            if (fsHeaderControls && !document.getElementById('fsWheelBtn')) {
-                let exitBtn = fsHeaderControls.querySelector('.btn-red');
-                if(exitBtn) exitBtn.insertAdjacentHTML('beforebegin', `<button id="fsWheelBtn" class="fs-zoom-btn" onclick="openWheelModal()" title="دائرة الحظ" style="color:#ffc107; margin-right:15px; font-size:26px;">🎡</button>`);
-            }
-
-            let isReadOnly = currentUser && ['dj', 'assistant', 'assistant_anim', 'client'].includes(currentUser.role);
-            if(isReadOnly) {
-                let sBtn = document.getElementById('stageWheelBtn'); let fBtn = document.getElementById('fsWheelBtn');
-                if(sBtn) sBtn.style.display = 'none'; if(fBtn) fBtn.style.display = 'none';
-            }
-        }, 1000);
-
-        // 2. تحديث ورسم العجلة حسب المكتبة (The Brain)
-        window.refreshWheelData = function() {
-            let availableTypes = {};
-            // قراءة المكتبة وجبد الأقسام اللي مازالت ما تلعبتش
-            Object.keys(libraryData).forEach(k => {
-                if (!window.usedWheelItems.includes(k)) {
-                    let type = libraryData[k].type;
-                    if(type === 'أخرى') type = libraryData[k].customType || 'متنوع';
-                    availableTypes[type] = true;
-                }
-            });
-
-            window.activeWheelSlices = Object.keys(availableTypes);
-            // قسم الجوكر الثابت
-            window.activeWheelSlices.push("عاود الكرّة 🔄");
-            
-            drawDynamicWheel();
-        };
-
-        window.drawDynamicWheel = function() {
-            let canvas = document.getElementById('spinWheelCanvas');
-            if(!canvas) return;
-            let ctx = canvas.getContext('2d');
-            let w = canvas.width; let h = canvas.height;
-            let radius = w / 2;
-            
-            ctx.clearRect(0, 0, w, h);
-            
-            let slices = window.activeWheelSlices;
-            let numSlices = slices.length;
-            if(numSlices === 0) return;
-            
-            let sliceAngle = (2 * Math.PI) / numSlices;
-            
-            for (let i = 0; i < numSlices; i++) {
-                // تدوير المورصو باش يبدا من الفوق بالضبط
-                let startAngle = i * sliceAngle - (Math.PI / 2) - (sliceAngle / 2);
-                let endAngle = startAngle + sliceAngle;
-                
-                ctx.beginPath();
-                ctx.moveTo(radius, radius);
-                ctx.arc(radius, radius, radius, startAngle, endAngle);
-                ctx.closePath();
-                
-                // التلوين
-                ctx.fillStyle = (slices[i] === "عاود الكرّة 🔄") ? "#333" : window.wheelColors[i % window.wheelColors.length];
-                ctx.fill();
-                ctx.lineWidth = 3; ctx.strokeStyle = "#fff"; ctx.stroke();
-                
-                // الكتيبة
-                ctx.save();
-                ctx.translate(radius, radius);
-                ctx.rotate(startAngle + sliceAngle / 2);
-                ctx.textAlign = "right"; ctx.fillStyle = "#fff"; ctx.font = "900 18px Cairo";
-                ctx.shadowColor = "rgba(0,0,0,0.8)"; ctx.shadowBlur = 4;
-                ctx.fillText(slices[i], radius - 15, 6);
-                ctx.restore();
-            }
-        };
-
-       window.openWheelModal = function() {
-            window.refreshWheelData(); 
-            document.getElementById('wheelOfFortuneModal').style.display = 'flex';
-            let isReadOnly = currentUser && ['dj', 'assistant', 'assistant_anim', 'client'].includes(currentUser.role);
-            
-            if(isReadOnly) {
-                document.getElementById('spinWheelBtn').style.display = 'none';
-                document.getElementById('wheelDjNotice').style.display = 'block';
-            } else {
-                document.getElementById('spinWheelBtn').style.display = 'block';
-                document.getElementById('wheelDjNotice').style.display = 'none';
-                // 📡 إرسال أمر "الفتح الإجباري" للـ DJ
-                if (['animateur', 'admin', 'admin_assistant'].includes(currentUser.role)) {
-                    let path = isArchivedEvent ? 'BechaEventsData/archived_events/'+currentEventIndex : 'BechaEventsData/events/'+currentEventIndex;
-                    db.ref(path + '/djForceSync/wheel').set(true);
-                }
-            }
-            document.getElementById('wheelResultBox').innerHTML = window.activeWheelSlices.length === 1 ? "<span style='color:#E10600;'>المخزن فارغ تماماً! الرجاء إضافة فقرات جديدة.</span>" : "في انتظار دوران العجلة...";
-            document.getElementById('spinWheelBtn').disabled = window.activeWheelSlices.length === 1;
-        };
-
-        window.closeWheelModal = function() { 
-            document.getElementById('wheelOfFortuneModal').style.display = 'none'; 
-            // 📡 إرسال أمر "الإغلاق الإجباري" للـ DJ (تحريره)
-            if (currentUser && ['animateur', 'admin', 'admin_assistant'].includes(currentUser.role)) {
-                let path = isArchivedEvent ? 'BechaEventsData/archived_events/'+currentEventIndex : 'BechaEventsData/events/'+currentEventIndex;
-                db.ref(path + '/djForceSync/wheel').set(false);
-            }
-        };
-        // 3. الدوران وإرسال الإشارة للـ DJ
-        window.spinTheWheel = function() {
-            let btn = document.getElementById('spinWheelBtn');
-            btn.disabled = true; btn.style.animation = 'none'; btn.innerText = '🌀 جاري الدوران...';
-            document.getElementById('wheelResultBox').innerHTML = "جاري اختيار التحدي... 🥁";
-            
-            let randomTime = Math.floor(Math.random() * 3000) + 3000;
-            let extraSpins = 5 * 360; 
-            let randomAngle = Math.floor(Math.random() * 360);
-            window.currentWheelDeg += extraSpins + randomAngle;
-
-            if (currentUser && ['animateur', 'admin', 'admin_assistant'].includes(currentUser.role)) {
-                let path = isArchivedEvent ? 'BechaEventsData/archived_events/'+currentEventIndex : 'BechaEventsData/events/'+currentEventIndex;
-                
-                // 📡 تصفير شاشة النتيجة عند الـ DJ قبل الدوران
-                db.ref(path + '/wheelResultHTML').set("جاري اختيار التحدي... 🥁");
-                
-                db.ref(path + '/wheelSync').set({ 
-                    deg: window.currentWheelDeg, 
-                    time: randomTime, 
-                    slices: window.activeWheelSlices,
-                    timestamp: Date.now() 
-                });
-            }
-
-            executeSpinAnimation(window.currentWheelDeg, randomTime);
-        };
-
-        window.executeSpinAnimation = function(deg, time) {
-            let wheelContainer = document.getElementById('dynamicWheelContainer');
-            wheelContainer.style.transition = `transform ${time}ms cubic-bezier(0.25, 0.1, 0.15, 1)`;
-            wheelContainer.style.transform = `rotate(${deg}deg)`;
-
-            setTimeout(() => {
-                // 🛑 منع الـ DJ من الحساب والسحب!
-                let isReadOnly = currentUser && ['dj', 'assistant', 'client'].includes(currentUser.role);
-                
-                if(!isReadOnly) {
-                    calculateWheelResult(deg); // المنشط فقط يحسب النتيجة
-                    let btn = document.getElementById('spinWheelBtn');
-                    if(btn) { btn.disabled = false; btn.style.animation = 'pulse 1.5s infinite'; btn.innerText = '🎲 آه لو لعبت يا زهر!'; }
-                }
-            }, time);
-        };
-
-        // 4. الحساب الرياضي للإبرة (للمنشط فقط)
-        window.calculateWheelResult = function(deg) {
-            let numSlices = window.activeWheelSlices.length;
-            let sliceDeg = 360 / numSlices;
-            let actualDeg = (360 - (deg % 360)) % 360; 
-            let index = Math.floor(((actualDeg + (sliceDeg / 2)) % 360) / sliceDeg) % numSlices;
-            
-            let result = window.activeWheelSlices[index];
-            let resultBox = document.getElementById('wheelResultBox');
-            let path = isArchivedEvent ? 'BechaEventsData/archived_events/'+currentEventIndex : 'BechaEventsData/events/'+currentEventIndex;
-            
-            if(result === "عاود الكرّة 🔄") {
-                let finalHtml = `<span style="color:#17a2b8; font-size:28px;">🔄 عاود الكرّة! الزهر ما حبكش</span>`;
-                resultBox.innerHTML = finalHtml;
-                window.playBeepSound('buzzer');
-                db.ref(path + '/wheelResultHTML').set(finalHtml); // إرسال للـ DJ
-            } else {
-                resultBox.innerHTML = `<span style="color:#198754; font-size:24px;">🎯 النتيجة: <b>${result}</b></span><br><button class="btn btn-outline" style="border-color:#198754; color:#198754; margin-top:10px; width:100%;" onclick="fetchSmartLibraryItem('${result}')">📦 سحب الفقرة من المخزن وبدء التحدي</button>`;
-                window.playBeepSound('success');
-                // إرسال للـ DJ باش يستنى المنشط يختار
-                db.ref(path + '/wheelResultHTML').set(`<span style="color:#198754; font-size:24px;">🎯 النتيجة: <b>${result}</b></span><br><div style="color:#aaa; font-size:14px; margin-top:10px;">⏳ في انتظار المنشط لسحب الفقرة...</div>`);
-            }
-        };
-
-        // 5. سحب اللعبة وحرقها آلياً في Firebase
-        window.fetchSmartLibraryItem = function(sectionType) {
-            let availableItems = Object.keys(libraryData).map(k => ({id: k, ...libraryData[k]})).filter(item => {
-                let type = item.type === 'أخرى' ? (item.customType || 'متنوع') : item.type;
-                return type === sectionType && !window.usedWheelItems.includes(item.id);
-            });
-
-            let resultBox = document.getElementById('wheelResultBox');
-            let path = isArchivedEvent ? 'BechaEventsData/archived_events/'+currentEventIndex : 'BechaEventsData/events/'+currentEventIndex;
-
-            if(availableItems.length > 0) {
-                let selected = availableItems[0];
-                let updatedUsedItems = [...window.usedWheelItems, selected.id];
-                db.ref(path + '/usedWheelItems').set(updatedUsedItems);
-                
-                let finalHtml = `<div style="color:#fff; text-align:right; width:100%;">
-                    <h3 style="color:#ffc107; margin-top:0; border-bottom:1px dashed #555; padding-bottom:5px;">⭐ ${selected.name}</h3>
-                    <p style="font-size:16px; margin:5px 0;">🎤 <b>المنشط:</b> ${selected.animText || '---'}</p>
-                    <p style="font-size:14px; margin:5px 0; color:#aaa;">🎧 <b>DJ:</b> ${selected.djText || '---'}</p>
-                </div>`;
-
-                resultBox.innerHTML = finalHtml + `<div style="color:#17a2b8; font-size:12px; margin-top:10px;">تم سحب الفقرة بنجاح ✔️</div>`;
-                
-                // 📡 إرسال الفقرة المسحوبة للـ DJ
-                db.ref(path + '/wheelResultHTML').set(finalHtml);
-            }
-        };
-
-        // 6. رادار الـ DJ والذاكرة الحية للعجلة
-        window.wheelSyncListenerRef = null;
-        window.wheelMemoryListenerRef = null;
-        window.wheelResultListenerRef = null;
-
-        window.startWheelSyncListener = function() {
-            let path = isArchivedEvent ? 'BechaEventsData/archived_events/'+currentEventIndex : 'BechaEventsData/events/'+currentEventIndex;
-            
-            // أ. رادار الحركة (الدوران)
-            if(window.wheelSyncListenerRef) db.ref(path + '/wheelSync').off('value', window.wheelSyncListenerRef);
-            window.wheelSyncListenerRef = db.ref(path + '/wheelSync').on('value', snap => {
-                let data = snap.val();
-                if (data && currentUser && ['dj', 'assistant', 'client'].includes(currentUser.role)) {
-                    window.activeWheelSlices = data.slices || [];
-                    if(document.getElementById('wheelOfFortuneModal').style.display !== 'flex') window.openWheelModal();
-                    window.drawDynamicWheel(); 
-                    executeSpinAnimation(data.deg, data.time);
-                }
-            });
-
-            // ب. رادار الذاكرة (الألعاب المحروقة)
-            if(window.wheelMemoryListenerRef) db.ref(path + '/usedWheelItems').off('value', window.wheelMemoryListenerRef);
-            window.wheelMemoryListenerRef = db.ref(path + '/usedWheelItems').on('value', snap => {
-                window.usedWheelItems = snap.val() || [];
-                if(document.getElementById('wheelOfFortuneModal').style.display === 'flex') window.refreshWheelData();
-            });
-
-            // ج. رادار النتيجة النهائية (المرآة الصامتة للـ DJ)
-            if(window.wheelResultListenerRef) db.ref(path + '/wheelResultHTML').off('value', window.wheelResultListenerRef);
-            window.wheelResultListenerRef = db.ref(path + '/wheelResultHTML').on('value', snap => {
-                let htmlContent = snap.val();
-                // الـ DJ يطبع النتيجة اللي جاتو من المنشط مباشرة
-                if (htmlContent && currentUser && ['dj', 'assistant', 'client'].includes(currentUser.role)) {
-                    let resBox = document.getElementById('wheelResultBox');
-                    if(resBox) resBox.innerHTML = htmlContent;
-                }
-            });
-        };
-        // 7. رادار الإختطاف للـ DJ (الطيار الآلي)
-        window.djSyncListenerRef = null;
-       // 4. رادار الإختطاف للـ DJ (الطيار الآلي المطور)
-        window.djSyncListenerRef = null;
-        // 4. رادار الإختطاف للـ DJ (الطيار الآلي المطور للارتجال)
-        window.djSyncListenerRef = null;
-        window.startDjSyncListener = function() {
-            let path = isArchivedEvent ? 'BechaEventsData/archived_events/'+currentEventIndex : 'BechaEventsData/events/'+currentEventIndex;
-            if(window.djSyncListenerRef) db.ref(path + '/djForceSync').off('value', window.djSyncListenerRef);
-            
-            window.djSyncListenerRef = db.ref(path + '/djForceSync').on('value', snap => {
-                let syncData = snap.val() || { wheel: false, game: { active: false }, video: { active: false } };
-                
-                if (currentUser && ['dj', 'assistant', 'client'].includes(currentUser.role)) {
-                    let fsModal = document.getElementById('fullscreenTeleprompter');
-                    
-                    // 1. اختطاف العجلة
-                    let wheelModal = document.getElementById('wheelOfFortuneModal');
-                    if (syncData.wheel && wheelModal.style.display !== 'flex') window.openWheelModal();
-                    else if (!syncData.wheel && wheelModal.style.display === 'flex') window.closeWheelModal();
-                    
-                    // 2. اختطاف الكاريوكي (الإنذار الأحمر للـ DJ)
-                    if (syncData.video && syncData.video.active) {
-                        if (fsModal.style.display !== 'flex') fsModal.style.display = 'flex';
-                        document.getElementById('fsContent').innerHTML = `
-                            <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; height:100%; text-align:center;">
-                                <div style="font-size:100px; margin-bottom:10px; animation: pulse 1s infinite;">🎬</div>
-                                <h2 style="color:#ffc107; font-size:35px; margin:0;">المنشط يشغّل الآن فيديو كاريوكي</h2>
-                                <h3 style="color:#17a2b8; font-size:25px; margin-top:10px;">(${syncData.video.name})</h3>
-                                <div style="background:#E10600; color:#fff; font-size:28px; font-weight:900; margin-top:30px; padding:20px; border-radius:15px; border:4px solid #fff; box-shadow:0 10px 30px rgba(225,6,0,0.5);">
-                                    ⚠️ الرجاء خفض الموسيقى الخلفية (Volume) من الميكساج!
-                                </div>
-                            </div>
-                        `;
-                        return; 
-                    }
-
-                    // 3. اختطاف الشاشة العملاقة للعبة (برنامج أو ارتجال)
-                    if (syncData.game && syncData.game.active) {
-                        if (syncData.game.isEmergency) {
-                            // اختطاف الـ DJ للارتجال المباشر 🚀
-                            if (fsModal.style.display !== 'flex' || document.getElementById('fsTitle').innerText !== '🚀 فقرة ارتجال حي (خارج البرنامج الرسمي)') {
-                                window.playEmergencyGame(syncData.game.libId);
-                            }
-                        } else if (window.currentFsIndex !== syncData.game.fsIndex || window.currentFsSubIndex !== syncData.game.subIndex || fsModal.style.display !== 'flex') {
-                            window.currentFsSubIndex = syncData.game.subIndex || 0;
-                            window.openFsStep(syncData.game.fsIndex); 
-                        }
-                    } else if(!syncData.video || !syncData.video.active) {
-                        if (fsModal.style.display === 'flex') window.closeFullscreen();
-                    }
-                }
-            });
-        };
-
-        // 5. زرع قسم "كاريوكي / فيديو" أوتوماتيكياً في المكتبة
-        setTimeout(() => {
-            let libSelect = document.getElementById('libItemType');
-            if(libSelect && !Array.from(libSelect.options).some(o => o.value === 'كاريوكي / فيديو')) {
-                libSelect.insertAdjacentHTML('afterbegin', '<option value="كاريوكي / فيديو">🎤 كاريوكي / فيديو</option>');
-            }
-        }, 1500);
-        /* =========================================================
-           🎬 مشغل الفيديو العالمي من الفلاشة (المايسترو)
-           ========================================================= */
-        
-        setInterval(() => {
-            // 1. زراعة الزر 🎬 بجنب الصاروخ 🚀 في الشاشة العملاقة
-            let fsControls = document.querySelector('.fs-header div');
-            if(fsControls && !document.getElementById('globalKaraokeBtn')) {
-                let rocketBtn = fsControls.querySelector('button[title="ارتجال فقرة حية"]');
-                if(rocketBtn) {
-                    rocketBtn.insertAdjacentHTML('beforebegin', `
-                        <label id="globalKaraokeBtn" title="تشغيل فيديو من الفلاشة (USB)" style="color:#25D366; margin-right:15px; font-size:26px; cursor:pointer; display:none;">
-                            🎬
-                            <input type="file" accept="video/*" style="display:none;" onchange="window.loadLocalVideoGlobal(event)">
-                        </label>
-                    `);
-                }
-            }
-            
-            // 2. زراعة شاشة العرض العملاقة للفيديو
-            let fsContainer = document.getElementById('fullscreenTeleprompter');
-            if(fsContainer && !document.getElementById('globalVideoContainer')) {
-                fsContainer.insertAdjacentHTML('beforeend', `
-                    <div id="globalVideoContainer" style="display:none; position:absolute; top:75px; left:0; width:100%; height:calc(100% - 75px); background:#000; z-index:9000; text-align:center; flex-direction:column; justify-content:center; align-items:center;">
-                        <button onclick="window.closeGlobalVideo()" style="position:absolute; top:15px; right:25px; background:#E10600; color:#fff; border:none; padding:10px 20px; font-size:18px; border-radius:10px; cursor:pointer; font-weight:bold; box-shadow:0 4px 10px rgba(0,0,0,0.5); z-index:9001;">❌ إغلاق الفيديو</button>
-                        <video id="globalLocalVideoElement" controls style="max-width:95%; max-height:85%; border-radius:15px; border:4px solid #ffc107; box-shadow:0 10px 30px rgba(0,0,0,0.8); background:#111; margin-top:40px;"></video>
-                    </div>
-                `);
-            }
-
-            // إظهار زر الكاريوكي كان للمنشط والإدارة فقط
-            if (currentUser && ['animateur', 'admin', 'admin_assistant'].includes(currentUser.role)) {
-                let kBtn = document.getElementById('globalKaraokeBtn');
-                if(kBtn) kBtn.style.display = 'inline-block';
-            }
-        }, 1500);
-
-        // 3. محرك تشغيل الفيديو وبث الإنذار للـ DJ
-        window.loadLocalVideoGlobal = function(event) {
-            let file = event.target.files[0];
-            if(!file) return;
-            
-            let videoUrl = URL.createObjectURL(file);
-            let videoContainer = document.getElementById('globalVideoContainer');
-            let videoEl = document.getElementById('globalLocalVideoElement');
-            
-            videoEl.src = videoUrl;
-            videoContainer.style.display = 'flex';
-            videoEl.play();
-            
-            // 📡 إرسال إنذار الكاريوكي للـ DJ باش يختطف شاشتو
-            if (currentUser && ['animateur', 'admin', 'admin_assistant'].includes(currentUser.role)) {
-                let path = isArchivedEvent ? 'BechaEventsData/archived_events/'+currentEventIndex : 'BechaEventsData/events/'+currentEventIndex;
-                db.ref(path + '/djForceSync/video').set({ active: true, name: file.name });
-            }
-            
-            // تفريغ الخانة باش ينجم يعاود يختار نفس الفيديو مرة أخرى كان حب
-            event.target.value = '';
-        };
-
-        // 4. إغلاق الفيديو وتحرير الـ DJ
-        window.closeGlobalVideo = function() {
-            let videoContainer = document.getElementById('globalVideoContainer');
-            let videoEl = document.getElementById('globalLocalVideoElement');
-            
-            videoEl.pause();
-            videoEl.src = ""; // تفريغ الذاكرة
-            videoContainer.style.display = 'none';
-            
-            // 📡 إيقاف الإنذار عند الـ DJ
-            if (currentUser && ['animateur', 'admin', 'admin_assistant'].includes(currentUser.role)) {
-                let path = isArchivedEvent ? 'BechaEventsData/archived_events/'+currentEventIndex : 'BechaEventsData/events/'+currentEventIndex;
-                db.ref(path + '/djForceSync/video').set({ active: false });
-            }
-        };
-
-        // 5. تأمين الإغلاق مع زر الخروج الرئيسي
-        let originalCloseFullscreen = window.closeFullscreen;
-        window.closeFullscreen = function() {
-            window.closeGlobalVideo(); // سكر الفيديو كانو يخدم
-            originalCloseFullscreen(); // سكر الشاشة العملاقة
-        };
-        /* =========================================================
-           🖥️ محرك الشاشة العملاقة للتابلات (Fullscreen API)
-           ========================================================= */
-        window.toggleAppFullscreen = function() {
-            let doc = window.document;
-            let docEl = doc.documentElement;
-
-            let requestFullScreen = docEl.requestFullscreen || docEl.mozRequestFullScreen || docEl.webkitRequestFullScreen || docEl.msRequestFullscreen;
-            let cancelFullScreen = doc.exitFullscreen || doc.mozCancelFullScreen || doc.webkitExitFullscreen || doc.msExitFullscreen;
-
-            if(!doc.fullscreenElement && !doc.mozFullScreenElement && !doc.webkitFullscreenElement && !doc.msFullscreenElement) {
-                requestFullScreen.call(docEl);
-            }
-            else {
-                cancelFullScreen.call(doc);
-            }
-        };
-        window.declareEventEnd = function() { 
-            if(!confirm("⚠️ هل أنت متأكد من إعلان انتهاء الحفل؟")) return; 
-            let path = isArchivedEvent ? 'BechaEventsData/archived_events/'+currentEventIndex : 'BechaEventsData/events/'+currentEventIndex; 
-            db.ref(path + '/eventEnded').set(true); 
-            db.ref(path + '/lastMessage').remove(); 
-        };
-
-        function showFinalReport() { 
-            db.ref('BechaEventsData/users_infractions').once('value').then(snap => { 
-                let allInfs = snap.val() || {}; let myInfs = allInfs[currentUser.pseudo] || 0; 
-                let html = ""; 
-                if (currentUser && currentUser.perms && currentUser.perms.radar) { 
-                    html = `<h2 style='color:#198754; margin-top:0;'>🏁 انتهى العرض</h2><h3 style='color:#333;'>📊 تقرير الانضباط:</h3><ul style='list-style:none; padding:0;'>`; 
-                    let teamPins = currentEventData.teamPins || {}; 
-                    Object.keys(teamPins).forEach(k => { 
-                        let name = teamPins[k].name; let count = allInfs[name] || 0; 
-                        let color = count > 0 ? 'var(--primary-red)' : '#198754'; 
-                        html += `<li style='margin-bottom:10px; color:${color}; font-weight:bold; font-size:16px;'>${name}: ${count} مخالفات خروج</li>`; 
-                    }); 
-                    html += `</ul><button class='btn btn-dark' style='width:100%; margin-top:15px;' onclick='document.getElementById("finalReportModal").style.display="none"'>إغلاق</button>`; 
-                } else if (localInfractionsThisSession > 0) { 
-                    html = `<h2 style='color:var(--primary-red); margin-top:0;'>⛔ تنبيه أخير!</h2><p style='font-size:16px; font-weight:bold;'>تم تسجيل خروجك عدة مرات. مخالفاتك: <b style='color:var(--primary-red); font-size:18px;'>${myInfs}</b>. تم الرفع للإدارة.</p><button class='btn btn-red' style='width:100%; margin-top:15px;' onclick='document.getElementById("finalReportModal").style.display="none"'>أقر بذلك</button>`; 
-                } else { 
-                    html = `<h2 style='color:#198754; margin-top:0;'>🎉 انتهى العرض بنجاح!</h2><button class='btn btn-green' style='width:100%; margin-top:15px;' onclick='document.getElementById("finalReportModal").style.display="none"'>إغلاق</button>`; 
-                } 
-                document.getElementById('finalReportContent').innerHTML = html; document.getElementById('finalReportModal').style.display = 'flex'; 
-            }); 
-        }
-
-        window.logout = function() { location.reload(); };
-        
-        window.showScreen = function(id) { 
-            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active-screen')); 
-            document.getElementById(id).classList.add('active-screen'); 
-            if (typeof monitorEventStart === 'function' && (id === 'dashboardScreen' || id === 'stageSection' || id === 'gatekeeperScreen') && typeof currentEventIndex !== 'undefined' && currentEventIndex !== null) { 
-                monitorEventStart(); 
-            } 
-        };
-        let eventStartListener = null;
-        window.monitorEventStart = function() {
-            if(!currentUser || currentUser.role === 'client') return;
-            let path = isArchivedEvent ? 'BechaEventsData/archived_events/'+currentEventIndex : 'BechaEventsData/events/'+currentEventIndex;
-            if(eventStartListener) db.ref(path + '/eventStarted').off('value', eventStartListener);
-            
-            eventStartListener = db.ref(path + '/eventStarted').on('value', snap => {
-                let started = snap.val(); 
-                let isMaestro = (currentUser.role === 'admin_assistant' || currentUser.role === 'admin' || currentUser.role === 'animateur');
-                let startBtn = document.getElementById('btnStartEvent');
-                
-                if (startBtn) {
-                    if (isMaestro) { 
-                        startBtn.style.display = 'block'; 
-                        if (started) { 
-                            startBtn.innerHTML = '⏸️ إيقاف مؤقت (إرجاع الفريق للانتظار)'; 
-                            startBtn.className = 'btn btn-red'; 
-                            startBtn.style.animation = 'none'; 
-                        } else { 
-                            startBtn.innerHTML = '▶️ فتح النظام للجميع'; 
-                            startBtn.className = 'btn btn-green'; 
-                            startBtn.style.animation = 'pulse 2s infinite'; 
-                        } 
-                    } else { 
-                        startBtn.style.display = 'none'; 
-                    }
-                }
-                
-                if(!started && !isMaestro) { 
-                    document.getElementById('waitingInstName').innerText = currentEventData.name; 
-                    document.getElementById('waitingEventTime').innerText = currentEventData.time || '--:--'; 
-                    document.getElementById('waitingRoomScreen').style.display = 'flex'; 
-                    document.getElementById('bottomControlBar').style.display = 'none'; 
-                } else { 
-                    document.getElementById('waitingRoomScreen').style.display = 'none'; 
-                }
-            });
-        };
-
-        window.startEventNow = function() { 
-            let path = isArchivedEvent ? 'BechaEventsData/archived_events/'+currentEventIndex : 'BechaEventsData/events/'+currentEventIndex; 
-            db.ref(path + '/eventStarted').once('value').then(snap => { 
-                let isStarted = snap.val(); 
-                if(isStarted) { 
-                    if(confirm("⚠️ هل أنت متأكد من إيقاف العرض مؤقتاً؟ سيتم إرجاع الموظفين لشاشة الانتظار.")) { 
-                        db.ref(path + '/eventStarted').set(false); 
-                    } 
-                } else { 
-                    if(confirm("⚠️ هل أنت متأكد من فتح النظام للفريق؟")) { 
-                        db.ref(path + '/eventStarted').set(true); 
-                    } 
-                } 
-            }); 
-        };
-        // --- 1. إنقاذ دالة المكتبة المفقودة ---
-        window.loadLibraryData = function() { 
-            db.ref('BechaEventsData/library').on('value', snap => { 
-                libraryData = snap.val() || {}; 
-                if(typeof window.updateLibraryTabs === 'function') window.updateLibraryTabs();
-                
-                let libScreen = document.getElementById('libraryScreen');
-                if(libScreen && libScreen.classList.contains('active-screen') && typeof window.renderLibrary === 'function') {
-                    window.renderLibrary(typeof activeLibFilter !== 'undefined' ? activeLibFilter : 'all');
-                }
-                
-                let stageSec = document.getElementById('stageSection');
-                if(stageSec && stageSec.style.display === 'block' && currentEventData && currentEventData.eventProgram && typeof window.renderStageTimeline === 'function') { 
-                    window.renderStageTimeline(currentEventData.eventProgram); 
-                } 
-            }); 
-        };
-        // باش تخدم وين ما يعيطلها الكود
-        function loadLibraryData() { window.loadLibraryData(); }
-        function openLibraryScreen() { window.showScreen('libraryScreen'); window.loadLibraryData(); }
-
-        // --- 2. دالة الموافقة الأمنية (مع ميزة الدخول المباشر للشاشة العملاقة للموظفين) ---
-        window.acceptSecurityConsent = function() {
-            window.loadLibraryData();
-            document.getElementById('antiScreenModal').style.display = 'none';
-            
-            if(currentUser && currentUser.role !== 'admin') { 
-                setupWatermark(); 
-                document.getElementById('antiScreenshotBanner').style.display = 'block'; 
-                startPresenceTracker(); 
-            }
-            
-            let pendingSec = document.getElementById(pendingSectionId);
-            if(pendingSec) pendingSec.style.display = 'block'; 
-            
-            if(pendingSectionId === 'backstageSection') { 
-                loadBackstageData(); startBackstageListener(); applyBackstagePermissions(); 
-            }
-            
-            if(pendingSectionId === 'stageSection') { 
-                openStageLive(); applyStagePermissions(); monitorEventStart(); 
-                
-                // 🚀 الدخول المباشر: الـ DJ والموظف ينقز ديراكت للشاشة العملاقة!
-                if (currentUser && ['dj', 'assistant', 'assistant_anim'].includes(currentUser.role)) {
-                    setTimeout(() => {
-                        window.startSmartFullscreen();
-                    }, 1500); // نستناو ثانية ونص باش البرنامج يتيليشارجا من السيرفر
-                }
-            }
-            startPresenceTracker(); 
-        };
-        function acceptSecurityConsent() { window.acceptSecurityConsent(); }
     </script>
 </body>
 </html>
