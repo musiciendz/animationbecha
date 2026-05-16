@@ -2427,6 +2427,141 @@ window.startDjSyncListener = function() {
 
         window.toggleAppFullscreen = function() { let doc = window.document; let docEl = doc.documentElement; let requestFullScreen = docEl.requestFullscreen || docEl.mozRequestFullScreen || docEl.webkitRequestFullScreen || docEl.msRequestFullscreen; let cancelFullScreen = doc.exitFullscreen || doc.mozCancelFullScreen || doc.webkitExitFullscreen || doc.msExitFullscreen; if(!doc.fullscreenElement && !doc.mozFullScreenElement && !doc.webkitFullscreenElement && !doc.msFullscreenElement) { requestFullScreen.call(docEl); } else { cancelFullScreen.call(doc); } };
         window.closeFullscreen = function() { window.closeGlobalVideo(); document.getElementById('fullscreenTeleprompter').style.display = 'none'; let videoEl = document.getElementById('localVideoElement'); if(videoEl) { videoEl.pause(); videoEl.src = ""; } if (currentUser && ['animateur', 'admin', 'admin_assistant'].includes(currentUser.role)) { let path = isArchivedEvent ? 'BechaEventsData/archived_events/'+currentEventIndex : 'BechaEventsData/events/'+currentEventIndex; db.ref(path + '/djForceSync/game').set({ active: false }); db.ref(path + '/djForceSync/video').set({ active: false }); } };
+        /* =========================================================
+           ⏱️ نظام الكرونومتر المستقل في الشاشة العملاقة (Plein Écran)
+           ========================================================= */
+        
+        // 1. زرع زر الكرونومتر آلياً في الشاشة العملاقة
+        setInterval(() => {
+            let fsControls = document.querySelector('.fs-header div');
+            if(fsControls && !document.getElementById('fsChronoBtn')) {
+                let rocketBtn = fsControls.querySelector('button[title="ارتجال فقرة حية"]');
+                if(rocketBtn) {
+                    rocketBtn.insertAdjacentHTML('beforebegin', `<button id="fsChronoBtn" class="fs-zoom-btn" onclick="window.openFsChronoSetup()" title="عداد الوقت" style="color:#20c997; margin-right:15px; font-size:26px;">⏱️</button>`);
+                }
+            }
+            
+            // إخفاء الزر على المراقبة (DJ والمساعدين)
+            if (currentUser && ['dj', 'assistant', 'assistant_anim', 'client'].includes(currentUser.role)) {
+                let cBtn = document.getElementById('fsChronoBtn');
+                if(cBtn) cBtn.style.display = 'none';
+            }
+        }, 1500);
+
+        window.tempFsChronoVal = 60; // القيمة الافتراضية دقيقة
+
+        // 2. فتح نافذة الإعدادات السريعة
+        window.openFsChronoSetup = function() {
+            let modal = document.getElementById('fsChronoSetupModal');
+            if(!modal) {
+                modal = document.createElement('div');
+                modal.id = 'fsChronoSetupModal'; modal.className = 'modal-overlay'; modal.style.zIndex = '9999999';
+                document.body.appendChild(modal);
+            }
+            window.renderFsChronoSetup();
+            modal.style.display = 'flex';
+        };
+
+        // 3. رسم نافذة الإعدادات
+        window.renderFsChronoSetup = function() {
+            let modal = document.getElementById('fsChronoSetupModal');
+            let mins = Math.floor(window.tempFsChronoVal / 60).toString().padStart(2, '0');
+            let secs = (window.tempFsChronoVal % 60).toString().padStart(2, '0');
+            
+            modal.innerHTML = `
+            <div class="modal-box" style="background:#222; border:3px solid #20c997; text-align:center; max-width:400px;">
+                <h2 style="color:#20c997; margin-top:0;">⏱️ ضبط العداد</h2>
+                <div style="font-size:70px; font-weight:900; color:white; font-family:monospace; margin:20px 0; text-shadow:0 0 15px rgba(255,255,255,0.3);">
+                    ${mins}:${secs}
+                </div>
+                <div style="display:flex; justify-content:center; gap:10px; flex-wrap:wrap; margin-bottom:20px;">
+                    <button class="btn btn-outline" style="border-color:#aaa; color:#aaa; flex:1;" onclick="window.tempFsChronoVal=30; window.renderFsChronoSetup()">30ث</button>
+                    <button class="btn btn-outline" style="border-color:#aaa; color:#aaa; flex:1;" onclick="window.tempFsChronoVal=60; window.renderFsChronoSetup()">1دق</button>
+                    <button class="btn btn-outline" style="border-color:#aaa; color:#aaa; flex:1;" onclick="window.tempFsChronoVal=90; window.renderFsChronoSetup()">1.5دق</button>
+                </div>
+                <div style="display:flex; justify-content:center; gap:10px; margin-bottom:25px;">
+                    <button class="btn btn-dark" style="flex:1; font-size:20px;" onclick="if(window.tempFsChronoVal>=10) window.tempFsChronoVal-=10; window.renderFsChronoSetup()">➖ 10ث</button>
+                    <button class="btn btn-dark" style="flex:1; font-size:20px;" onclick="window.tempFsChronoVal+=10; window.renderFsChronoSetup()">➕ 10ث</button>
+                </div>
+                <button class="btn btn-green" style="width:100%; font-size:24px; padding:15px; margin-bottom:10px; font-weight:bold; box-shadow:0 5px 15px rgba(25,135,84,0.4);" onclick="window.startFullscreenChrono()">▶️ إبدأ العداد</button>
+                <button class="btn btn-red" style="width:100%; font-size:18px;" onclick="document.getElementById('fsChronoSetupModal').style.display='none'">❌ إلغاء</button>
+            </div>`;
+        };
+
+        // 4. إعطاء شارة الانطلاق
+        window.startFullscreenChrono = function() {
+            document.getElementById('fsChronoSetupModal').style.display = 'none';
+            
+            // ربط الكرونو الجديد بالمحرك القديم باش يتبث للـ DJ أوتوماتيكياً
+            window.setLiveChrono(window.tempFsChronoVal);
+            window.startLiveChrono();
+            
+            // إظهار الكرونو العملاق للمنشط
+            window.showBigFsChrono();
+        };
+
+        // 5. نافذة الكرونومتر العملاق
+        window.showBigFsChrono = function() {
+            let display = document.getElementById('fsBigChronoDisplay');
+            if(!display) {
+                display = document.createElement('div');
+                display.id = 'fsBigChronoDisplay';
+                display.style.position = 'absolute';
+                display.style.top = '110px';
+                display.style.left = '50%';
+                display.style.transform = 'translateX(-50%)';
+                display.style.background = 'rgba(0,0,0,0.95)';
+                display.style.border = '4px solid #20c997';
+                display.style.borderRadius = '20px';
+                display.style.padding = '20px 50px';
+                display.style.zIndex = '999999';
+                display.style.textAlign = 'center';
+                display.style.boxShadow = '0 15px 50px rgba(0,0,0,0.9)';
+                display.innerHTML = `
+                    <div id="fsBigChronoText" style="font-size:150px; font-weight:900; color:#20c997; font-family:monospace; line-height:1; text-shadow:0 0 30px #20c997; margin-bottom:15px;">00:00</div>
+                    <div style="display:flex; justify-content:center;">
+                        <button class="btn btn-red" onclick="window.stopFsChronoDisplay()" style="font-size:22px; padding:12px 35px; font-weight:bold; border-radius:12px;">🛑 إيقاف وإخفاء</button>
+                    </div>
+                `;
+                document.getElementById('fullscreenTeleprompter').appendChild(display);
+            }
+            display.style.display = 'block';
+        };
+
+        // 6. إيقاف وإخفاء الكرونومتر
+        window.stopFsChronoDisplay = function() {
+            let display = document.getElementById('fsBigChronoDisplay');
+            if(display) display.style.display = 'none';
+            window.resetLiveChrono(); // يقص العداد ويرستيه على الناس الكل (DJ والمنشط)
+        };
+
+        // 7. مراقب بصري يحدّث الشاشة العملاقة كل نصف ثانية مع التشويق (Suspense)
+        setInterval(() => {
+            let textEl = document.getElementById('fsBigChronoText');
+            let displayEl = document.getElementById('fsBigChronoDisplay');
+            
+            if(textEl && displayEl && displayEl.style.display !== 'none') {
+                let c = window.liveGameStats.chrono || 0;
+                let mins = Math.floor(c / 60).toString().padStart(2, '0');
+                let secs = (c % 60).toString().padStart(2, '0');
+                textEl.innerText = `${mins}:${secs}`;
+                
+                // الألوان والتشويق حسب الوقت المتبقي
+                if(window.liveGameStats.isTimeUp) {
+                    textEl.style.color = '#E10600';
+                    textEl.style.textShadow = '0 0 40px #E10600';
+                    if(!textEl.classList.contains('flash-screen')) textEl.classList.add('flash-screen'); // يشعل ويطفى
+                } else if(c <= 10 && c > 0) {
+                    textEl.style.color = '#ff9800';
+                    textEl.style.textShadow = '0 0 30px #ff9800';
+                    textEl.classList.remove('flash-screen');
+                } else {
+                    textEl.style.color = '#20c997';
+                    textEl.style.textShadow = '0 0 30px #20c997';
+                    textEl.classList.remove('flash-screen');
+                }
+            }
+        }, 500);
     </script>
 </body>
 </html>
