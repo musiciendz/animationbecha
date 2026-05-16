@@ -96,7 +96,7 @@
         @keyframes blink { 0% {opacity:1;} 50% {opacity:0.3;} 100% {opacity:1;} }
         .online-text { font-size: 11px; color: #198754; font-weight: bold; display: none; margin-top: 2px;}
 
-        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 11000; flex-direction: column; align-items: center; justify-content: center; padding: 20px; box-sizing: border-box; text-align: right; overflow-y: auto;}
+        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 11000; flex-direction: column; align-items: center; justify-content: flex-start; padding: 50px 20px 20px 20px; box-sizing: border-box; text-align: right; overflow-y: auto;}
         .modal-box { background: white; padding: 30px; border-radius: 15px; max-width: 400px; width: 100%; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
         .modal-box.danger { border: 4px solid var(--primary-red); }
 
@@ -1267,26 +1267,102 @@ window.startDjSyncListener = function() {
             container.innerHTML = html;
         }
 
-        // مفلتر المكتبة حسب التبويبة
+        // مفلتر المكتبة ونظام المجلدات (Dossiers)
         function renderLibrary(filterType = 'all') {
-            let genContainer = document.getElementById('generalLibContainer'); genContainer.innerHTML = '';
+            let genContainer = document.getElementById('generalLibContainer'); 
+            genContainer.innerHTML = '';
             let items = Object.keys(libraryData).map(k => ({id: k, ...libraryData[k]})); 
             items.sort((a, b) => b.updatedAt - a.updatedAt); 
             
+            // 1. نظام المجلدات (Dossiers) كي يبدا مختار "الكل"
+            if(filterType === 'all') {
+                let typesCount = {};
+                items.forEach(i => {
+                    let t = i.type === 'أخرى' ? (i.customType || 'متنوع') : i.type;
+                    if(t) typesCount[t] = (typesCount[t] || 0) + 1;
+                });
+                
+                let html = '<div style="display:grid; grid-template-columns:1fr 1fr; gap:15px; margin-top:10px;">';
+                for(let t in typesCount) {
+                    let icon = t.includes('لغز') ? '🤔' : t.includes('حركية') ? '🏃‍♂️' : t.includes('مسابقة') ? '🧠' : '📁';
+                    html += `<div class="dash-card" style="border-color:var(--primary-red);" onclick="activeLibFilter='${t}'; renderLibrary('${t}')"><div style="font-size:30px; margin-bottom:10px;">${icon}</div><h3 style="color:var(--primary-red); margin:0;">${t}</h3><span style="font-size:13px; color:#666; font-weight:bold;">${typesCount[t]} فقرة</span></div>`;
+                }
+                html += '</div>';
+                genContainer.innerHTML = html;
+                return;
+            }
+
+            // 2. واجهة داخل المجلد (مع زر الإضافة الذكي)
+            let folderHeader = '';
+            if(filterType !== 'fav') {
+                folderHeader = `<div style="display:flex; justify-content:space-between; align-items:center; background:#fffdf5; border:2px dashed #ffc107; padding:15px; border-radius:12px; margin-bottom:20px;">
+                    <h3 style="margin:0; color:#ff9800;">📁 مجلد: ${filterType}</h3>
+                    <button class="btn btn-green" onclick="openLibForm('${filterType}')">➕ إضافة هنا</button>
+                </div>`;
+            }
+
             let filteredItems = items;
-            if(filterType === 'fav') filteredItems = items.filter(i => i.isFav);
-            else if(filterType !== 'all') filteredItems = items.filter(i => i.type === filterType);
+            if(filterType === 'fav') {
+                filteredItems = items.filter(i => i.isFav);
+            } else if(filterType !== 'all') {
+                filteredItems = items.filter(i => {
+                    let t = i.type === 'أخرى' ? (i.customType || 'متنوع') : i.type;
+                    return t === filterType;
+                });
+            }
 
-            if(filteredItems.length === 0) { genContainer.innerHTML = '<p style="color:#888; font-size:13px; text-align:center;">لا توجد فقرات في هذا القسم.</p>'; return; }
+            if(filteredItems.length === 0) { 
+                genContainer.innerHTML = folderHeader + '<p style="color:#888; font-size:14px; text-align:center; font-weight:bold;">المجلد فارغ.</p>'; 
+                return; 
+            }
 
+            genContainer.innerHTML = folderHeader;
             filteredItems.forEach(item => {
-                let d = new Date(item.updatedAt); let dateStr = d.toLocaleDateString('ar-TN') + ' ' + d.toLocaleTimeString('ar-TN', {hour:'2-digit', minute:'2-digit'}); 
+                let d = new Date(item.updatedAt); 
+                let dateStr = d.toLocaleDateString('ar-TN') + ' ' + d.toLocaleTimeString('ar-TN', {hour:'2-digit', minute:'2-digit'}); 
                 let isFav = item.isFav ? 'active' : '';
                 let html = `<div class="lib-card"><div class="fav-heart ${isFav}" onclick="toggleFavorite('${item.id}', ${!item.isFav}); setTimeout(()=>renderLibrary('${filterType}'), 300);">❤️</div><div class="lib-title">${item.name} <span style="font-size:12px; color:#666;">(${item.type})</span></div><div class="lib-date">آخر تحيين: ${dateStr}</div><div style="font-size:13px; color:#555; margin-top:10px; background:#f8f9fa; padding:10px; border-radius:8px;"><b>🎤 المنشط:</b> ${item.animText || '---'}<br><b>🎧 الـ DJ:</b> ${item.djText || '---'}<br><b>🏃‍♂️ المساعد:</b> ${item.assistText || '---'}</div><div class="lib-actions"><button class="btn btn-outline" style="border-color:#17a2b8; color:#17a2b8; flex:1; padding:5px;" onclick="editLibItem('${item.id}')">✏️ تعديل</button><button class="btn btn-outline" style="border-color:#dc3545; color:#dc3545; flex:1; padding:5px;" onclick="deleteLibItem('${item.id}')">🗑️ حذف</button></div></div>`;
                 genContainer.innerHTML += html;
             });
         }
-        function openLibForm() { document.getElementById('libItemId').value = ''; document.getElementById('libItemName').value = ''; document.getElementById('libItemType').value = 'لغز / تشنشينة'; document.getElementById('libItemCustomType').value = ''; document.getElementById('libItemCustomType').style.display = 'none'; document.getElementById('libItemAnim').value = ''; document.getElementById('libItemDJ').value = ''; document.getElementById('libItemAssist').value = ''; document.getElementById('libItemFav').checked = false; document.getElementById('libFormTitle').innerText = '➕ فقرة جديدة'; document.getElementById('libFormModal').style.display = 'flex'; }
+
+        // نافذة الإضافة الذكية
+        window.openLibForm = function(prefilledType = '') {
+            document.getElementById('libItemId').value = '';
+            document.getElementById('libItemName').value = '';
+            
+            let select = document.getElementById('libItemType');
+            let customTypeInput = document.getElementById('libItemCustomType');
+            
+            // الذكاء: تعمير نوع الفقرة أوتوماتيكياً حسب المجلد المفتوح
+            if (prefilledType && typeof prefilledType === 'string' && prefilledType !== 'fav' && prefilledType !== 'all') {
+                let isStandard = Array.from(select.options).some(o => o.value === prefilledType);
+                if (isStandard) {
+                    select.value = prefilledType;
+                    customTypeInput.style.display = 'none';
+                    customTypeInput.value = '';
+                } else {
+                    select.value = 'أخرى';
+                    customTypeInput.style.display = 'block';
+                    customTypeInput.value = prefilledType;
+                }
+                document.getElementById('libFormTitle').innerText = `➕ إضافة في [${prefilledType}]`;
+            } else {
+                select.value = 'لغز / تشنشينة';
+                customTypeInput.style.display = 'none';
+                customTypeInput.value = '';
+                document.getElementById('libFormTitle').innerText = '➕ فقرة جديدة';
+            }
+
+            document.getElementById('libItemAnim').value = '';
+            document.getElementById('libItemDJ').value = '';
+            document.getElementById('libItemAssist').value = '';
+            document.getElementById('libItemFav').checked = false;
+            if(document.getElementById('libItemScore')) document.getElementById('libItemScore').checked = false;
+            if(document.getElementById('libItemChrono')) document.getElementById('libItemChrono').checked = false;
+            
+            document.getElementById('libFormModal').style.display = 'flex';
+        };
 
         function saveLibItem() { let id = document.getElementById('libItemId').value || 'lib_' + Date.now(); let name = document.getElementById('libItemName').value.trim(); if(!name) return alert("الرجاء كتابة اسم الفقرة!"); let isFav = document.getElementById('libItemFav').checked; if (isFav) { let duplicate = Object.keys(libraryData).find(k => libraryData[k].name === name && libraryData[k].isFav && k !== id); if (duplicate) { alert(`⚠️ يا سي حمادي، اسم الفقرة (${name}) موجود ديجا في المفضلات! الرجاء تغيير الاسم أو تعديل الفقرة القديمة.`); return; } } let selectedType = document.getElementById('libItemType').value; let finalType = selectedType === 'أخرى' ? document.getElementById('libItemCustomType').value.trim() : selectedType; if (selectedType === 'أخرى' && !finalType) return alert("الرجاء كتابة نوع الفقرة!"); let itemData = { name: name, type: finalType, animText: document.getElementById('libItemAnim').value.trim(), djText: document.getElementById('libItemDJ').value.trim(), assistText: document.getElementById('libItemAssist').value.trim(), isFav: isFav, updatedAt: Date.now() }; db.ref('BechaEventsData/library/' + id).set(itemData).then(() => { document.getElementById('libFormModal').style.display = 'none'; }); }
 
