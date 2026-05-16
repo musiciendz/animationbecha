@@ -1921,42 +1921,114 @@ window.startDjSyncListener = function() {
             document.getElementById('fsContent').innerHTML = contentHtml;
         };
 
-        // 3. زر الصاروخ 🚀 (مكتبة الارتجال المباشر)
-        window.openFsEmergencyLib = function() {
-            let html = `<h2 style="color:var(--primary-red); margin-top:0;">🚀 ارتجال فقرة تنشيطية سريعة</h2><div style="display:flex; flex-wrap:wrap; gap:10px; max-height:60vh; overflow-y:auto; padding-right:10px;">`;
-            for(let key in libraryData) {
-                let lib = libraryData[key];
-                html += `<button onclick="playEmergencyGame('${key}')" style="background:#333; color:white; border:1px solid #555; padding:15px; border-radius:10px; font-size:18px; cursor:pointer; flex:1; min-width:200px; text-align:right;">⭐ ${lib.name}</button>`;
-            }
-            html += `</div><button onclick="document.getElementById('fsEmergencyModal').style.display='none'" style="width:100%; margin-top:20px; padding:12px; background:#444; color:white; border-radius:10px; font-size:18px;">❌ رجوع للعرض</button>`;
+        // 1. ذاكرة الألعاب المرتجلة اللي تلعبت في العرض الحالي
+        window.usedEmergencyItems = [];
+
+        // 2. دالة فتح الارتجال (تعرض المجلدات أو الألعاب)
+        window.openFsEmergencyLib = function(folderName = null) {
+            let path = isArchivedEvent ? 'BechaEventsData/archived_events/'+currentEventIndex : 'BechaEventsData/events/'+currentEventIndex;
             
+            // نجبدو الألعاب اللي تلعبت من Firebase قبل ما نرسمو الواجهة باش نعرفو شنية نكوشيو
+            db.ref(path + '/usedEmergencyItems').once('value').then(snap => {
+                window.usedEmergencyItems = snap.val() || [];
+                window.renderEmergencyUI(folderName);
+            });
+        };
+
+        // دالة رسم واجهة الارتجال (المجلدات + الألعاب المرقّمة)
+        window.renderEmergencyUI = function(folderName) {
             let modal = document.getElementById('fsEmergencyModal');
             if(!modal) {
                 modal = document.createElement('div');
                 modal.id = 'fsEmergencyModal'; modal.className = 'modal-overlay'; modal.style.zIndex = '9999999';
-                modal.innerHTML = `<div class="modal-box" style="width:90%; max-width:800px; text-align:right;"></div>`;
+                modal.innerHTML = `<div class="modal-box" style="width:90%; max-width:800px; text-align:right; background:#222; border: 3px solid #ffc107;"></div>`;
                 document.body.appendChild(modal);
             }
+
+            let html = '';
+
+            if (!folderName) {
+                // 📂 الواجهة الأولى: رسم المجلدات (Dossiers)
+                html += `<h2 style="color:#ffc107; margin-top:0; border-bottom:2px dashed #555; padding-bottom:10px;">🚀 مجلدات الارتجال السريع</h2>`;
+                html += `<div style="display:grid; grid-template-columns:1fr 1fr; gap:15px; max-height:60vh; overflow-y:auto; padding-right:10px;">`;
+                
+                let typesCount = {};
+                for(let key in libraryData) {
+                    let type = libraryData[key].type === 'أخرى' ? (libraryData[key].customType || 'متنوع') : libraryData[key].type;
+                    typesCount[type] = (typesCount[type] || 0) + 1;
+                }
+
+                for(let t in typesCount) {
+                    let icon = t.includes('لغز') ? '🤔' : t.includes('حركية') ? '🏃‍♂️' : t.includes('مسابقة') ? '🧠' : t.includes('أغنية') ? '🎵' : '📁';
+                    html += `<div class="dash-card" style="border-color:#ffc107; background:#333; color:white; padding:20px; transition:0.3s;" onclick="window.renderEmergencyUI('${t}')">
+                        <div style="font-size:40px; margin-bottom:10px;">${icon}</div>
+                        <h3 style="color:#ffc107; margin:0;">${t}</h3>
+                        <span style="font-size:14px; color:#aaa; font-weight:bold;">${typesCount[t]} فقرة</span>
+                    </div>`;
+                }
+                html += `</div>`;
+                html += `<button onclick="document.getElementById('fsEmergencyModal').style.display='none'" style="width:100%; margin-top:20px; padding:12px; background:#444; color:white; border-radius:10px; font-size:18px; border:none; cursor:pointer; font-weight:bold;">❌ إغلاق</button>`;
+            
+            } else {
+                // 🎮 الواجهة الثانية: رسم الألعاب داخل المجلد المختار (مرقّمة تلقائياً)
+                html += `<div style="display:flex; justify-content:space-between; align-items:center; border-bottom:2px solid #555; padding-bottom:10px; margin-bottom:15px;">
+                    <h2 style="color:#0dcaf0; margin:0;">📁 ${folderName}</h2>
+                    <button class="btn btn-dark" style="padding:5px 15px; font-size:16px; border:1px solid #777;" onclick="window.renderEmergencyUI(null)">🔙 رجوع للمجلدات</button>
+                </div>`;
+                html += `<div style="display:flex; flex-direction:column; gap:10px; max-height:60vh; overflow-y:auto; padding-right:10px;">`;
+                
+                let itemNum = 1; // 🔢 العداد الذكي للترقيم أوتوماتيكياً
+                
+                for(let key in libraryData) {
+                    let lib = libraryData[key];
+                    let t = lib.type === 'أخرى' ? (lib.customType || 'متنوع') : lib.type;
+                    
+                    if (t === folderName) {
+                        let isUsed = window.usedEmergencyItems.includes(key); // هل اللعبة ملعوبة؟
+                        
+                        if (isUsed) {
+                            // لعبة محروقة (مكوشية ومعاها رقمها)
+                            html += `<button disabled style="background:#111; color:#555; border:2px solid #333; padding:15px; border-radius:10px; font-size:18px; text-align:right; cursor:not-allowed; opacity:0.8; font-weight:bold;">
+                                ✅ ${itemNum}. <span style="text-decoration:line-through;">${lib.name}</span> <span style="font-size:13px; color:#198754;">(لُعِبت)</span>
+                            </button>`;
+                        } else {
+                            // لعبة جديدة تظهر برقمها الترتيبي وقابلة للضغط
+                            html += `<button onclick="window.playEmergencyGame('${key}')" style="background:#333; color:white; border:2px solid #0dcaf0; padding:15px; border-radius:10px; font-size:18px; cursor:pointer; text-align:right; transition:0.2s; font-weight:bold;">
+                                🌟 ${itemNum}. ${lib.name}
+                            </button>`;
+                        }
+                        itemNum++; // تقديم العداد للفقرة اللي بعدها
+                    }
+                }
+                html += `</div>`;
+            }
+
             modal.querySelector('.modal-box').innerHTML = html;
             modal.style.display = 'flex';
         };
 
+        // 3. زر الصاروخ 🚀 (حرق اللعبة وإرسالها للركح)
         window.playEmergencyGame = function(libId) {
             document.getElementById('fsEmergencyModal').style.display = 'none';
             let libData = libraryData[libId]; if(!libData) return;
             
             let contentHtml = `<div style="color:#0dcaf0; font-size:1.2em; margin-bottom:20px; border-bottom:2px solid #555; padding-bottom:10px;">🚀 ارتجال مباشر: ${libData.name}</div>`;
-            if(libData.animText) contentHtml += `<div style="color:#e3f2fd; margin-bottom:15px; line-height:1.6;">🎤 <b>نص المنشط:</b><br>${libData.animText}</div>`;
-            if(libData.djText) contentHtml += `<div style="color:#f3e5f5; font-size:0.8em; opacity:0.9; margin-top:30px;">🎧 <b>DJ:</b> ${libData.djText}</div>`;
-            if(libData.assistText) contentHtml += `<div style="color:#fff3e0; font-size:0.8em; opacity:0.9;">🏃‍♂️ <b>المساعد:</b> ${libData.assistText}</div>`;
+            if(libData.animText) contentHtml += `<div style="color:#e3f2fd; margin-bottom:15px; line-height:1.6;">🎤 <b>نص المنشط:</b><br>${libData.animText.replace(/\n/g, '<br>')}</div>`;
+            if(libData.djText) contentHtml += `<div style="color:#f3e5f5; font-size:0.8em; opacity:0.9; margin-top:30px;">🎧 <b>DJ:</b> ${libData.djText.replace(/\n/g, '<br>')}</div>`;
+            if(libData.assistText) contentHtml += `<div style="color:#fff3e0; font-size:0.8em; opacity:0.9;">🏃‍♂️ <b>المساعد:</b> ${libData.assistText.replace(/\n/g, '<br>')}</div>`;
             
-           document.getElementById('fsTitle').innerText = `🚀 فقرة ارتجال حي (خارج البرنامج الرسمي)`;
+            document.getElementById('fsTitle').innerText = `🚀 فقرة ارتجال حي (خارج البرنامج الرسمي)`;
             document.getElementById('fsContent').innerHTML = contentHtml;
             document.getElementById('fsContent').style.opacity = '1';
 
-            // 📡 إرسال الإرتجال للـ DJ باش يختطفو وما يخرجش
+            let path = isArchivedEvent ? 'BechaEventsData/archived_events/'+currentEventIndex : 'BechaEventsData/events/'+currentEventIndex;
+            
+            // إضافة اللعبة لقائمة المحروقات
+            window.usedEmergencyItems.push(libId);
+            db.ref(path + '/usedEmergencyItems').set(window.usedEmergencyItems);
+
+            // إرسال الإرتجال للـ DJ والمساعدين
             if (currentUser && ['animateur', 'admin', 'admin_assistant'].includes(currentUser.role)) {
-                let path = isArchivedEvent ? 'BechaEventsData/archived_events/'+currentEventIndex : 'BechaEventsData/events/'+currentEventIndex;
                 db.ref(path + '/djForceSync/game').set({ active: true, isEmergency: true, libId: libId });
             }
         };
