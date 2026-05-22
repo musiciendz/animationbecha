@@ -222,6 +222,25 @@
             /* 6. تصغير أزرار التالي والسابق اللوطانيين */
             .fs-btn { font-size: 16px !important; padding: 10px !important; margin: 0 2px !important; }
         }
+        /* ========================================================= */
+        /* 📱 إصلاح شاشة الهاتف بالعرض (Paysage) */
+        /* ========================================================= */
+        @media (max-height: 500px) and (orientation: landscape) {
+            /* 1. إرجاع الشريط العلوي في سطر واحد مضغوط */
+            .fs-header { flex-direction: row !important; padding: 5px 15px !important; align-items: center !important; }
+            .fs-header > div { margin-top: 0 !important; flex-wrap: nowrap !important; justify-content: flex-end !important; }
+            
+            /* 2. تصغير العنوان باش ما ياخوش برشا بلاصة */
+            .fs-title { font-size: 16px !important; margin-right: 10px !important; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 35%; }
+            
+            /* 3. ضغط الأزرار العلوية */
+            .fs-zoom-btn { font-size: 20px !important; margin-right: 5px !important; padding: 2px !important; }
+            
+            /* 4. تكبير مساحة القراءة وتصغير الأزرار السفلية */
+            .fs-content { padding: 10px 15px !important; }
+            .fs-footer { padding: 5px 15px !important; }
+            .fs-btn { padding: 5px 15px !important; font-size: 14px !important; }
+        }
     </style>
 </head>
 <body>
@@ -1152,9 +1171,13 @@
             let fsTitleEl = document.getElementById('fsTitle');
             let isImprov = fsTitleEl ? fsTitleEl.innerText.includes('ارتجال') : false;
             
-            // 1. إذا كنا في فقرة ارتجال: يسكّر الشاشة العملاقة مباشرة
+            // 1. إصلاح زر الإنهاء في الارتجال: الرجوع للفقرة الأصلية عوض الإغلاق
             if (isImprov) { 
-                window.closeFullscreen(); 
+                if (typeof window.currentFsIndex !== 'undefined') {
+                    window.openFsStep(window.currentFsIndex); // الرجوع للبرنامج الرسمي
+                } else {
+                    window.closeFullscreen(); 
+                }
                 return; 
             }
             
@@ -1164,8 +1187,7 @@
                 return;
             }
             
-            // 🛑 هنا نقراو الرقم الصحيح
-            let idx = currentFsIndex; 
+            let idx = window.currentFsIndex; 
             let prog = currentEventData.eventProgram;
             if(!prog || !prog[idx]) return;
 
@@ -1178,7 +1200,7 @@
             // 4. إذا الفقرة مسجلة محروقة ديجا، يتعدى للي بعدها ديراكت
             if(prog[idx].completed) {
                 let nextIdx = idx + 1;
-                if (prog[nextIdx]) window.openFsStep(nextIdx);
+                if (currentEventData.eventProgram[nextIdx]) window.openFsStep(nextIdx);
                 else window.closeFullscreen();
                 return;
             }
