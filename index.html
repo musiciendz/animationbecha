@@ -2078,10 +2078,13 @@ window.startDjSyncListener = function() {
                         let isUsed = window.usedEmergencyItems.includes(key); // هل اللعبة ملعوبة؟
                         
                         if (isUsed) {
-                            // لعبة محروقة (مكوشية ومعاها رقمها)
-                            html += `<button disabled style="background:#111; color:#555; border:2px solid #333; padding:15px; border-radius:10px; font-size:18px; text-align:right; cursor:not-allowed; opacity:0.8; font-weight:bold;">
-                                ✅ ${itemNum}. <span style="text-decoration:line-through;">${lib.name}</span> <span style="font-size:13px; color:#198754;">(لُعِبت)</span>
-                            </button>`;
+                            // لعبة محروقة (مكوشية ومعاها رقمها) + زر الاسترجاع 🔄
+                            html += `<div style="display:flex; gap:10px;">
+                                <button disabled style="background:#111; color:#555; border:2px solid #333; padding:15px; border-radius:10px; font-size:18px; text-align:right; cursor:not-allowed; opacity:0.8; font-weight:bold; flex:1;">
+                                    ✅ ${itemNum}. <span style="text-decoration:line-through;">${lib.name}</span> <span style="font-size:13px; color:#198754;">(لُعِبت)</span>
+                                </button>
+                                <button onclick="window.restoreEmergencyGame('${key}', '${folderName}')" style="background:#333; color:#ffc107; border:2px solid #555; border-radius:10px; padding:0 20px; font-size:24px; cursor:pointer; transition:0.2s;" title="استرجاع اللعبة">🔄</button>
+                            </div>`;
                         } else {
                             // لعبة جديدة تظهر برقمها الترتيبي وقابلة للضغط
                             html += `<button onclick="window.playEmergencyGame('${key}')" style="background:#333; color:white; border:2px solid #0dcaf0; padding:15px; border-radius:10px; font-size:18px; cursor:pointer; text-align:right; transition:0.2s; font-weight:bold;">
@@ -2096,6 +2099,21 @@ window.startDjSyncListener = function() {
 
             modal.querySelector('.modal-box').innerHTML = html;
             modal.style.display = 'flex';
+        };
+
+        // دالة استرجاع اللعبة المحروقة (طوق النجاة)
+        window.restoreEmergencyGame = function(libId, folderName) {
+            if(confirm("⚠️ تحب ترجّع اللعبة هذي للبرنامج باش تنجم تلعبها مرة أخرى؟")) {
+                // نفسخو الـ ID متاع اللعبة من الذاكرة
+                window.usedEmergencyItems = window.usedEmergencyItems.filter(id => id !== libId);
+                
+                // نسجلو القائمة النظيفة في قاعدة البيانات
+                let path = isArchivedEvent ? 'BechaEventsData/archived_events/'+currentEventIndex : 'BechaEventsData/events/'+currentEventIndex;
+                db.ref(path + '/usedEmergencyItems').set(window.usedEmergencyItems).then(() => {
+                    // نحدثو الشاشة باش اللعبة ترجع تضوي وتتنحى الشطبة
+                    window.renderEmergencyUI(folderName);
+                });
+            }
         };
 
         // 3. زر الصاروخ 🚀 (حرق اللعبة وإرسالها للركح)
