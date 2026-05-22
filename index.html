@@ -1148,24 +1148,52 @@
         };
 
         window.markCurrentStepCompleted = function() {
+            let btn = document.getElementById('fsCompleteStepBtn');
             let fsTitleEl = document.getElementById('fsTitle');
             let isImprov = fsTitleEl ? fsTitleEl.innerText.includes('ارتجال') : false;
-            if (isImprov) { window.closeFullscreen(); return; }
-            if(!currentUser || !currentUser.perms || !currentUser.perms.timeline) return;
+            
+            // 1. إذا كنا في فقرة ارتجال: يسكّر الشاشة العملاقة مباشرة
+            if (isImprov) { 
+                window.closeFullscreen(); 
+                return; 
+            }
+            
+            // 2. الحماية: يتأكد اللي المنشط عندو صلاحية (التحكم في الفقرات)
+            if(!currentUser || !currentUser.perms || !currentUser.perms.timeline) {
+                alert("🛑 ليس لديك صلاحية لإنهــاء الفقرات!");
+                return;
+            }
+            
             let idx = window.currentFsIndex;
             let prog = currentEventData.eventProgram;
             if(!prog || !prog[idx]) return;
+
+            // 3. تغيير شكل الزر باش تعرف اللي السيستام قاعد يخدم
+            if(btn) {
+                btn.innerText = '⏳ جاري...';
+                btn.disabled = true;
+            }
+            
+            // 4. إذا الفقرة مسجلة محروقة ديجا، يتعدى للي بعدها ديراكت
             if(prog[idx].completed) {
                 let nextIdx = idx + 1;
-                if (currentEventData.eventProgram[nextIdx]) window.openFsStep(nextIdx); 
+                if (prog[nextIdx]) window.openFsStep(nextIdx);
                 else window.closeFullscreen();
-                return; 
+                return;
             }
+            
+            // 5. حفظ الحرق في قاعدة البيانات والمرور للفقرة الموالية
             let path = isArchivedEvent ? 'BechaEventsData/archived_events/'+currentEventIndex : 'BechaEventsData/events/'+currentEventIndex;
             db.ref(path+'/eventProgram/'+idx+'/completed').set(true).then(() => {
                 let nextIdx = idx + 1;
-                if (currentEventData.eventProgram[nextIdx]) window.openFsStep(nextIdx); 
+                if (currentEventData.eventProgram[nextIdx]) window.openFsStep(nextIdx);
                 else window.closeFullscreen();
+            }).catch(err => {
+                alert("❌ صار مشكل في الإنترنات، عاود انزل!");
+                if(btn) {
+                    btn.innerText = '✔️ إنهاء';
+                    btn.disabled = false;
+                }
             });
         };
         
@@ -1890,7 +1918,7 @@ window.startDjSyncListener = function() {
             let rocketBtn = document.querySelector('button[title="ارتجال فقرة حية"]');
             let prevBtn = document.querySelector('.fs-btn.prev'); 
             
-            if (completeBtn) { if (['animateur', 'admin', 'admin_assistant'].includes(currentUser.role) && !isDone) { completeBtn.style.display = 'inline-block'; } else { completeBtn.style.display = 'none'; } }
+            if (completeBtn) { if (currentUser && currentUser.perms && currentUser.perms.timeline && !isDone) { completeBtn.style.display = 'inline-block'; completeBtn.disabled = false; completeBtn.innerText = '✔️ إنهاء'; } else { completeBtn.style.display = 'none'; } }
             
             // 🔒 السرية المهنية: إخفاء الأسماء والارتجال على الـ DJ والمساعدين
             let isReadOnly = ['dj', 'assistant', 'assistant_anim', 'client'].includes(currentUser.role);
