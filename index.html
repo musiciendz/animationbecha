@@ -200,6 +200,28 @@
         .lib-tag { display:inline-flex; align-items:center; background:#fff3e0; border:2px solid #ff9800; color:#e65100; padding:6px 12px; border-radius:20px; margin:5px 5px 0 0; font-size:14px; font-weight:bold; box-shadow:0 2px 4px rgba(0,0,0,0.1); transition:0.3s; }
         .lib-tag .del-tag { color:#dc3545; cursor:pointer; margin-right:8px; font-size:14px; font-weight:900; background:white; border-radius:50%; width:22px; height:22px; display:flex; justify-content:center; align-items:center; box-shadow:0 1px 3px rgba(0,0,0,0.2); }
         .lib-tag .del-tag:hover { background:#dc3545; color:white; }
+        /* ========================================================= */
+        /* 📱 إصلاحات شاشات التليفون (Android & iOS) */
+        /* ========================================================= */
+        @media (max-width: 768px) {
+            /* 1. ترتيب الشريط العلوي باش يجي تحت بعضو */
+            .fs-header { flex-direction: column !important; align-items: flex-start !important; padding: 10px 15px !important; }
+            
+            /* 2. لف الأزرار (Flex Wrap) باش ما يدخلوش في بعضهم */
+            .fs-header > div { flex-wrap: wrap !important; gap: 10px !important; margin-top: 10px !important; width: 100% !important; justify-content: flex-start !important; }
+            
+            /* 3. تصغير المسافات بين الأزرار */
+            .fs-zoom-btn { margin-right: 5px !important; font-size: 22px !important; }
+            
+            /* 4. إصلاح حجم العنوان الفوقاني */
+            .fs-title { font-size: 18px !important; line-height: 1.4 !important; }
+            
+            /* 5. تكسير الكلمات الطويلة باش ما تقصش الشاشة */
+            .fs-content { padding: 15px !important; word-wrap: break-word !important; overflow-wrap: break-word !important; word-break: break-word !important; }
+            
+            /* 6. تصغير أزرار التالي والسابق اللوطانيين */
+            .fs-btn { font-size: 16px !important; padding: 10px !important; margin: 0 2px !important; }
+        }
     </style>
 </head>
 <body>
