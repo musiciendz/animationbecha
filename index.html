@@ -1164,7 +1164,8 @@
                 return;
             }
             
-            let idx = window.currentFsIndex;
+            // 🛑 هنا نقراو الرقم الصحيح
+            let idx = currentFsIndex; 
             let prog = currentEventData.eventProgram;
             if(!prog || !prog[idx]) return;
 
@@ -1899,7 +1900,7 @@ window.startDjSyncListener = function() {
         };
 
         // 2. تحديث الشاشة العملاقة باش تخدم بنظام السلايدر (كوكتيل الألعاب)
-       window.openFsStep = function(idx) {
+        window.openFsStep = function(idx) {
             if(!currentEventData || !currentEventData.eventProgram) return;
             let prog = currentEventData.eventProgram;
             if(idx < 0 || idx >= prog.length) return;
@@ -1907,7 +1908,11 @@ window.startDjSyncListener = function() {
             // 🚫 الموظفين مستحيل يرجعو لفقرة قديمة محروقة
             if (prog[idx].completed && currentUser && !['animateur', 'admin', 'admin_assistant'].includes(currentUser.role)) { return; }
 
-            currentFsIndex = idx; let item = prog[idx];
+            // 🛑 الإصلاح الجذري: ربط المتغير باش يقراه زر الإنهاء والرادار
+            window.currentFsIndex = idx; 
+            currentFsIndex = idx; 
+            
+            let item = prog[idx];
             let displayType = item.type === 'أخرى' ? (item.customType || 'فقرة متنوعة') : item.type;
             let isDone = item.completed;
             
@@ -1918,7 +1923,15 @@ window.startDjSyncListener = function() {
             let rocketBtn = document.querySelector('button[title="ارتجال فقرة حية"]');
             let prevBtn = document.querySelector('.fs-btn.prev'); 
             
-            if (completeBtn) { if (currentUser && currentUser.perms && currentUser.perms.timeline && !isDone) { completeBtn.style.display = 'inline-block'; completeBtn.disabled = false; completeBtn.innerText = '✔️ إنهاء'; } else { completeBtn.style.display = 'none'; } }
+            if (completeBtn) { 
+                if (currentUser && currentUser.perms && currentUser.perms.timeline && !isDone) { 
+                    completeBtn.style.display = 'inline-block'; 
+                    completeBtn.disabled = false; 
+                    completeBtn.innerText = '✔️ إنهاء'; 
+                } else { 
+                    completeBtn.style.display = 'none'; 
+                } 
+            }
             
             // 🔒 السرية المهنية: إخفاء الأسماء والارتجال على الـ DJ والمساعدين
             let isReadOnly = ['dj', 'assistant', 'assistant_anim', 'client'].includes(currentUser.role);
@@ -1926,11 +1939,24 @@ window.startDjSyncListener = function() {
             if (rocketBtn) rocketBtn.style.display = isReadOnly ? 'none' : 'inline-block';
             
             // 🚫 إخفاء زر السابق كان الفقرة محروقة
-            if (prevBtn) { let prevIdx = idx - 1; if (prevIdx < 0 || (prog[prevIdx] && prog[prevIdx].completed)) { prevBtn.style.display = 'none'; } else { prevBtn.style.display = 'inline-block'; } }
+            if (prevBtn) { 
+                let prevIdx = idx - 1; 
+                if (prevIdx < 0 || (prog[prevIdx] && prog[prevIdx].completed)) { 
+                    prevBtn.style.display = 'none'; 
+                } else { 
+                    prevBtn.style.display = 'inline-block'; 
+                } 
+            }
 
             let rawDet = item.details || '';
-            if(rawDet.includes('LIB::')) { window.currentFsLibParts = rawDet.split('|||'); window.currentFsSubIndex = 0; window.renderFsSubStep(); } 
-            else { document.getElementById('fsContent').innerHTML = rawDet; }
+            if(rawDet.includes('LIB::')) { 
+                window.currentFsLibParts = rawDet.split('|||'); 
+                window.currentFsSubIndex = 0; 
+                window.renderFsSubStep(); 
+            } 
+            else { 
+                document.getElementById('fsContent').innerHTML = rawDet; 
+            }
             
             document.getElementById('fsContent').style.fontSize = fsBaseFontSize + 'px';
             document.getElementById('fsContent').style.opacity = isDone ? '0.4' : '1';
@@ -1941,7 +1967,6 @@ window.startDjSyncListener = function() {
                 db.ref(path + '/djForceSync/game').set({ active: true, fsIndex: idx, subIndex: 0 });
             }
         };
-
         window.renderFsSubStep = function() {
             let parts = window.currentFsLibParts;
             let subIdx = window.currentFsSubIndex;
