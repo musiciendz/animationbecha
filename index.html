@@ -910,8 +910,8 @@
             
             let lockedClass = comp ? 'locked' : ''; let showOther = (t === 'أخرى') ? 'block' : 'none'; 
             let dis = !currentUser.perms.bs_edit ? 'disabled' : ''; 
-            let del = currentUser.perms.bs_edit ? `<button class="btn btn-dark" onclick="moveItem(this, -1)">⬆️</button><button class="btn btn-dark" onclick="moveItem(this, 1)">⬇️</button><button class="btn btn-red" onclick="this.parentElement.parentElement.remove(); updateNumbers();">🗑</button>` : '';
-
+            // أزرار التحريك والفسخ الذكية (مضادة للضياع)
+            let del = currentUser.perms.bs_edit ? `<button class="btn btn-dark" onclick="moveItem(this, -1)">⬆️</button><button class="btn btn-dark" onclick="moveItem(this, 1)">⬇️</button><button class="btn btn-red" onclick="this.closest('.prog-row').remove(); updateNumbers();">🗑</button>` : '';
             // الحماية وإخفاء التفاصيل على العميل
             let isSecret = (t === 'فقرة تنشيطية'); 
             let clientSecretStyle = (currentUser.role === 'client' && isSecret) ? 'display:none;' : ''; 
@@ -984,7 +984,19 @@
         };
 
         function updateNumbers() { let rows = document.querySelectorAll('.prog-row'); document.getElementById('totalProgCount').innerText = rows.length; rows.forEach((r, i) => r.querySelector('.row-num').innerText = i+1); }
-        function moveItem(btn, dir) { let row = btn.closest('.prog-row'); if(dir === -1 && row.previousElementSibling) row.parentNode.insertBefore(row, row.previousElementSibling); if(dir === 1 && row.nextElementSibling) row.parentNode.insertBefore(row.nextElementSibling, row); updateNumbers(); }
+        function moveItem(btn, dir) {
+            let row = btn.closest('.prog-row');
+            if (!row) return;
+            
+            if (dir === -1 && row.previousElementSibling) {
+                // الطلوع للفوق
+                row.parentNode.insertBefore(row, row.previousElementSibling);
+            } else if (dir === 1 && row.nextElementSibling) {
+                // الهبوط للوطة
+                row.parentNode.insertBefore(row, row.nextElementSibling.nextElementSibling);
+            }
+            updateNumbers();
+        }
         function loadBackstageData() { ['educatorsList', 'coachesList', 'staffList', 'programList'].forEach(id => document.getElementById(id).innerHTML = ''); let d = currentEventData.institutionDetails || {}; document.getElementById('instManager').value = d.managerName || ''; document.getElementById('instFounder').value = d.founderName || ''; document.getElementById('customTeleprompterInput').value = currentEventData.customTeleprompter || ''; if(d.educators) d.educators.forEach(n => addEducator(n)); if(d.coaches) d.coaches.forEach(c => addCoach(c.spec, c.name)); if(d.staff) d.staff.forEach(s => addStaff(s.role, s.name)); let p = currentEventData.eventProgram || []; p.forEach(i => addProgramItem(i.type, i.details, i.completed, i.customType)); let info = currentEventData.lastEditInfo || { count: 0, by: '', role: '', time: 0 }; currentEditCount = info.count || 0; document.getElementById('editCountDisplay').innerText = currentEditCount; if(info.role && info.role !== currentUser.role && info.time > 0 && !hasShownSmartNotification) { hasShownSmartNotification = true; let timeObj = new Date(info.time); let timeStr = timeObj.toLocaleTimeString('ar-TN', {hour:'2-digit', minute:'2-digit'}); let dateStr = timeObj.toLocaleDateString('ar-TN'); let msg = currentUser.role === 'client' ? `تم ضبط وتحيين برنامجكم من طرف فريق Becha Events يوم ${dateStr} على الساعة ${timeStr}.` : `قامت إدارة المؤسسة بإدخال/تعديل البرنامج يوم ${dateStr} على الساعة ${timeStr}.`; document.getElementById('smartNotificationText').innerText = msg; document.getElementById('smartNotificationModal').style.display = 'flex'; } if(countdownInterval) clearInterval(countdownInterval); updateCountdown(); countdownInterval = setInterval(updateCountdown, 60000); }
         function updateCountdown() { let evDateStr = currentEventData.date; let evTimeStr = currentEventData.time || "00:00"; let evDateTime = new Date(`${evDateStr}T${evTimeStr}:00`); let diffMins = (evDateTime - new Date()) / 60000; let diffToLock = diffMins - 60; if(diffToLock <= 0) { document.getElementById('countdownDisplay').innerText = "تم إغلاق التعديل"; if(currentUser.role === 'client') evaluateClientPhase(); } else { let hrs = Math.floor(diffToLock / 60); let mins = Math.floor(diffToLock % 60); document.getElementById('countdownDisplay').innerText = `${hrs} س و ${mins} دق`; } }
         let isSavingMode = false;
@@ -1527,38 +1539,34 @@ window.startDjSyncListener = function() {
             let wrapper = document.createElement('div');
             wrapper.className = 'rich-editor-box';
 
-            // 🛑 قانون المنع: إذا فقرة تنشيطية، المربع الذكي يختفي تماماً
             if (isSecret) {
                 wrapper.style.display = 'none';
-                // إظهار الخانة الأصلية للمدير (باش البادجات تخدم)، وإخفاؤها على العميل
                 el.style.display = isClient ? 'none' : 'block'; 
             } else {
                 wrapper.style.display = 'flex';
-                el.style.display = 'none'; // الخانة الأصلية تتخبى ورا المربع الذكي
+                el.style.display = 'none';
             }
 
             let toolbar = document.createElement('div');
             toolbar.className = 'rich-toolbar';
 
-            let btns = [
-                { i: '🎨', cmd: 'foreColor', val: '#ff0000', title: 'لون أحمر' },
-                { i: '◀', cmd: 'justifyRight', title: 'يمين' },
-                { i: '≡', cmd: 'justifyCenter', title: 'وسط' },
-                { i: '▶', cmd: 'justifyLeft', title: 'يسار' },
-                { i: 'U', cmd: 'underline', title: 'تسطير' },
-                { i: 'I', cmd: 'italic', title: 'مائل' },
-                { i: 'B', cmd: 'bold', title: 'عريض' }
-            ];
+            // زر اختيار اللون الذكي
+            let colorPickerHtml = `
+                <div class="color-picker-wrapper">
+                    <button class="rich-btn" type="button">🎨</button>
+                    <input type="color" class="color-picker-input" oninput="window.applyColor(this.value)">
+                </div>`;
 
-            btns.forEach(b => {
-                let btn = document.createElement('button');
-                btn.className = 'rich-btn'; btn.innerHTML = b.i; btn.title = b.title; btn.type = 'button';
-                btn.onclick = (e) => { e.preventDefault(); document.execCommand(b.cmd, false, b.val || null); editArea.focus(); };
-                toolbar.appendChild(btn);
-            });
+            toolbar.innerHTML = `
+                <button class="rich-btn" type="button" onclick="document.execCommand('bold', false, null)">B</button>
+                <button class="rich-btn" type="button" onclick="document.execCommand('italic', false, null)">I</button>
+                <button class="rich-btn" type="button" onclick="document.execCommand('underline', false, null)">U</button>
+                ${colorPickerHtml}
+            `;
 
             let editArea = document.createElement('div');
-            editArea.className = 'rich-content'; editArea.contentEditable = !el.disabled;
+            editArea.className = 'rich-content'; 
+            editArea.contentEditable = !el.disabled;
             editArea.innerHTML = el.value;
 
             editArea.oninput = () => { el.value = editArea.innerHTML; };
@@ -1568,6 +1576,10 @@ window.startDjSyncListener = function() {
             wrapper.appendChild(editArea);
             el.parentNode.insertBefore(wrapper, el.nextSibling);
         }
+        window.applyColor = function(color) {
+            // نطبقو اللون على النص المسطر
+            document.execCommand('foreColor', false, color);
+        };
         // 2. المراقب الآلي (يعس على الخانات الجدد ويركب عليهم المحرر)
         function initGlobalRichText() {
             const selectors = '.prog-details, #customTeleprompterInput, #libItemAnim, #libItemDJ, #libItemAssist';
