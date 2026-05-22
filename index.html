@@ -482,10 +482,13 @@
 
     <div id="gatekeeperScreen" class="screen">
         <div style="background: white; padding: 20px; border-radius: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); text-align: right;">
-            <div style="display:flex; justify-content:space-between; align-items:center; border-bottom: 2px dashed #ccc; padding-bottom:10px; margin-bottom: 15px;">
-                <h2 style="color: var(--primary-red); margin:0;">⚙️ إعدادات الفريق</h2>
+            <div style="display:flex; justify-content:space-between; align-items:center; border-bottom: 2px dashed #ccc; padding-bottom:10px; margin-bottom: 15px; flex-wrap: wrap; gap: 10px;">
+            <h2 style="color: var(--primary-red); margin:0;">⚙️ إعدادات الفريق</h2>
+            <div>
+                <button class="btn btn-outline" style="border-color:#ff9800; color:#ff9800; padding:5px 10px; font-size:12px; margin-left:5px;" onclick="resetEventMemories()">🔄 تصفير تجارب الألعاب</button>
                 <button class="btn btn-outline" style="border-color:#dc3545; color:#dc3545; padding:5px 10px; font-size:12px;" onclick="resetTeamInfractions()">🧹 تصفير الإنذارات</button>
             </div>
+        </div>
             <h3 id="gkEventName" style="color:#17a2b8; margin-top:0;">--</h3>
             <p style="font-size: 13px; color: #555; font-weight: bold;">يتم توليد الأكواد وتطبيق الصلاحيات السابقة أوتوماتيكياً.</p>
             <div id="gkTeamList" style="margin-top: 20px;"></div>
@@ -2693,9 +2696,32 @@ window.startDjSyncListener = function() {
                 }
             }
         }, 500);
+        /* =========================================================
+           🔄 دالة تصفير ذاكرة الألعاب (العجلة والارتجال) قبل العرض
+           ========================================================= */
+        window.resetEventMemories = function() {
+            if(!confirm("⚠️ هل أنت متأكد من تصفير ذاكرة الألعاب؟\nهذا سيعيد عجلة الحظ وفقرات الارتجال إلى نقطة الصفر كأنها لم تُلعب أبداً!")) return;
+            
+            let path = isArchivedEvent ? 'BechaEventsData/archived_events/'+currentEventIndex : 'BechaEventsData/events/'+currentEventIndex;
+            
+            // تفريغ القوائم في قاعدة البيانات
+            Promise.all([
+                db.ref(path + '/usedWheelItems').remove(),
+                db.ref(path + '/usedEmergencyItems').remove()
+            ]).then(() => {
+                // تصفير المتغيرات في الواجهة الحالية
+                window.usedWheelItems = [];
+                window.usedEmergencyItems = [];
+                
+                // تحديث العجلة إذا كانت مفتوحة
+                if(typeof window.refreshWheelData === 'function') window.refreshWheelData();
+                
+                alert("✅ تم تصفير الذاكرة بنجاح! الألعاب الآن جاهزة للعرض الرسمي.");
+            }).catch(e => {
+                alert("❌ حدث خطأ أثناء التصفير: " + e.message);
+            });
+        };
     </script>
 </body>
 </html>
-    </script>
-</body>
-</html>
+   
