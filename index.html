@@ -2023,6 +2023,17 @@ window.startDjSyncListener = function() {
             document.getElementById('fsContent').style.fontSize = fsBaseFontSize + 'px';
             document.getElementById('fsContent').style.opacity = isDone ? '0.4' : '1';
             document.getElementById('fullscreenTeleprompter').style.display = 'flex';
+            let fsContent = document.getElementById('fsContent');
+let existingTools = document.getElementById('liveToolsContainer');
+if (!existingTools) {
+    let toolsDiv = document.createElement('div');
+    toolsDiv.id = 'liveToolsContainer';
+    toolsDiv.style.marginTop = '30px';
+    toolsDiv.style.borderTop = '2px solid #333';
+    toolsDiv.style.paddingTop = '20px';
+    fsContent.appendChild(toolsDiv);
+}
+window.updateLiveToolsUI();
 
             if (currentUser && ['animateur', 'admin', 'admin_assistant'].includes(currentUser.role)) {
                 let path = isArchivedEvent ? 'BechaEventsData/archived_events/'+currentEventIndex : 'BechaEventsData/events/'+currentEventIndex;
