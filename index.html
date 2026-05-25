@@ -2418,23 +2418,28 @@ if(emergencyModal) emergencyModal.style.display = 'none';
                     </div>`;
                 
                 if(!isReadOnly) {
+                    // ذكاء الأزرار: تحديد كلمة إبدأ أو مواصلة
+                    let playBtnText = "▶️ إبدأ / مواصلة";
+
                     html += `
                     <div style="display:flex; justify-content:center; gap:10px; flex-wrap:wrap; margin-bottom:15px;">
-                        <button class="btn btn-outline" style="border-color:#aaa; color:#aaa;" onclick="window.setLiveChrono(30)">30ث</button>
-                        <button class="btn btn-outline" style="border-color:#aaa; color:#aaa;" onclick="window.setLiveChrono(60)">1دق</button>
-                        <button class="btn btn-outline" style="border-color:#aaa; color:#aaa;" onclick="window.setLiveChrono(120)">2دق</button>
+                        <button class="btn btn-outline" style="border-color:#aaa; color:#aaa; padding:5px 15px;" onclick="window.setLiveChrono(30)">30ث</button>
+                        <button class="btn btn-outline" style="border-color:#aaa; color:#aaa; padding:5px 15px;" onclick="window.setLiveChrono(60)">1دق</button>
+                        <button class="btn btn-outline" style="border-color:#aaa; color:#aaa; padding:5px 15px;" onclick="window.setLiveChrono(120)">2دق</button>
                         <div style="width:10px;"></div>
-                        <button class="btn btn-dark" onclick="window.adjustLiveChrono(10)">+10ث</button>
-                        <button class="btn btn-dark" onclick="window.adjustLiveChrono(-10)">-10ث</button>
+                        <button class="btn btn-dark" style="padding:5px 15px;" onclick="window.adjustLiveChrono(10)">+10ث</button>
+                        <button class="btn btn-dark" style="padding:5px 15px;" onclick="window.adjustLiveChrono(-10)">-10ث</button>
                     </div>
                     <div style="display:flex; justify-content:center; gap:10px;">
                         ${!window.liveGameStats.isChronoRunning ?
-                            `<button class="btn btn-green" style="font-size:20px; padding:10px 30px;" onclick="window.startLiveChrono()">▶️ إبدأ الوقت</button>` :
-                            `<button class="btn btn-red" style="font-size:20px; padding:10px 30px;" onclick="window.pauseLiveChrono()">⏸️ إيقاف</button>`
+                            `<button class="btn btn-green" style="font-size:18px; padding:10px 25px;" onclick="window.startLiveChrono()">${playBtnText}</button>` :
+                            `<button class="btn btn-outline" style="border-color:#ff9800; color:#ff9800; background:#333; font-size:18px; padding:10px 25px; border-width:2px; font-weight:bold;" onclick="window.pauseLiveChrono()">⏸️ إيقاف مؤقت</button>`
                         }
-                        <button class="btn btn-red" style="font-size:20px; padding:10px 20px;" onclick="window.resetLiveChrono()">❌ إخفاء العداد</button>
+                        <button class="btn btn-red" style="font-size:18px; padding:10px 20px;" onclick="window.resetLiveChrono()">❌ إخفاء وتصفير</button>
                     </div>`;
-                } else { html += `<div style="color:#aaa; font-weight:bold;">👁️ وضع المراقبة (المنشط يتحكم في الوقت)</div>`; }
+                } else { 
+                    html += `<div style="color:#aaa; font-weight:bold;">👁️ وضع المراقبة (المنشط يتحكم في الوقت)</div>`; 
+                }
                 html += `</div>`;
             }
 
@@ -2470,40 +2475,35 @@ if(emergencyModal) emergencyModal.style.display = 'none';
                 if(isFrozen) html += `<div style="color:#E10600; text-align:center; font-weight:bold; margin-top:10px;">⏳ انتهى الوقت! تم تجميد النقاط (لا يمكن التغيير).</div>`;
                 html += `</div>`;
             }
-            if(!isReadOnly) {
-    html += `<div style="text-align:center; margin-top:20px; border-top:1px solid #333; padding-top:15px;">
-        <button class="btn btn-dark" style="font-size:18px; padding:10px 30px;" onclick="window.resetLiveChrono()">🔄 إخفاء العداد وإعادة الضبط</button>
-    </div>`;
-}
             container.innerHTML = html;
         };
 
         window.updateLiveToolsUI = function() {
-    let activeId = null;
-    let fsTitleEl = document.getElementById('fsTitle');
-    let isImprov = fsTitleEl ? fsTitleEl.innerText.includes('ارتجال') : false;
+            let activeId = null;
+            let fsTitleEl = document.getElementById('fsTitle');
+            let isImprov = fsTitleEl ? fsTitleEl.innerText.includes('ارتجال') : false;
 
-    if (isImprov) {
-        activeId = window.liveGameStats.activeLibId;
-    } else if (window.currentFsLibParts) {
-        let p = window.currentFsLibParts[window.currentFsSubIndex];
-        if(p) { let m = p.match(/LIB::([^:<]+)::([^<]+)/); if(m) activeId = m[1]; }
-    }
+            if (isImprov) {
+                activeId = window.liveGameStats.activeLibId;
+            } else if (window.currentFsLibParts) {
+                let p = window.currentFsLibParts[window.currentFsSubIndex];
+                if(p) { let m = p.match(/LIB::([^:<]+)::([^<]+)/); if(m) activeId = m[1]; }
+            }
 
-    let hasActiveGame = window.liveGameStats && (
-        window.liveGameStats.isChronoRunning ||
-        window.liveGameStats.isTimeUp ||
-        (window.liveGameStats.players && window.liveGameStats.players.length > 0)
-    );
+            let hasActiveGame = window.liveGameStats && (
+                window.liveGameStats.isChronoRunning ||
+                window.liveGameStats.isTimeUp ||
+                (window.liveGameStats.players && window.liveGameStats.players.length > 0)
+            );
 
-    if(activeId && libraryData[activeId]) {
-        window.renderLiveTools(libraryData[activeId].hasScore, libraryData[activeId].hasChrono);
-    } else if (hasActiveGame) {
-        let hasChrono = window.liveGameStats.isChronoRunning || window.liveGameStats.chrono > 0 || window.liveGameStats.isTimeUp;
-        let hasScore = window.liveGameStats.players && window.liveGameStats.players.length > 0;
-        window.renderLiveTools(hasScore, hasChrono);
-    }
-};
+            if(activeId && libraryData[activeId]) {
+                window.renderLiveTools(libraryData[activeId].hasScore, libraryData[activeId].hasChrono);
+            } else if (hasActiveGame) {
+                let hasChrono = window.liveGameStats.isChronoRunning || window.liveGameStats.chrono > 0 || window.liveGameStats.isTimeUp;
+                let hasScore = window.liveGameStats.players && window.liveGameStats.players.length > 0;
+                window.renderLiveTools(hasScore, hasChrono);
+            }
+        };
 
         window.syncLiveGameToFirebase = function() { if (currentUser && ['animateur', 'admin', 'admin_assistant'].includes(currentUser.role)) { let path = isArchivedEvent ? 'BechaEventsData/archived_events/'+currentEventIndex : 'BechaEventsData/events/'+currentEventIndex; db.ref(path + '/liveGameStats').set(window.liveGameStats); } };
         window.refreshLiveTools = function() { window.updateLiveToolsUI(); window.syncLiveGameToFirebase(); };
@@ -2515,42 +2515,58 @@ if(emergencyModal) emergencyModal.style.display = 'none';
         window.changeLiveScore = function(idx, delta) { window.liveGameStats.players[idx].score += delta; if(delta > 0) window.playBeepSound('success'); window.updateLiveToolsUI(); if(window.scoreSyncTimer) clearTimeout(window.scoreSyncTimer); window.scoreSyncTimer = setTimeout(() => { window.syncLiveGameToFirebase(); }, 500); };
         window.resetLiveScoreboard = function() { if(confirm("تحب تصفر النقاط فقط؟\n(اضغط Cancel كان تحب تفسخ الأسامي زادة)")) { window.liveGameStats.players.forEach(p => p.score = 0); } else { window.liveGameStats.players = []; } window.refreshLiveTools(); };
 
-        window.setLiveChrono = function(sec) { window.liveGameStats.chrono = sec; window.liveGameStats.isTimeUp = false; window.refreshLiveTools(); };
-        window.adjustLiveChrono = function(sec) { window.liveGameStats.chrono += sec; if(window.liveGameStats.chrono < 0) window.liveGameStats.chrono = 0; window.liveGameStats.isTimeUp = false; window.refreshLiveTools(); };
+        window.setLiveChrono = function(sec) { 
+            window.pauseLiveChrono(); // الإيقاف أولا قبل التغيير 
+            window.liveGameStats.chrono = sec; 
+            window.liveGameStats.isTimeUp = false; 
+            window.refreshLiveTools(); 
+        };
+        
+        window.adjustLiveChrono = function(sec) { 
+            window.liveGameStats.chrono += sec; 
+            if(window.liveGameStats.chrono < 0) window.liveGameStats.chrono = 0; 
+            window.liveGameStats.isTimeUp = false; 
+            window.refreshLiveTools(); 
+        };
+        
         window.startLiveChrono = function() {
-    if(window.liveGameStats.chrono <= 0) return;
-    if(window.liveGameStats.isChronoRunning) return;
-    window.liveGameStats.isChronoRunning = true;
-    window.liveGameStats.isTimeUp = false;
-    window.refreshLiveTools();
-    window.liveGameStats.timerInterval = setInterval(() => {
-        window.liveGameStats.chrono--;
-        if(window.liveGameStats.chrono <= 10 && window.liveGameStats.chrono > 0) window.playBeepSound('tick');
-        if(window.liveGameStats.chrono <= 0) {
-            clearInterval(window.liveGameStats.timerInterval);
-            window.liveGameStats.chrono = 0;
-            window.liveGameStats.isChronoRunning = false;
-            window.liveGameStats.isTimeUp = true;
-            window.playBeepSound('buzzer');
+            if(window.liveGameStats.chrono <= 0) return;
+            if(window.liveGameStats.isChronoRunning) return;
+            window.liveGameStats.isChronoRunning = true;
+            window.liveGameStats.isTimeUp = false;
             window.refreshLiveTools();
-        } else {
-            window.updateLiveToolsUI();
-        }
-    }, 1000);
-};
-        window.pauseLiveChrono = function() { window.liveGameStats.isChronoRunning = false; clearInterval(window.liveGameStats.timerInterval); window.refreshLiveTools(); };
+            window.liveGameStats.timerInterval = setInterval(() => {
+                window.liveGameStats.chrono--;
+                if(window.liveGameStats.chrono <= 10 && window.liveGameStats.chrono > 0) window.playBeepSound('tick');
+                if(window.liveGameStats.chrono <= 0) {
+                    clearInterval(window.liveGameStats.timerInterval);
+                    window.liveGameStats.chrono = 0;
+                    window.liveGameStats.isChronoRunning = false;
+                    window.liveGameStats.isTimeUp = true;
+                    window.playBeepSound('buzzer');
+                    window.refreshLiveTools();
+                } else {
+                    window.updateLiveToolsUI();
+                }
+            }, 1000);
+        };
+        
+        window.pauseLiveChrono = function() { 
+            window.liveGameStats.isChronoRunning = false; 
+            clearInterval(window.liveGameStats.timerInterval); 
+            window.refreshLiveTools(); 
+        };
+        
         window.resetLiveChrono = function() {
-    if(window.liveGameStats.timerInterval) clearInterval(window.liveGameStats.timerInterval);
-    window.liveGameStats = { activeLibId: null, players: [], chrono: 0, timerInterval: null, isChronoRunning: false, isTimeUp: false };
-    
-    let container = document.getElementById('liveToolsContainer');
-    if(container) container.innerHTML = '';
-    
-    if (currentUser && ['animateur', 'admin', 'admin_assistant'].includes(currentUser.role)) {
-        let path = isArchivedEvent ? 'BechaEventsData/archived_events/'+currentEventIndex : 'BechaEventsData/events/'+currentEventIndex;
-        db.ref(path + '/liveGameStats').remove();
-    }
-};
+            if(window.liveGameStats.timerInterval) clearInterval(window.liveGameStats.timerInterval);
+            window.liveGameStats = { activeLibId: null, players: [], chrono: 0, timerInterval: null, isChronoRunning: false, isTimeUp: false };
+            let container = document.getElementById('liveToolsContainer');
+            if(container) container.innerHTML = '';
+            if (currentUser && ['animateur', 'admin', 'admin_assistant'].includes(currentUser.role)) {
+                let path = isArchivedEvent ? 'BechaEventsData/archived_events/'+currentEventIndex : 'BechaEventsData/events/'+currentEventIndex;
+                db.ref(path + '/liveGameStats').remove();
+            }
+        };
 
         window.liveGameListenerRef = null;
         window.liveGameListenerRef = null;
