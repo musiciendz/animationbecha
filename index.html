@@ -791,7 +791,7 @@ function playBeep(type) { initAudioCtx(); const osc = audioCtx.createOscillator(
         function resetTeamInfractions() { if(!confirm("⚠️ هل أنت متأكد من مسح جميع مخالفات هذا الفريق (تصفير العداد)؟\nسيتم حذف جميع سجلات خروجهم السابقة.")) return; let originalTeam = currentEventData.assignedTeam || []; let updates = {}; originalTeam.forEach(member => { if(member !== "مديرة المؤسسة") updates[member] = 0; }); db.ref('BechaEventsData/users_infractions').update(updates).then(() => { alert("🧹 تم تصفير عدادات الإنذارات بنجاح!"); }).catch(e => alert("خطأ: " + e.message)); }
 
         function loginWithPin() {
-            let pin = document.getElementById('loginPin').value.trim(); if(!pin || pin.length < 4) return alert("الرجاء إدخال الكود السري الصحيح.");
+            let pin = document.getElementById('loginPin').value.trim(); if(!pin || pin.length < 4 || pin.length > 4 || !/^\d{4}$/.test(pin)) return alert("❌ الكود يجب أن يكون 4 أرقام فقط!");
             Promise.all([ db.ref('BechaEventsData/events').once('value'), db.ref('BechaEventsData/archived_events').once('value') ]).then((snaps) => {
                 let liveEvents = snaps[0].val() || []; let archivedEvents = snaps[1].val() || {}; let allEvents = [];
                 if (Array.isArray(liveEvents)) { liveEvents.forEach((ev, i) => { if(ev) allEvents.push({...ev, originalIndex: i, isArchived: false}); }); } else { Object.keys(liveEvents).forEach(k => { if(liveEvents[k]) allEvents.push({...liveEvents[k], originalIndex: k, isArchived: false}); }); }
