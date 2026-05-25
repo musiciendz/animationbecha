@@ -2553,42 +2553,43 @@ if(emergencyModal) emergencyModal.style.display = 'none';
 };
 
         window.liveGameListenerRef = null;
-        window.startLiveGameListener = function() {
-            let path = isArchivedEvent ? 'BechaEventsData/archived_events/'+currentEventIndex : 'BechaEventsData/events/'+currentEventIndex;
-            if(window.liveGameListenerRef) db.ref(path + '/liveGameStats').off('value', window.liveGameListenerRef);
-            window.liveGameListenerRef = db.ref(path + '/liveGameStats').on('value', snap => {
-    let data = snap.val();
-    if (currentUser && ['dj', 'assistant', 'assistant_anim', 'client'].includes(currentUser.role)) {
-        if(window.liveGameStats && window.liveGameStats.timerInterval) clearInterval(window.liveGameStats.timerInterval);
-        
-        // 🔴 كان البيانات تمسحت من Firebase، نخفي الكرونو كلياً
-        if (!data) {
-            window.liveGameStats = { activeLibId: null, players: [], chrono: 0, timerInterval: null, isChronoRunning: false, isTimeUp: false };
-            let container = document.getElementById('liveToolsContainer');
-            if(container) container.innerHTML = '';
-            return;
+        window.liveGameListenerRef = null;
+window.startLiveGameListener = function() {
+    let path = isArchivedEvent ? 'BechaEventsData/archived_events/'+currentEventIndex : 'BechaEventsData/events/'+currentEventIndex;
+    if(window.liveGameListenerRef) db.ref(path + '/liveGameStats').off('value', window.liveGameListenerRef);
+    window.liveGameListenerRef = db.ref(path + '/liveGameStats').on('value', snap => {
+        let data = snap.val();
+        if (currentUser && ['dj', 'assistant', 'assistant_anim', 'client'].includes(currentUser.role)) {
+            if(window.liveGameStats && window.liveGameStats.timerInterval) clearInterval(window.liveGameStats.timerInterval);
+            
+            if (!data) {
+                window.liveGameStats = { activeLibId: null, players: [], chrono: 0, timerInterval: null, isChronoRunning: false, isTimeUp: false };
+                let container = document.getElementById('liveToolsContainer');
+                if(container) container.innerHTML = '';
+                return;
+            }
+            
+            if(data.chrono <= 10 && data.chrono > 0 && data.isChronoRunning && data.chrono !== window.liveGameStats.chrono) window.playBeepSound('tick');
+            if(data.isTimeUp && !window.liveGameStats.isTimeUp) window.playBeepSound('buzzer');
+            window.liveGameStats = data;
+            window.updateLiveToolsUI();
+            if (data.isChronoRunning && data.chrono > 0) {
+                window.liveGameStats.timerInterval = setInterval(() => {
+                    window.liveGameStats.chrono--;
+                    if(window.liveGameStats.chrono <= 10 && window.liveGameStats.chrono > 0) window.playBeepSound('tick');
+                    if(window.liveGameStats.chrono <= 0) {
+                        clearInterval(window.liveGameStats.timerInterval);
+                        window.liveGameStats.chrono = 0;
+                        window.liveGameStats.isChronoRunning = false;
+                        window.liveGameStats.isTimeUp = true;
+                        window.playBeepSound('buzzer');
+                    }
+                    window.updateLiveToolsUI();
+                }, 1000);
+            }
         }
-        
-        if(data.chrono <= 10 && data.chrono > 0 && data.isChronoRunning && data.chrono !== window.liveGameStats.chrono) window.playBeepSound('tick');
-        if(data.isTimeUp && !window.liveGameStats.isTimeUp) window.playBeepSound('buzzer');
-        window.liveGameStats = data;
-        window.updateLiveToolsUI();
-        if (data.isChronoRunning && data.chrono > 0) {
-            window.liveGameStats.timerInterval = setInterval(() => {
-                window.liveGameStats.chrono--;
-                if(window.liveGameStats.chrono <= 10 && window.liveGameStats.chrono > 0) window.playBeepSound('tick');
-                if(window.liveGameStats.chrono <= 0) {
-                    clearInterval(window.liveGameStats.timerInterval);
-                    window.liveGameStats.chrono = 0;
-                    window.liveGameStats.isChronoRunning = false;
-                    window.liveGameStats.isTimeUp = true;
-                    window.playBeepSound('buzzer');
-                }
-                window.updateLiveToolsUI();
-            }, 1000);
-        }
-    }
-});
+    });
+};
 
         /* =========================================================
            🎡 نظام دائرة الحظ الديناميكية الذكية (الرسم الآلي) + المرآة 
