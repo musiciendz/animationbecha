@@ -247,6 +247,7 @@
 
     <audio id="silentAudio" loop playsinline><source src="data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAAABkYXRhAgAAAAEA" type="audio/wav"></audio>
     <audio id="mainRadioPlayer" playsinline></audio>
+    <audio id="curtainSound" preload="auto"><source src="curtain.mp3" type="audio/mpeg"></audio>
     <audio id="testAudioPlayer" playsinline></audio> 
     <div id="watermarkContainer"></div>
     <!-- 🌟 الشاشة العملاقة للمنشط (Teleprompter) -->
@@ -1919,6 +1920,11 @@ window.startDjSyncListener = function() {
 
                 if(alertData.active) {
                     document.body.classList.add('curtain-alert-active');
+                    let curtainAudio = document.getElementById('curtainSound');
+if(curtainAudio) {
+    curtainAudio.currentTime = 0;
+    curtainAudio.play().catch(e => console.log('audio blocked:', e));
+}
                     document.getElementById('fullscreenTeleprompter').classList.add('curtain-alert-active');
                     if(banner) {
                         // 🛑 زر إيقاف مخفي وسط البانر الأحمر للمنشط والمدير باش يوقفوه من غير ما يخرجو من الشاشة العملاقة
@@ -1936,6 +1942,11 @@ window.startDjSyncListener = function() {
                     }
                 } else {
                     document.body.classList.remove('curtain-alert-active');
+                    let curtainAudio = document.getElementById('curtainSound');
+if(curtainAudio) {
+    curtainAudio.pause();
+    curtainAudio.currentTime = 0;
+}
                     document.getElementById('fullscreenTeleprompter').classList.remove('curtain-alert-active');
                     if(banner) banner.style.display = 'none';
                     if(triggerBtn) {
