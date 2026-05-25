@@ -2753,27 +2753,20 @@ if(emergencyModal) emergencyModal.style.display = 'none';
            🔄 دالة تصفير ذاكرة الألعاب (العجلة والارتجال) قبل العرض
            ========================================================= */
         window.resetEventMemories = function() {
-            if(!confirm("⚠️ هل أنت متأكد من تصفير ذاكرة الألعاب؟\nهذا سيعيد عجلة الحظ وفقرات الارتجال إلى نقطة الصفر كأنها لم تُلعب أبداً!")) return;
-            
-            let path = isArchivedEvent ? 'BechaEventsData/archived_events/'+currentEventIndex : 'BechaEventsData/events/'+currentEventIndex;
-            
-            // تفريغ القوائم في قاعدة البيانات
-            Promise.all([
-                db.ref(path + '/usedWheelItems').remove(),
-                db.ref(path + '/usedEmergencyItems').remove()
-            ]).then(() => {
-                // تصفير المتغيرات في الواجهة الحالية
-                window.usedWheelItems = [];
-                window.usedEmergencyItems = [];
-                
-                // تحديث العجلة إذا كانت مفتوحة
-                if(typeof window.refreshWheelData === 'function') window.refreshWheelData();
-                
-                alert("✅ تم تصفير الذاكرة بنجاح! الألعاب الآن جاهزة للعرض الرسمي.");
-            }).catch(e => {
-                alert("❌ حدث خطأ أثناء التصفير: " + e.message);
-            });
-        };
+    if(!confirm('تصفير ذاكرة الألعاب؟ ستعود العجلة والارتجال للصفر!')) return;
+    let path = isArchivedEvent ? 'BechaEventsData/archived_events/'+currentEventIndex : 'BechaEventsData/events/'+currentEventIndex;
+    Promise.all([
+        db.ref(path + '/usedWheelItems').remove(),
+        db.ref(path + '/usedEmergencyItems').remove()
+    ]).then(() => {
+        window.usedWheelItems = [];
+        window.usedEmergencyItems = [];
+        if(typeof window.refreshWheelData === 'function') window.refreshWheelData();
+        alert('تم تصفير الذاكرة بنجاح!');
+    }).catch(e => {
+        alert('خطأ: ' + e.message);
+    });
+};
     </script>
 </body>
 </html>
