@@ -753,7 +753,7 @@ function playBeep(type) { initAudioCtx(); const osc = audioCtx.createOscillator(
             });
         }
 
-        function openGatekeeper(idx, isArch) {
+        function openGatekeeper(idx, isArch, fromDashboard = false) {
             currentEventIndex = idx; isArchivedEvent = isArch; let path = isArch ? 'BechaEventsData/archived_events/'+idx : 'BechaEventsData/events/'+idx;
             db.ref(path).once('value', snap => {
                 currentEventData = snap.val();
