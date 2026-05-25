@@ -1313,7 +1313,20 @@ window.startDjSyncListener = function() {
 
         function showFinalReport() { db.ref('BechaEventsData/users_infractions').once('value').then(snap => { let allInfs = snap.val() || {}; let myInfs = allInfs[currentUser.pseudo] || 0; let html = ""; if (currentUser.perms.radar) { html = `<h2 style='color:#198754; margin-top:0;'>🏁 انتهى العرض</h2><h3 style='color:#333;'>📊 تقرير الانضباط:</h3><ul style='list-style:none; padding:0;'>`; let teamPins = currentEventData.teamPins || {}; Object.keys(teamPins).forEach(k => { let name = teamPins[k].name; let count = allInfs[name] || 0; let color = count > 0 ? 'var(--primary-red)' : '#198754'; html += `<li style='margin-bottom:10px; color:${color}; font-weight:bold; font-size:16px;'>${name}: ${count} مخالفات خروج</li>`; }); html += `</ul><button class='btn btn-dark' style='width:100%; margin-top:15px;' onclick='document.getElementById("finalReportModal").style.display="none"'>إغلاق</button>`; } else if (localInfractionsThisSession > 0) { html = `<h2 style='color:var(--primary-red); margin-top:0;'>⛔ تنبيه أخير!</h2><p style='font-size:16px; font-weight:bold;'>تم تسجيل خروجك عدة مرات. مخالفاتك: <b style='color:var(--primary-red); font-size:18px;'>${myInfs}</b>. تم الرفع للإدارة.</p><button class='btn btn-red' style='width:100%; margin-top:15px;' onclick='document.getElementById("finalReportModal").style.display="none"'>أقر بذلك</button>`; } else { html = `<h2 style='color:#198754; margin-top:0;'>🎉 انتهى العرض بنجاح!</h2><button class='btn btn-green' style='width:100%; margin-top:15px;' onclick='document.getElementById("finalReportModal").style.display="none"'>إغلاق</button>`; } document.getElementById('finalReportContent').innerHTML = html; document.getElementById('finalReportModal').style.display = 'flex'; }); }
 
-        function logout() { location.reload(); }
+        function logout() {
+    if(liveProgRef) { liveProgRef.off(); liveProgRef = null; }
+    if(backstageProgRef) { backstageProgRef.off(); backstageProgRef = null; }
+    if(window.liveGameListenerRef) { window.liveGameListenerRef = null; }
+    if(window.djSyncListenerRef) { window.djSyncListenerRef = null; }
+    if(window.wheelSyncListenerRef) { window.wheelSyncListenerRef = null; }
+    if(window.wheelMemoryListenerRef) { window.wheelMemoryListenerRef = null; }
+    if(window.wheelResultListenerRef) { window.wheelResultListenerRef = null; }
+    if(window.liveGameStats && window.liveGameStats.timerInterval) { clearInterval(window.liveGameStats.timerInterval); }
+    if(countdownInterval) { clearInterval(countdownInterval); }
+    if(clientPhaseInterval) { clearInterval(clientPhaseInterval); }
+    stopPresenceTracker();
+    location.reload();
+}
         function showScreen(id) { document.querySelectorAll('.screen').forEach(s => s.classList.remove('active-screen')); document.getElementById(id).classList.add('active-screen'); if (typeof monitorEventStart === 'function' && (id === 'dashboardScreen' || id === 'stageSection' || id === 'gatekeeperScreen') && typeof currentEventIndex !== 'undefined' && currentEventIndex !== null) { monitorEventStart(); } }
         window.addEventListener('touchend', (e) => { if(isTesting) stopTestRecording(e); });
 
