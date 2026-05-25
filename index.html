@@ -273,6 +273,7 @@
             </div>
         </div>
         <div id="fsContent" class="fs-content"></div>
+<div id="liveToolsContainer" style="padding:20px; border-top:2px solid #333; background:#111;"></div>
         <div class="fs-footer">
             <button class="fs-btn prev" onclick="navigateFs(-1)">⬅️ السابق</button>
             <button class="fs-btn next" onclick="navigateFs(1)">التالي ➡️</button>
@@ -726,6 +727,16 @@ function playBeep(type) { initAudioCtx(); const osc = audioCtx.createOscillator(
             let fsClock = document.getElementById('fsTimer'); if(fsClock) fsClock.innerText = timeStr;
         }
         setInterval(updateClock, 1000);
+        setInterval(() => {
+    if(document.getElementById('fsBigChronoDisplay') && 
+       document.getElementById('fsBigChronoDisplay').style.display !== 'none') {
+        let c = window.liveGameStats.chrono || 0;
+        let mins = Math.floor(c / 60).toString().padStart(2, '0');
+        let secs = (c % 60).toString().padStart(2, '0');
+        let textEl = document.getElementById('fsBigChronoText');
+        if(textEl) textEl.innerText = `${mins}:${secs}`;
+    }
+}, 1000);
         function getTolerantTodayIso() { let d = new Date(); if(d.getHours() < 2) { d.setDate(d.getDate() - 1); } d.setMinutes(d.getMinutes() - d.getTimezoneOffset()); return d.toISOString().slice(0, 10); }
 
         function showPwaGuide() { let isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream; let text = isIOS ? "🍎 iPhone: اضغط 'المشاركة' ⇡ ثم 'إضافة إلى الصفحة الرئيسية'." : "🤖 Android: اضغط النقاط الثلاث ⋮ ثم 'تثبيت التطبيق'."; document.getElementById('pwaGuideText').innerHTML = text; document.getElementById('pwaGuideModal').style.display = 'flex'; }
@@ -2036,17 +2047,7 @@ window.startDjSyncListener = function() {
             document.getElementById('fsContent').style.fontSize = fsBaseFontSize + 'px';
             document.getElementById('fsContent').style.opacity = isDone ? '0.4' : '1';
             document.getElementById('fullscreenTeleprompter').style.display = 'flex';
-            let fsContent = document.getElementById('fsContent');
-let existingTools = document.getElementById('liveToolsContainer');
-if (!existingTools) {
-    let toolsDiv = document.createElement('div');
-    toolsDiv.id = 'liveToolsContainer';
-    toolsDiv.style.marginTop = '30px';
-    toolsDiv.style.borderTop = '2px solid #333';
-    toolsDiv.style.paddingTop = '20px';
-    fsContent.appendChild(toolsDiv);
-}
-window.updateLiveToolsUI();
+           window.updateLiveToolsUI();
 
             if (currentUser && ['animateur', 'admin', 'admin_assistant'].includes(currentUser.role)) {
                 let path = isArchivedEvent ? 'BechaEventsData/archived_events/'+currentEventIndex : 'BechaEventsData/events/'+currentEventIndex;
@@ -2469,14 +2470,31 @@ window.updateLiveToolsUI();
         };
 
         window.updateLiveToolsUI = function() {
-            let activeId = null; let fsTitleEl = document.getElementById('fsTitle');
-            let isImprov = fsTitleEl ? fsTitleEl.innerText.includes('ارتجال') : false;
-            
-            if (isImprov) { activeId = window.liveGameStats.activeLibId; } 
-            else if (window.currentFsLibParts) { let p = window.currentFsLibParts[window.currentFsSubIndex]; if(p) { let m = p.match(/LIB::([^:<]+)::([^<]+)/); if (m) activeId = m[1]; } }
-            
-            if(activeId && libraryData[activeId]) { window.renderLiveTools(libraryData[activeId].hasScore, libraryData[activeId].hasChrono); }
-        };
+    let activeId = null;
+    let fsTitleEl = document.getElementById('fsTitle');
+    let isImprov = fsTitleEl ? fsTitleEl.innerText.includes('ارتجال') : false;
+
+    if (isImprov) {
+        activeId = window.liveGameStats.activeLibId;
+    } else if (window.currentFsLibParts) {
+        let p = window.currentFsLibParts[window.currentFsSubIndex];
+        if(p) { let m = p.match(/LIB::([^:<]+)::([^<]+)/); if(m) activeId = m[1]; }
+    }
+
+    let hasActiveGame = window.liveGameStats && (
+        window.liveGameStats.isChronoRunning ||
+        window.liveGameStats.isTimeUp ||
+        (window.liveGameStats.players && window.liveGameStats.players.length > 0)
+    );
+
+    if(activeId && libraryData[activeId]) {
+        window.renderLiveTools(libraryData[activeId].hasScore, libraryData[activeId].hasChrono);
+    } else if (hasActiveGame) {
+        let hasChrono = window.liveGameStats.isChronoRunning || window.liveGameStats.chrono > 0 || window.liveGameStats.isTimeUp;
+        let hasScore = window.liveGameStats.players && window.liveGameStats.players.length > 0;
+        window.renderLiveTools(hasScore, hasChrono);
+    }
+};
 
         window.syncLiveGameToFirebase = function() { if (currentUser && ['animateur', 'admin', 'admin_assistant'].includes(currentUser.role)) { let path = isArchivedEvent ? 'BechaEventsData/archived_events/'+currentEventIndex : 'BechaEventsData/events/'+currentEventIndex; db.ref(path + '/liveGameStats').set(window.liveGameStats); } };
         window.refreshLiveTools = function() { window.updateLiveToolsUI(); window.syncLiveGameToFirebase(); };
@@ -2714,33 +2732,7 @@ window.updateLiveToolsUI();
             window.resetLiveChrono(); // يقص العداد ويرستيه على الناس الكل (DJ والمنشط)
         };
 
-        // 7. مراقب بصري يحدّث الشاشة العملاقة كل نصف ثانية مع التشويق (Suspense)
-        setInterval(() => {
-            let textEl = document.getElementById('fsBigChronoText');
-            let displayEl = document.getElementById('fsBigChronoDisplay');
-            
-            if(textEl && displayEl && displayEl.style.display !== 'none') {
-                let c = window.liveGameStats.chrono || 0;
-                let mins = Math.floor(c / 60).toString().padStart(2, '0');
-                let secs = (c % 60).toString().padStart(2, '0');
-                textEl.innerText = `${mins}:${secs}`;
-                
-                // الألوان والتشويق حسب الوقت المتبقي
-                if(window.liveGameStats.isTimeUp) {
-                    textEl.style.color = '#E10600';
-                    textEl.style.textShadow = '0 0 40px #E10600';
-                    if(!textEl.classList.contains('flash-screen')) textEl.classList.add('flash-screen'); // يشعل ويطفى
-                } else if(c <= 10 && c > 0) {
-                    textEl.style.color = '#ff9800';
-                    textEl.style.textShadow = '0 0 30px #ff9800';
-                    textEl.classList.remove('flash-screen');
-                } else {
-                    textEl.style.color = '#20c997';
-                    textEl.style.textShadow = '0 0 30px #20c997';
-                    textEl.classList.remove('flash-screen');
-                }
-            }
-        }, 500);
+        
         /* =========================================================
            🔄 دالة تصفير ذاكرة الألعاب (العجلة والارتجال) قبل العرض
            ========================================================= */
