@@ -1664,11 +1664,11 @@ window.startDjSyncListener = function() {
         }
 
         // 4. ميكانيكا الشاشة العملاقة (التنقل، التكبير، الساعة)
-        let currentFsIndex = 0; let fsBaseFontSize = 32;
+        window.currentFsIndex = 0; let fsBaseFontSize = 32;
        
-        function closeFullscreen() { document.getElementById('fullscreenTeleprompter').style.display = 'none'; }
+        window.closeFullscreen = function() { window.closeGlobalVideo(); document.getElementById('fullscreenTeleprompter').style.display = 'none'; if (currentUser && ['animateur', 'admin', 'admin_assistant'].includes(currentUser.role)) { let path = isArchivedEvent ? 'BechaEventsData/archived_events/'+currentEventIndex : 'BechaEventsData/events/'+currentEventIndex; db.ref(path + '/djForceSync/game').set({ active: false }); db.ref(path + '/djForceSync/video').set({ active: false }); } };
         window.navigateFs = function(dir) { let prog = currentEventData.eventProgram; let nextIdx = window.currentFsIndex + dir; if(nextIdx >= 0 && nextIdx < prog.length) window.openFsStep(nextIdx); };
-        function zoomFsText(dir) { fsBaseFontSize += (dir * 4); if(fsBaseFontSize < 16) fsBaseFontSize = 16; if(fsBaseFontSize > 80) fsBaseFontSize = 80; document.getElementById('fsContent').style.fontSize = fsBaseFontSize + 'px'; }
+        window.zoomFsText = function(dir) { fsBaseFontSize += (dir * 4); if(fsBaseFontSize < 16) fsBaseFontSize = 16; if(fsBaseFontSize > 80) fsBaseFontSize = 80; document.getElementById('fsContent').style.fontSize = fsBaseFontSize + 'px'; };
 
         // 5. تعديل دالة جلب فقرة من المكتبة باش تقراها الخانة الذكية (النسخة المصفحة)
         window.selectLibItemForProg = function(libId, libName) {
