@@ -2204,7 +2204,8 @@ if(curtainAudio) {
         };
 
         window.playEmergencyGame = function(libId) {
-    document.getElementById('fsEmergencyModal') && (document.getElementById('fsEmergencyModal').style.display = 'none');
+    let emergencyModal = document.getElementById('fsEmergencyModal');
+if(emergencyModal) emergencyModal.style.display = 'none';
     let libData = libraryData[libId]; 
     if(!libData) return;
     
