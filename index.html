@@ -1310,14 +1310,11 @@ window.startDjSyncListener = function() {
             // 3. معالجة أمر الألعاب (الركح) والتنقل بين الفقرات
             if (syncData.game && syncData.game.active) {
                 if (syncData.game.isEmergency) {
-    // يتحدث كل مرة تتغير اللعبة (حتى لو الشاشة مفتوحة)
     if (window._lastEmergencyLibId !== syncData.game.libId) {
         window._lastEmergencyLibId = syncData.game.libId;
         if(typeof window.playEmergencyGame === 'function') window.playEmergencyGame(syncData.game.libId);
     }
-}
-                } else if (window.currentFsIndex !== syncData.game.fsIndex || window.currentFsSubIndex !== syncData.game.subIndex || fsModal.style.display !== 'flex') {
-                    window.currentFsSubIndex = syncData.game.subIndex || 0;
+} else if (window.currentFsIndex !== syncData.game.fsIndex || window.currentFsSubIndex !== syncData.game.subIndex || fsModal.style.display !== 'flex') {
                     if(typeof window.openFsStep === 'function') window.openFsStep(syncData.game.fsIndex); 
                 }
             } else if(!syncData.video || !syncData.video.active) {
