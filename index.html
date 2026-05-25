@@ -274,6 +274,7 @@
             </div>
         </div>
         <div id="fsContent" class="fs-content">
+    <div id="fsMainContent"></div>
     <div id="liveToolsContainer" style="margin-top:30px; padding:20px; border-top:2px solid #333; background:#111;"></div>
 </div>
         <div class="fs-footer">
@@ -1309,9 +1310,12 @@ window.startDjSyncListener = function() {
             // 3. معالجة أمر الألعاب (الركح) والتنقل بين الفقرات
             if (syncData.game && syncData.game.active) {
                 if (syncData.game.isEmergency) {
-                    if (fsModal.style.display !== 'flex' || document.getElementById('fsTitle').innerText !== '🚀 فقرة ارتجال حي (خارج البرنامج الرسمي)') {
-                        if(typeof window.playEmergencyGame === 'function') window.playEmergencyGame(syncData.game.libId);
-                    }
+    // يتحدث كل مرة تتغير اللعبة (حتى لو الشاشة مفتوحة)
+    if (window._lastEmergencyLibId !== syncData.game.libId) {
+        window._lastEmergencyLibId = syncData.game.libId;
+        if(typeof window.playEmergencyGame === 'function') window.playEmergencyGame(syncData.game.libId);
+    }
+}
                 } else if (window.currentFsIndex !== syncData.game.fsIndex || window.currentFsSubIndex !== syncData.game.subIndex || fsModal.style.display !== 'flex') {
                     window.currentFsSubIndex = syncData.game.subIndex || 0;
                     if(typeof window.openFsStep === 'function') window.openFsStep(syncData.game.fsIndex); 
@@ -2053,8 +2057,8 @@ if(curtainAudio) {
                 window.renderFsSubStep(); 
             } 
             else { 
-                document.getElementById('fsContent').innerHTML = rawDet; 
-            }
+    document.getElementById('fsMainContent').innerHTML = rawDet; 
+}
             
             document.getElementById('fsContent').style.fontSize = fsBaseFontSize + 'px';
             document.getElementById('fsContent').style.opacity = isDone ? '0.4' : '1';
@@ -2092,7 +2096,7 @@ if(curtainAudio) {
                     }
                 }
             } else { contentHtml = p; }
-            document.getElementById('fsContent').innerHTML = contentHtml;
+            document.getElementById('fsMainContent').innerHTML = contentHtml;
         };
 
         // 1. ذاكرة الألعاب المرتجلة اللي تلعبت في العرض الحالي
@@ -2199,31 +2203,30 @@ if(curtainAudio) {
             }
         };
 
-        // 3. زر الصاروخ 🚀 (حرق اللعبة وإرسالها للركح)
         window.playEmergencyGame = function(libId) {
-            document.getElementById('fsEmergencyModal').style.display = 'none';
-            let libData = libraryData[libId]; if(!libData) return;
-            
-            let contentHtml = `<div style="color:#0dcaf0; font-size:1.2em; margin-bottom:20px; border-bottom:2px solid #555; padding-bottom:10px;">🚀 ارتجال مباشر: ${libData.name}</div>`;
-            if(libData.animText) contentHtml += `<div style="color:#e3f2fd; margin-bottom:15px; line-height:1.6;">🎤 <b>نص المنشط:</b><br>${libData.animText.replace(/\n/g, '<br>')}</div>`;
-            if(libData.djText) contentHtml += `<div style="color:#f3e5f5; font-size:0.8em; opacity:0.9; margin-top:30px;">🎧 <b>DJ:</b> ${libData.djText.replace(/\n/g, '<br>')}</div>`;
-            if(libData.assistText) contentHtml += `<div style="color:#fff3e0; font-size:0.8em; opacity:0.9;">🏃‍♂️ <b>المساعد:</b> ${libData.assistText.replace(/\n/g, '<br>')}</div>`;
-            
-            document.getElementById('fsTitle').innerText = `🚀 فقرة ارتجال حي (خارج البرنامج الرسمي)`;
-            document.getElementById('fsContent').innerHTML = contentHtml;
-            document.getElementById('fsContent').style.opacity = '1';
+    document.getElementById('fsEmergencyModal') && (document.getElementById('fsEmergencyModal').style.display = 'none');
+    let libData = libraryData[libId]; 
+    if(!libData) return;
+    
+    let contentHtml = `<div style="color:#0dcaf0; font-size:1.2em; margin-bottom:20px; border-bottom:2px solid #555; padding-bottom:10px;">🚀 ارتجال مباشر: ${libData.name}</div>`;
+    if(libData.animText) contentHtml += `<div style="color:#e3f2fd; margin-bottom:15px; line-height:1.6;">🎤 <b>نص المنشط:</b><br>${libData.animText.replace(/\n/g, '<br>')}</div>`;
+    if(libData.djText) contentHtml += `<div style="color:#f3e5f5; font-size:0.8em; opacity:0.9; margin-top:30px;">🎧 <b>DJ:</b> ${libData.djText.replace(/\n/g, '<br>')}</div>`;
+    if(libData.assistText) contentHtml += `<div style="color:#fff3e0; font-size:0.8em; opacity:0.9;">🏃‍♂️ <b>المساعد:</b> ${libData.assistText.replace(/\n/g, '<br>')}</div>`;
+    
+    document.getElementById('fsTitle').innerText = `🚀 فقرة ارتجال حي: ${libData.name}`;
+    document.getElementById('fsMainContent').innerHTML = contentHtml;
+    document.getElementById('fsContent').style.opacity = '1';
+    document.getElementById('fullscreenTeleprompter').style.display = 'flex';
+    window.updateLiveToolsUI();
 
-            let path = isArchivedEvent ? 'BechaEventsData/archived_events/'+currentEventIndex : 'BechaEventsData/events/'+currentEventIndex;
-            
-            // إضافة اللعبة لقائمة المحروقات
-            window.usedEmergencyItems.push(libId);
-            db.ref(path + '/usedEmergencyItems').set(window.usedEmergencyItems);
-
-            // إرسال الإرتجال للـ DJ والمساعدين
-            if (currentUser && ['animateur', 'admin', 'admin_assistant'].includes(currentUser.role)) {
-                db.ref(path + '/djForceSync/game').set({ active: true, isEmergency: true, libId: libId });
-            }
-        };
+    // 🛑 فقط المنشط يحفظ في Firebase - الـ DJ يشوف فقط
+    if (currentUser && ['animateur', 'admin', 'admin_assistant'].includes(currentUser.role)) {
+        let path = isArchivedEvent ? 'BechaEventsData/archived_events/'+currentEventIndex : 'BechaEventsData/events/'+currentEventIndex;
+        window.usedEmergencyItems.push(libId);
+        db.ref(path + '/usedEmergencyItems').set(window.usedEmergencyItems);
+        db.ref(path + '/djForceSync/game').set({ active: true, isEmergency: true, libId: libId, ts: Date.now() });
+    }
+};
         /* =========================================
            🎨 رسّام البادجات (النسخة الإجبارية المضادة للأخطاء)
            ========================================= */
