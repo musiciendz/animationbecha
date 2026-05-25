@@ -2432,7 +2432,7 @@ if(emergencyModal) emergencyModal.style.display = 'none';
                             `<button class="btn btn-green" style="font-size:20px; padding:10px 30px;" onclick="window.startLiveChrono()">▶️ إبدأ الوقت</button>` :
                             `<button class="btn btn-red" style="font-size:20px; padding:10px 30px;" onclick="window.pauseLiveChrono()">⏸️ إيقاف</button>`
                         }
-                        <button class="btn btn-dark" style="font-size:20px; padding:10px 20px;" onclick="window.resetLiveChrono()">🔄 تصفير</button>
+                        <button class="btn btn-red" style="font-size:20px; padding:10px 20px;" onclick="window.resetLiveChrono()">❌ إخفاء العداد</button>
                     </div>`;
                 } else { html += `<div style="color:#aaa; font-weight:bold;">👁️ وضع المراقبة (المنشط يتحكم في الوقت)</div>`; }
                 html += `</div>`;
@@ -2540,16 +2540,16 @@ if(emergencyModal) emergencyModal.style.display = 'none';
 };
         window.pauseLiveChrono = function() { window.liveGameStats.isChronoRunning = false; clearInterval(window.liveGameStats.timerInterval); window.refreshLiveTools(); };
         window.resetLiveChrono = function() {
-    window.pauseLiveChrono();
-    window.liveGameStats.chrono = 0;
-    window.liveGameStats.isTimeUp = false;
-    window.liveGameStats.players = [];
-    window.refreshLiveTools();
+    if(window.liveGameStats.timerInterval) clearInterval(window.liveGameStats.timerInterval);
+    window.liveGameStats = { activeLibId: null, players: [], chrono: 0, timerInterval: null, isChronoRunning: false, isTimeUp: false };
     
-    // 🔴 إخفاء الكرونو كلياً عند التصفير
     let container = document.getElementById('liveToolsContainer');
     if(container) container.innerHTML = '';
-    window.syncLiveGameToFirebase();
+    
+    if (currentUser && ['animateur', 'admin', 'admin_assistant'].includes(currentUser.role)) {
+        let path = isArchivedEvent ? 'BechaEventsData/archived_events/'+currentEventIndex : 'BechaEventsData/events/'+currentEventIndex;
+        db.ref(path + '/liveGameStats').remove();
+    }
 };
 
         window.liveGameListenerRef = null;
@@ -2557,16 +2557,38 @@ if(emergencyModal) emergencyModal.style.display = 'none';
             let path = isArchivedEvent ? 'BechaEventsData/archived_events/'+currentEventIndex : 'BechaEventsData/events/'+currentEventIndex;
             if(window.liveGameListenerRef) db.ref(path + '/liveGameStats').off('value', window.liveGameListenerRef);
             window.liveGameListenerRef = db.ref(path + '/liveGameStats').on('value', snap => {
-                let data = snap.val();
-                if (data && currentUser && ['dj', 'assistant', 'assistant_anim', 'client'].includes(currentUser.role)) {
-                    if(window.liveGameStats && window.liveGameStats.timerInterval) clearInterval(window.liveGameStats.timerInterval);
-                    if(data.chrono <= 10 && data.chrono > 0 && data.isChronoRunning && data.chrono !== window.liveGameStats.chrono) window.playBeepSound('tick');
-                    if(data.isTimeUp && !window.liveGameStats.isTimeUp) window.playBeepSound('buzzer');
-                    window.liveGameStats = data; window.updateLiveToolsUI();
-                    if (data.isChronoRunning && data.chrono > 0) { window.liveGameStats.timerInterval = setInterval(() => { window.liveGameStats.chrono--; if(window.liveGameStats.chrono <= 10 && window.liveGameStats.chrono > 0) window.playBeepSound('tick'); if(window.liveGameStats.chrono <= 0) { clearInterval(window.liveGameStats.timerInterval); window.liveGameStats.chrono = 0; window.liveGameStats.isChronoRunning = false; window.liveGameStats.isTimeUp = true; window.playBeepSound('buzzer'); } window.updateLiveToolsUI(); }, 1000); }
+    let data = snap.val();
+    if (currentUser && ['dj', 'assistant', 'assistant_anim', 'client'].includes(currentUser.role)) {
+        if(window.liveGameStats && window.liveGameStats.timerInterval) clearInterval(window.liveGameStats.timerInterval);
+        
+        // 🔴 كان البيانات تمسحت من Firebase، نخفي الكرونو كلياً
+        if (!data) {
+            window.liveGameStats = { activeLibId: null, players: [], chrono: 0, timerInterval: null, isChronoRunning: false, isTimeUp: false };
+            let container = document.getElementById('liveToolsContainer');
+            if(container) container.innerHTML = '';
+            return;
+        }
+        
+        if(data.chrono <= 10 && data.chrono > 0 && data.isChronoRunning && data.chrono !== window.liveGameStats.chrono) window.playBeepSound('tick');
+        if(data.isTimeUp && !window.liveGameStats.isTimeUp) window.playBeepSound('buzzer');
+        window.liveGameStats = data;
+        window.updateLiveToolsUI();
+        if (data.isChronoRunning && data.chrono > 0) {
+            window.liveGameStats.timerInterval = setInterval(() => {
+                window.liveGameStats.chrono--;
+                if(window.liveGameStats.chrono <= 10 && window.liveGameStats.chrono > 0) window.playBeepSound('tick');
+                if(window.liveGameStats.chrono <= 0) {
+                    clearInterval(window.liveGameStats.timerInterval);
+                    window.liveGameStats.chrono = 0;
+                    window.liveGameStats.isChronoRunning = false;
+                    window.liveGameStats.isTimeUp = true;
+                    window.playBeepSound('buzzer');
                 }
-            });
-        };
+                window.updateLiveToolsUI();
+            }, 1000);
+        }
+    }
+});
 
         /* =========================================================
            🎡 نظام دائرة الحظ الديناميكية الذكية (الرسم الآلي) + المرآة 
