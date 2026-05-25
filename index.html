@@ -2470,6 +2470,11 @@ if(emergencyModal) emergencyModal.style.display = 'none';
                 if(isFrozen) html += `<div style="color:#E10600; text-align:center; font-weight:bold; margin-top:10px;">⏳ انتهى الوقت! تم تجميد النقاط (لا يمكن التغيير).</div>`;
                 html += `</div>`;
             }
+            if(!isReadOnly) {
+    html += `<div style="text-align:center; margin-top:20px; border-top:1px solid #333; padding-top:15px;">
+        <button class="btn btn-dark" style="font-size:18px; padding:10px 30px;" onclick="window.resetLiveChrono()">🔄 إخفاء العداد وإعادة الضبط</button>
+    </div>`;
+}
             container.innerHTML = html;
         };
 
@@ -2512,9 +2517,40 @@ if(emergencyModal) emergencyModal.style.display = 'none';
 
         window.setLiveChrono = function(sec) { window.liveGameStats.chrono = sec; window.liveGameStats.isTimeUp = false; window.refreshLiveTools(); };
         window.adjustLiveChrono = function(sec) { window.liveGameStats.chrono += sec; if(window.liveGameStats.chrono < 0) window.liveGameStats.chrono = 0; window.liveGameStats.isTimeUp = false; window.refreshLiveTools(); };
-        window.startLiveChrono = function() { if(window.liveGameStats.chrono <= 0 || window.liveGameStats.isChronoRunning) return; window.liveGameStats.isChronoRunning = true; window.liveGameStats.isTimeUp = false; window.refreshLiveTools(); window.liveGameStats.timerInterval = setInterval(() => { window.liveGameStats.chrono--; if(window.liveGameStats.chrono <= 10 && window.liveGameStats.chrono > 0) window.playBeepSound('tick'); if(window.liveGameStats.chrono <= 0) { clearInterval(window.liveGameStats.timerInterval); window.liveGameStats.chrono = 0; window.liveGameStats.isChronoRunning = false; window.liveGameStats.isTimeUp = true; window.playBeepSound('buzzer'); window.refreshLiveTools(); } else { window.updateLiveToolsUI(); } }, 1000); };
+        window.startLiveChrono = function() {
+    if(window.liveGameStats.chrono <= 0) return;
+    if(window.liveGameStats.isChronoRunning) return;
+    window.liveGameStats.isChronoRunning = true;
+    window.liveGameStats.isTimeUp = false;
+    window.refreshLiveTools();
+    window.liveGameStats.timerInterval = setInterval(() => {
+        window.liveGameStats.chrono--;
+        if(window.liveGameStats.chrono <= 10 && window.liveGameStats.chrono > 0) window.playBeepSound('tick');
+        if(window.liveGameStats.chrono <= 0) {
+            clearInterval(window.liveGameStats.timerInterval);
+            window.liveGameStats.chrono = 0;
+            window.liveGameStats.isChronoRunning = false;
+            window.liveGameStats.isTimeUp = true;
+            window.playBeepSound('buzzer');
+            window.refreshLiveTools();
+        } else {
+            window.updateLiveToolsUI();
+        }
+    }, 1000);
+};
         window.pauseLiveChrono = function() { window.liveGameStats.isChronoRunning = false; clearInterval(window.liveGameStats.timerInterval); window.refreshLiveTools(); };
-        window.resetLiveChrono = function() { window.pauseLiveChrono(); window.liveGameStats.chrono = 0; window.liveGameStats.isTimeUp = false; window.refreshLiveTools(); };
+        window.resetLiveChrono = function() {
+    window.pauseLiveChrono();
+    window.liveGameStats.chrono = 0;
+    window.liveGameStats.isTimeUp = false;
+    window.liveGameStats.players = [];
+    window.refreshLiveTools();
+    
+    // 🔴 إخفاء الكرونو كلياً عند التصفير
+    let container = document.getElementById('liveToolsContainer');
+    if(container) container.innerHTML = '';
+    window.syncLiveGameToFirebase();
+};
 
         window.liveGameListenerRef = null;
         window.startLiveGameListener = function() {
