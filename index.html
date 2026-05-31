@@ -2934,11 +2934,33 @@ window.startLiveGameListener = function() {
 
         window.loadLocalVideoGlobal = function(event) { let file = event.target.files[0]; if(!file) return; let videoUrl = URL.createObjectURL(file); let videoContainer = document.getElementById('globalVideoContainer'); let videoEl = document.getElementById('globalLocalVideoElement'); videoEl.src = videoUrl; videoContainer.style.display = 'flex'; videoEl.play(); if (currentUser && ['animateur', 'admin', 'admin_assistant'].includes(currentUser.role)) { let path = isArchivedEvent ? 'BechaEventsData/archived_events/'+currentEventIndex : 'BechaEventsData/events/'+currentEventIndex; db.ref(path + '/djForceSync/video').set({ active: true, name: file.name }); } event.target.value = ''; };
         window.closeGlobalVideo = function() { let videoContainer = document.getElementById('globalVideoContainer'); let videoEl = document.getElementById('globalLocalVideoElement'); if(videoEl) { videoEl.pause(); videoEl.src = ""; } if(videoContainer) videoContainer.style.display = 'none'; if (currentUser && ['animateur', 'admin', 'admin_assistant'].includes(currentUser.role)) { let path = isArchivedEvent ? 'BechaEventsData/archived_events/'+currentEventIndex : 'BechaEventsData/events/'+currentEventIndex; db.ref(path + '/djForceSync/video').set({ active: false }); } };
+        window.loadLocalMusicGlobal = function(event) {
+            let file = event.target.files[0]; if(!file) return;
+            let musicUrl = URL.createObjectURL(file);
+            let container = document.getElementById('globalMusicContainer');
+            let audioEl = document.getElementById('globalLocalMusicElement');
+            let nameEl = document.getElementById('globalMusicName');
+            audioEl.src = musicUrl;
+            if(nameEl) nameEl.innerText = '🎵 ' + file.name;
+            container.style.display = 'block';
+            audioEl.play().catch(e => console.log('audio play blocked', e));
+            event.target.value = '';
+        };
+        window.closeGlobalMusic = function() {
+            let container = document.getElementById('globalMusicContainer');
+            let audioEl = document.getElementById('globalLocalMusicElement');
+            if(audioEl) { audioEl.pause(); audioEl.src = ''; }
+            if(container) container.style.display = 'none';
+        };
 
         setInterval(() => {
             let fsControls = document.querySelector('.fs-header div'); if(fsControls && !document.getElementById('globalKaraokeBtn')) { let rocketBtn = fsControls.querySelector('button[title="ارتجال فقرة حية"]'); if(rocketBtn) { rocketBtn.insertAdjacentHTML('beforebegin', `<label id="globalKaraokeBtn" title="تشغيل فيديو من الفلاشة (USB)" style="color:#25D366; margin-right:15px; font-size:26px; cursor:pointer; display:none;">🎬<input type="file" accept="video/*,.mkv,.avi,.mov,.wmv,.flv,.webm,.m4v,.mpg,.mpeg,.3gp,.ts,.vob,.ogv" style="display:none;" onchange="window.loadLocalVideoGlobal(event)"></label>`); } }
+            // 🎵 زر الموسيقى
+            let fsControls2 = document.querySelector('.fs-header div'); if(fsControls2 && !document.getElementById('globalMusicBtn')) { let kBtn = document.getElementById('globalKaraokeBtn'); if(kBtn) { kBtn.insertAdjacentHTML('beforebegin', `<label id="globalMusicBtn" title="تشغيل موسيقى من الفلاشة (USB)" style="color:#ffc107; margin-right:15px; font-size:26px; cursor:pointer; display:none;">🎵<input type="file" accept="audio/*,.mp3,.wav,.m4a,.aac,.ogg,.flac,.wma,.opus,.aiff,.amr" style="display:none;" onchange="window.loadLocalMusicGlobal(event)"></label>`); } }
             let fsContainer = document.getElementById('fullscreenTeleprompter'); if(fsContainer && !document.getElementById('globalVideoContainer')) { fsContainer.insertAdjacentHTML('beforeend', `<div id="globalVideoContainer" style="display:none; position:absolute; top:75px; left:0; width:100%; height:calc(100% - 75px); background:#000; z-index:9000; text-align:center; flex-direction:column; justify-content:center; align-items:center;"><button onclick="window.closeGlobalVideo()" style="position:absolute; top:15px; right:25px; background:#E10600; color:#fff; border:none; padding:10px 20px; font-size:18px; border-radius:10px; cursor:pointer; font-weight:bold; box-shadow:0 4px 10px rgba(0,0,0,0.5); z-index:9001;">❌ إغلاق الفيديو</button><video id="globalLocalVideoElement" controls style="max-width:95%; max-height:85%; border-radius:15px; border:4px solid #ffc107; box-shadow:0 10px 30px rgba(0,0,0,0.8); background:#111; margin-top:40px;"></video></div>`); }
-            if (currentUser && ['animateur', 'admin', 'admin_assistant'].includes(currentUser.role)) { let kBtn = document.getElementById('globalKaraokeBtn'); if(kBtn) kBtn.style.display = 'inline-block'; }
+            // 🎵 حاوية مشغّل الموسيقى
+            if(fsContainer && !document.getElementById('globalMusicContainer')) { fsContainer.insertAdjacentHTML('beforeend', `<div id="globalMusicContainer" style="display:none; position:absolute; bottom:90px; left:50%; transform:translateX(-50%); width:90%; max-width:600px; background:#1a1a2e; z-index:9000; border-radius:15px; border:3px solid #ffc107; padding:20px; box-shadow:0 10px 30px rgba(0,0,0,0.8);"><div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;"><span id="globalMusicName" style="color:#ffc107; font-weight:bold; font-size:16px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; flex:1; margin-left:10px;">🎵 --</span><button onclick="window.closeGlobalMusic()" style="background:#E10600; color:#fff; border:none; padding:6px 14px; font-size:14px; border-radius:8px; cursor:pointer; font-weight:bold;">❌ إيقاف</button></div><audio id="globalLocalMusicElement" controls style="width:100%;"></audio></div>`); }
+            if (currentUser && ['animateur', 'admin', 'admin_assistant'].includes(currentUser.role)) { let kBtn = document.getElementById('globalKaraokeBtn'); if(kBtn) kBtn.style.display = 'inline-block'; let mBtn = document.getElementById('globalMusicBtn'); if(mBtn) mBtn.style.display = 'inline-block'; }
         }, 1500);
 
         window.toggleAppFullscreen = function() { let doc = window.document; let docEl = doc.documentElement; let requestFullScreen = docEl.requestFullscreen || docEl.mozRequestFullScreen || docEl.webkitRequestFullScreen || docEl.msRequestFullscreen; let cancelFullScreen = doc.exitFullscreen || doc.mozCancelFullScreen || doc.webkitExitFullscreen || doc.msExitFullscreen; if(!doc.fullscreenElement && !doc.mozFullScreenElement && !doc.webkitFullscreenElement && !doc.msFullscreenElement) { requestFullScreen.call(docEl); } else { cancelFullScreen.call(doc); } };
