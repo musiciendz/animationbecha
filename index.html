@@ -241,6 +241,24 @@
             .fs-footer { padding: 5px 15px !important; }
             .fs-btn { padding: 5px 15px !important; font-size: 14px !important; }
         }
+        /* 🎮 تجاوب واجهة Jeux Sans Frontières على كل الشاشات */
+        #jsfModal { -webkit-overflow-scrolling: touch; }
+        #jsfModal input { font-size: 16px !important; } /* يمنع التكبير الآلي في iOS */
+        @media (max-width: 820px) {
+            #jsfModal h2 { font-size: 19px !important; }
+            #jsfModal h3 { font-size: 17px !important; }
+            #jsfModal > div:first-child { padding: 12px 15px !important; flex-wrap: wrap; gap: 8px; }
+            #jsfModal > div:first-child .btn { font-size: 14px !important; padding: 8px 12px !important; }
+            #jsfModal .flash-screen, #jsfModal [style*="font-size:90px"] { font-size: 60px !important; }
+            #jsfModal [style*="min-width:150px"] { min-width: 120px !important; padding: 12px !important; }
+            #jsfWinnerOverlay h1 { font-size: 32px !important; }
+            #jsfWinnerOverlay [style*="font-size:50px"] { font-size: 34px !important; }
+        }
+        @media (max-width: 480px) {
+            #jsfModal [style*="font-size:90px"] { font-size: 48px !important; }
+            #jsfModal [style*="min-width:150px"] { min-width: 100px !important; padding: 10px !important; }
+            #jsfModal [style*="font-size:50px"] { font-size: 38px !important; }
+        }
     </style>
 </head>
 <body>
@@ -3262,33 +3280,76 @@ window.jsfStart = function() {
 };
 window.jsfPause = function() { window.jsfState.running = false; clearInterval(window.jsfState.timer); window.jsfRefresh(); };
 window.jsfResetChrono = function() { window.jsfPause(); window.jsfState.chrono = 0; window.jsfState.timeUp = false; window.jsfRefresh(); };
-// 📦 اختيار لعبة من المكتبة لـ JSF
+// 📦 اختيار لعبة من المكتبة لـ JSF (بنظام مجلدات + تعليم المستعمل)
+window.jsfPickFolder = null;
 window.jsfPickFromLibrary = function() {
+    window.jsfPickFolder = null;
     let modal = document.getElementById('jsfLibPicker');
     if(!modal) {
         modal = document.createElement('div');
         modal.id = 'jsfLibPicker'; modal.className = 'modal-overlay'; modal.style.zIndex = '99999999';
         document.body.appendChild(modal);
     }
-    let items = Object.keys(libraryData).map(k => ({id:k, ...libraryData[k]}));
-    items.sort((a,b) => b.updatedAt - a.updatedAt);
-    let html = `<div class="modal-box" style="background:#222; border:3px solid #ffc107; max-height:85vh; overflow-y:auto;">
-        <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:2px solid #555; padding-bottom:10px; margin-bottom:15px;">
-            <h3 style="color:#ffc107; margin:0;">📦 اختر لعبة</h3>
-            <button class="btn btn-dark" style="padding:2px 10px;" onclick="document.getElementById('jsfLibPicker').style.display='none'">❌</button>
-        </div>`;
-    if(items.length === 0) html += '<p style="color:#aaa; text-align:center;">المكتبة فارغة.</p>';
-    items.forEach(item => {
-        let star = item.isFav ? '⭐ ' : '';
-        html += `<div style="padding:14px; border:2px solid #444; border-radius:10px; margin-bottom:10px; cursor:pointer; text-align:right; background:#1a1a2e;" onclick="window.jsfSelectLib('${item.id}')"><h4 style="margin:0; color:#fff;">${star}${item.name}</h4><span style="font-size:12px; color:#aaa;">${item.type}</span></div>`;
-    });
-    modal.innerHTML = html;
+    window.renderJsfPicker();
     modal.style.display = 'flex';
 };
-window.jsfSelectLib = function(libId) {
-    window.jsfState.libId = libId;
-    document.getElementById('jsfLibPicker').style.display = 'none';
-    window.jsfRefresh();
+
+window.renderJsfPicker = function() {
+    let modal = document.getElementById('jsfLibPicker');
+    if(!modal) return;
+    let folder = window.jsfPickFolder;
+    let head = `<div style="display:flex; justify-content:space-between; align-items:center; border-bottom:2px solid #555; padding-bottom:10px; margin-bottom:15px;">
+        <h3 style="color:#ffc107; margin:0;">📦 اختر لعبة</h3>
+        <button class="btn btn-dark" style="padding:2px 10px;" onclick="document.getElementById('jsfLibPicker').style.display='none'">❌</button>
+    </div>`;
+    let html = '';
+
+    // الواجهة 1: المجلدات
+    if(!folder) {
+        let typesCount = {};
+        Object.keys(libraryData).forEach(k => {
+            let t = libraryData[k].type === 'أخرى' ? (libraryData[k].customType || 'متنوع') : libraryData[k].type;
+            if(t) typesCount[t] = (typesCount[t] || 0) + 1;
+        });
+        if(Object.keys(typesCount).length === 0) { html = '<p style="color:#aaa; text-align:center;">المكتبة فارغة.</p>'; }
+        else {
+            html = '<div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">';
+            for(let t in typesCount) {
+                let icon = t.includes('لغز') ? '🤔' : t.includes('حركية') ? '🏃‍♂️' : t.includes('مسابقة') ? '🧠' : t.includes('أغنية') || t.includes('مترجمة') ? '🎵' : t.includes('عيد') ? '🎁' : t.includes('رقص') ? '💃' : t.includes('كاريوكي') || t.includes('فيديو') ? '🎬' : '📁';
+                let safeT = t.replace(/'/g, "\\'");
+                html += `<div class="dash-card" style="border-color:#ffc107; background:#1a1a2e; color:white; margin-bottom:0;" onclick="window.jsfPickFolder='${safeT}'; renderJsfPicker();"><div style="font-size:32px; margin-bottom:8px;">${icon}</div><h4 style="color:#ffc107; margin:0;">${t}</h4><span style="font-size:12px; color:#aaa; font-weight:bold;">${typesCount[t]} فقرة</span></div>`;
+            }
+            html += '</div>';
+        }
+        modal.innerHTML = `<div class="modal-box" style="background:#222; border:3px solid #ffc107; max-height:85vh; overflow-y:auto;">${head}${html}</div>`;
+        return;
+    }
+
+    // الواجهة 2: الألعاب داخل المجلد + زر رجوع + تعليم المُستعمل
+    let items = Object.keys(libraryData).map(k => ({id:k, ...libraryData[k]}))
+        .filter(i => {
+            let t = i.type === 'أخرى' ? (i.customType || 'متنوع') : i.type;
+            return t === folder;
+        });
+    items.sort((a,b) => b.updatedAt - a.updatedAt);
+
+    html = `<div style="display:flex; justify-content:space-between; align-items:center; background:#1a1a2e; border:2px dashed #ffc107; padding:12px; border-radius:10px; margin-bottom:15px;">
+        <h4 style="margin:0; color:#ffc107;">📁 ${folder}</h4>
+        <button class="btn btn-dark" style="padding:5px 12px; font-size:14px;" onclick="window.jsfPickFolder=null; renderJsfPicker();">🔙 المجلدات</button>
+    </div>`;
+
+    if(items.length === 0) html += '<p style="color:#aaa; text-align:center;">المجلد فارغ.</p>';
+    items.forEach(item => {
+        let star = item.isFav ? '⭐ ' : '';
+        // اللعبة اللي تلعبت في الارتجال ولا اللي مختارة حالياً تبان معلّمة
+        let isUsed = (window.usedEmergencyItems && window.usedEmergencyItems.includes(item.id)) || (window.jsfState.libId === item.id);
+        let cardStyle = isUsed
+            ? 'padding:14px; border:2px solid #198754; background:#0f2419; border-radius:10px; margin-bottom:10px; cursor:pointer; text-align:right;'
+            : 'padding:14px; border:2px solid #444; background:#1a1a2e; border-radius:10px; margin-bottom:10px; cursor:pointer; text-align:right;';
+        let badge = isUsed ? '<span style="background:#198754; color:white; padding:2px 10px; border-radius:12px; font-size:12px; font-weight:bold; float:left;">✔️ لُعبت</span>' : '';
+        html += `<div style="${cardStyle}" onclick="window.jsfSelectLib('${item.id}')">${badge}<h4 style="margin:0; color:${isUsed ? '#4ade80' : '#fff'};">${star}${item.name}</h4><span style="font-size:12px; color:#aaa;">${item.type}</span></div>`;
+    });
+    modal.innerHTML = `<div class="modal-box" style="background:#222; border:3px solid #ffc107; max-height:85vh; overflow-y:auto;">${head}${html}</div>`;
 };
 window.jsfClearLib = function() { window.jsfState.libId = null; window.jsfRefresh(); };
 
