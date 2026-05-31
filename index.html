@@ -3164,7 +3164,9 @@ window.syncJSF = function() {
         players: window.jsfState.players,
         chrono: window.jsfState.chrono,
         running: window.jsfState.running,
-        timeUp: window.jsfState.timeUp
+        timeUp: window.jsfState.timeUp,
+        libId: window.jsfState.libId || null,
+        winnerAnnounce: window.jsfState.winnerAnnounce || null
     });
 };
 
@@ -3183,6 +3185,20 @@ window.renderJSF = function() {
         ${!ro ? `<button class="btn btn-red" style="font-size:16px;" onclick="window.closeJSF()">✔️ إنهاء والرجوع للبرنامج</button>` : `<span style="color:#aaa; font-weight:bold;">👁️ وضع المراقبة</span>`}
     </div>
     <div style="flex:1; padding:30px; text-align:center;">`;
+
+    // 📦 اللعبة المختارة من المكتبة (نص المنشط والـ DJ)
+    if(s.libId && libraryData[s.libId]) {
+        let lib = libraryData[s.libId];
+        html += `<div style="max-width:900px; margin:0 auto 25px auto; background:#1a1a2e; border:2px solid #ffc107; border-radius:14px; padding:20px; text-align:right; position:relative;">
+            ${!ro ? `<button onclick="window.jsfClearLib()" style="position:absolute; top:10px; left:10px; background:transparent; border:none; color:#dc3545; cursor:pointer; font-size:18px;">❌</button>` : ''}
+            <h3 style="color:#ffc107; margin:0 0 10px 0;">⭐ ${lib.name}</h3>
+            ${lib.animText ? `<div style="color:#e3f2fd; margin-bottom:8px; line-height:1.6;">🎤 ${lib.animText.replace(/\n/g,'<br>')}</div>` : ''}
+            ${lib.djText ? `<div style="color:#f3e5f5; font-size:0.9em; opacity:0.9;">🎧 DJ: ${lib.djText.replace(/\n/g,'<br>')}</div>` : ''}
+        </div>`;
+    }
+    if(!ro) {
+        html += `<button class="btn btn-info" style="margin-bottom:25px; font-size:16px;" onclick="window.jsfPickFromLibrary()">📦 ${s.libId ? 'تغيير اللعبة' : 'اختر لعبة من المكتبة'}</button>`;
+    }
 
     // الكرونو
     html += `<div class="${s.timeUp?'flash-screen':''}" style="font-size:90px; font-weight:900; color:${chronoColor}; font-family:monospace; line-height:1; margin-bottom:20px; text-shadow:0 0 20px ${chronoColor};">${mins}:${secs}</div>`;
@@ -3216,7 +3232,12 @@ window.renderJSF = function() {
             ${!ro ? `<div style="display:flex; gap:5px;"><button class="btn btn-green" style="flex:1; font-size:26px; padding:0;" onclick="window.jsfScore(${i},1)">+</button><button class="btn btn-red" style="flex:1; font-size:26px; padding:0;" onclick="window.jsfScore(${i},-1)">-</button></div>` : ''}
         </div>`;
     });
-    html += `</div></div>`;
+    html += `</div>`;
+    // 🎉 زر إعلان الفائز
+    if(!ro && s.players.length > 0) {
+        html += `<div style="text-align:center; padding:0 30px 30px 30px;"><button class="btn btn-green" style="font-size:22px; padding:15px 40px; font-weight:900; box-shadow:0 5px 20px rgba(25,135,84,0.5); animation:pulse 2s infinite;" onclick="window.jsfAnnounceWinner()">🎉 إعلان الفائز 🎉</button></div>`;
+    }
+    html += `</div>`;
     modal.innerHTML = html;
 };
 
@@ -3241,6 +3262,81 @@ window.jsfStart = function() {
 };
 window.jsfPause = function() { window.jsfState.running = false; clearInterval(window.jsfState.timer); window.jsfRefresh(); };
 window.jsfResetChrono = function() { window.jsfPause(); window.jsfState.chrono = 0; window.jsfState.timeUp = false; window.jsfRefresh(); };
+// 📦 اختيار لعبة من المكتبة لـ JSF
+window.jsfPickFromLibrary = function() {
+    let modal = document.getElementById('jsfLibPicker');
+    if(!modal) {
+        modal = document.createElement('div');
+        modal.id = 'jsfLibPicker'; modal.className = 'modal-overlay'; modal.style.zIndex = '99999999';
+        document.body.appendChild(modal);
+    }
+    let items = Object.keys(libraryData).map(k => ({id:k, ...libraryData[k]}));
+    items.sort((a,b) => b.updatedAt - a.updatedAt);
+    let html = `<div class="modal-box" style="background:#222; border:3px solid #ffc107; max-height:85vh; overflow-y:auto;">
+        <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:2px solid #555; padding-bottom:10px; margin-bottom:15px;">
+            <h3 style="color:#ffc107; margin:0;">📦 اختر لعبة</h3>
+            <button class="btn btn-dark" style="padding:2px 10px;" onclick="document.getElementById('jsfLibPicker').style.display='none'">❌</button>
+        </div>`;
+    if(items.length === 0) html += '<p style="color:#aaa; text-align:center;">المكتبة فارغة.</p>';
+    items.forEach(item => {
+        let star = item.isFav ? '⭐ ' : '';
+        html += `<div style="padding:14px; border:2px solid #444; border-radius:10px; margin-bottom:10px; cursor:pointer; text-align:right; background:#1a1a2e;" onclick="window.jsfSelectLib('${item.id}')"><h4 style="margin:0; color:#fff;">${star}${item.name}</h4><span style="font-size:12px; color:#aaa;">${item.type}</span></div>`;
+    });
+    modal.innerHTML = html;
+    modal.style.display = 'flex';
+};
+window.jsfSelectLib = function(libId) {
+    window.jsfState.libId = libId;
+    document.getElementById('jsfLibPicker').style.display = 'none';
+    window.jsfRefresh();
+};
+window.jsfClearLib = function() { window.jsfState.libId = null; window.jsfRefresh(); };
+
+// 🎉 إعلان الفائز
+window.jsfAnnounceWinner = function() {
+    let players = window.jsfState.players;
+    if(players.length === 0) return;
+    let maxScore = Math.max(...players.map(p => p.score));
+    let winners = players.filter(p => p.score === maxScore);
+
+    window.jsfState.winnerAnnounce = {
+        names: winners.map(w => w.name),
+        score: maxScore,
+        tie: winners.length > 1
+    };
+    window.jsfRefresh();
+    window.renderJsfWinnerOverlay();
+    window.playBeepSound('success');
+    setTimeout(() => window.playBeepSound('success'), 400);
+};
+window.renderJsfWinnerOverlay = function() {
+    let w = window.jsfState.winnerAnnounce;
+    if(!w) return;
+    let overlay = document.getElementById('jsfWinnerOverlay');
+    if(!overlay) {
+        overlay = document.createElement('div');
+        overlay.id = 'jsfWinnerOverlay';
+        overlay.style.cssText = 'position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.92); z-index:99999999; display:flex; flex-direction:column; justify-content:center; align-items:center; text-align:center;';
+        document.body.appendChild(overlay);
+    }
+    let ro = window.isJsfReadOnly();
+    let title = w.tie ? '🤝 تعادل!' : '🎉 الفائز 🎉';
+    let namesHtml = w.names.map(n => `<div style="font-size:50px; font-weight:900; color:#ffc107; margin:10px 0; text-shadow:0 0 20px #ffc107;">🏆 ${n}</div>`).join('');
+    overlay.innerHTML = `
+        <div style="font-size:60px; margin-bottom:20px; animation:pulse 1s infinite;">${w.tie ? '🤝' : '👑'}</div>
+        <h1 style="color:#e83e8c; font-size:45px; margin:0 0 20px 0;">${title}</h1>
+        ${namesHtml}
+        <div style="color:#198754; font-size:30px; font-weight:bold; margin-top:15px;">${w.score} نقطة</div>
+        ${!ro ? `<button class="btn btn-red" style="margin-top:40px; font-size:20px; padding:12px 35px;" onclick="window.jsfCloseWinner()">إغلاق</button>` : ''}
+    `;
+    overlay.style.display = 'flex';
+};
+window.jsfCloseWinner = function() {
+    let overlay = document.getElementById('jsfWinnerOverlay');
+    if(overlay) overlay.style.display = 'none';
+    window.jsfState.winnerAnnounce = null;
+    window.jsfRefresh();
+};
 
 // مستمع المزامنة للـ DJ (يشوف نفس الشي)
 window.jsfListenerRef = null;
@@ -3256,6 +3352,10 @@ window.startJsfListener = function() {
             window.jsfState.chrono = d.chrono || 0;
             window.jsfState.running = d.running || false;
             window.jsfState.timeUp = d.timeUp || false;
+            window.jsfState.libId = d.libId || null;
+            window.jsfState.winnerAnnounce = d.winnerAnnounce || null;
+            if(d.winnerAnnounce) window.renderJsfWinnerOverlay();
+            else { let ov = document.getElementById('jsfWinnerOverlay'); if(ov) ov.style.display='none'; }
             let modal = document.getElementById('jsfModal');
             if(!modal || modal.style.display !== 'flex') window.openJSF(true);
             else window.renderJSF();
