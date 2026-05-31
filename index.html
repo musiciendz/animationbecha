@@ -559,6 +559,9 @@
             <textarea id="libItemDJ" style="width:100%; height:50px;" placeholder="الأغاني والمؤثرات المطلوبة..."></textarea>
             <h4 style="color:#ff9800; margin:10px 0 5px 0;">🏃‍♂️ دور المساعد:</h4>
             <textarea id="libItemAssist" style="width:100%; height:50px;" placeholder="التحضيرات (كراسي، جوائز...)..."></textarea>
+            <h4 style="color:#25D366; margin:10px 0 5px 0;">🎬 رابط فيديو/كاريوكي (اختياري):</h4>
+            <input type="text" id="libItemVideoUrl" style="width:100%; margin-bottom:5px;" placeholder="ألصق رابط يوتيوب أو رابط مباشر...">
+            <p style="font-size:11px; color:#888; margin:0;">💡 الرابط يتحفظ مع الفقرة، ويظهر زر تشغيل مباشر في الشاشة العملاقة.</p>
             <label style="display:flex; align-items:center; gap:8px; margin-top:15px; font-weight:bold; cursor:pointer;"><input type="checkbox" id="libItemFav" style="width:20px; height:20px;"> ⭐ إضافة للمفضلة فوراً</label>
             <div style="display:flex; gap:10px; margin-top:20px;"><button class="btn btn-green" style="flex:1;" onclick="saveLibItem()">💾 حفظ</button><button class="btn btn-dark" style="flex:1;" onclick="document.getElementById('libFormModal').style.display='none'">❌ إلغاء</button></div>
         </div>
@@ -2606,7 +2609,8 @@ if(emergencyModal) emergencyModal.style.display = 'none';
             }
             document.getElementById('libItemAnim').value = item.animText || '';
             document.getElementById('libItemDJ').value = item.djText || '';
-            document.getElementById('libItemAssist').value = item.assistText || '';
+           document.getElementById('libItemAssist').value = item.assistText || '';
+            if(document.getElementById('libItemVideoUrl')) document.getElementById('libItemVideoUrl').value = item.videoUrl || '';
             document.getElementById('libItemFav').checked = !!item.isFav;
             if(document.getElementById('libItemScore')) document.getElementById('libItemScore').checked = !!item.hasScore;
             if(document.getElementById('libItemChrono')) document.getElementById('libItemChrono').checked = !!item.hasChrono;
@@ -2630,6 +2634,7 @@ if(emergencyModal) emergencyModal.style.display = 'none';
                 animText: document.getElementById('libItemAnim').value.trim(),
                 djText: document.getElementById('libItemDJ').value.trim(),
                 assistText: document.getElementById('libItemAssist').value.trim(),
+                videoUrl: document.getElementById('libItemVideoUrl') ? document.getElementById('libItemVideoUrl').value.trim() : '',
                 isFav: isFav, updatedAt: Date.now(),
                 hasScore: document.getElementById('libItemScore') ? document.getElementById('libItemScore').checked : false,
                 hasChrono: document.getElementById('libItemChrono') ? document.getElementById('libItemChrono').checked : false
