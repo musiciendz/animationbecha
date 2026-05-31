@@ -3224,7 +3224,7 @@ window.renderJSF = function() {
     // 📦 اللعبة المختارة من المكتبة (نص المنشط والـ DJ)
     if(s.libId && libraryData[s.libId]) {
         let lib = libraryData[s.libId];
-        html += `<div style="max-width:900px; margin:0 auto 25px auto; background:#1a1a2e; border:2px solid #ffc107; border-radius:14px; padding:20px; text-align:right; position:relative;">
+        html += `<div style="max-width:900px; margin:0 auto 25px auto; background:#1a1a2e; border:2px solid #ffc107; border-radius:14px; padding:20px; text-align:right; position:relative; max-height:30vh; overflow-y:auto;">
             ${!ro ? `<button onclick="window.jsfClearLib()" style="position:absolute; top:10px; left:10px; background:transparent; border:none; color:#dc3545; cursor:pointer; font-size:18px;">❌</button>` : ''}
             <h3 style="color:#ffc107; margin:0 0 10px 0;">⭐ ${lib.name}</h3>
             ${lib.animText ? `<div style="color:#e3f2fd; margin-bottom:8px; line-height:1.6;">🎤 ${lib.animText.replace(/\n/g,'<br>')}</div>` : ''}
