@@ -1012,6 +1012,7 @@ function playBeep(type) { initAudioCtx(); const osc = audioCtx.createOscillator(
             updateNumbers();
         }
         function loadBackstageData() { ['educatorsList', 'coachesList', 'staffList', 'programList'].forEach(id => document.getElementById(id).innerHTML = ''); let d = currentEventData.institutionDetails || {}; document.getElementById('instManager').value = d.managerName || ''; document.getElementById('instFounder').value = d.founderName || ''; document.getElementById('customTeleprompterInput').value = currentEventData.customTeleprompter || ''; if(d.educators) d.educators.forEach(n => addEducator(n)); if(d.coaches) d.coaches.forEach(c => addCoach(c.spec, c.name)); if(d.staff) d.staff.forEach(s => addStaff(s.role, s.name)); let p = currentEventData.eventProgram || []; p.forEach(i => addProgramItem(i.type, i.details, i.completed, i.customType)); let info = currentEventData.lastEditInfo || { count: 0, by: '', role: '', time: 0 }; currentEditCount = info.count || 0; document.getElementById('editCountDisplay').innerText = currentEditCount; if(info.role && info.role !== currentUser.role && info.time > 0 && !hasShownSmartNotification) { hasShownSmartNotification = true; let timeObj = new Date(info.time); let timeStr = timeObj.toLocaleTimeString('ar-TN', {hour:'2-digit', minute:'2-digit'}); let dateStr = timeObj.toLocaleDateString('ar-TN'); let msg = currentUser.role === 'client' ? `تم ضبط وتحيين برنامجكم من طرف فريق Becha Events يوم ${dateStr} على الساعة ${timeStr}.` : `قامت إدارة المؤسسة بإدخال/تعديل البرنامج يوم ${dateStr} على الساعة ${timeStr}.`; document.getElementById('smartNotificationText').innerText = msg; document.getElementById('smartNotificationModal').style.display = 'flex'; } if(countdownInterval) clearInterval(countdownInterval); updateCountdown(); countdownInterval = setInterval(updateCountdown, 60000); }
+        checkForDraft();
         function updateCountdown() { let evDateStr = currentEventData.date; let evTimeStr = currentEventData.time || "00:00"; let evDateTime = new Date(`${evDateStr}T${evTimeStr}:00`); let diffMins = (evDateTime - new Date()) / 60000; let diffToLock = diffMins - 60; if(diffToLock <= 0) { document.getElementById('countdownDisplay').innerText = "تم إغلاق التعديل"; if(currentUser.role === 'client') evaluateClientPhase(); } else { let hrs = Math.floor(diffToLock / 60); let mins = Math.floor(diffToLock % 60); document.getElementById('countdownDisplay').innerText = `${hrs} س و ${mins} دق`; } }
         let isSavingMode = false;
         
@@ -1107,7 +1108,8 @@ function playBeep(type) { initAudioCtx(); const osc = audioCtx.createOscillator(
                 Promise.all([ db.ref(path+'/institutionDetails').set(d), db.ref(path+'/eventProgram').set(prog), db.ref(path+'/lastEditInfo').set(editInfo), db.ref(path+'/customTeleprompter').set(customTeleprompterText) ]).then(() => { 
                     currentEditCount++; document.getElementById('editCountDisplay').innerText = currentEditCount; 
                     currentEventData.lastEditInfo = editInfo; currentEventData.institutionDetails = d; 
-                    currentEventData.eventProgram = prog; currentEventData.customTeleprompter = customTeleprompterText; 
+                    currentEventData.eventProgram = prog; currentEventData.customTeleprompter = customTeleprompterText;
+                    localStorage.removeItem(getDraftKey());
                     document.getElementById('downloadPromptModal').style.display = 'flex'; 
                 });
             });
@@ -2802,6 +2804,104 @@ window.startLiveGameListener = function() {
         alert('خطأ: ' + e.message);
     });
 };
+        /* =========================================================
+   💾 نظام الحفظ التلقائي للكواليس (Auto-Save)
+   ========================================================= */
+let draftAlreadyChecked = false;
+
+function getDraftKey() {
+    return 'bechaDraft_' + (isArchivedEvent ? 'arch_' : 'live_') + currentEventIndex;
+}
+
+function collectBackstageDraft() {
+    let draft = {
+        manager: document.getElementById('instManager').value,
+        founder: document.getElementById('instFounder').value,
+        occasion: document.getElementById('eventOccasion').value,
+        customOccasion: document.getElementById('customOccasionInput').value,
+        teleprompter: document.getElementById('customTeleprompterInput').value,
+        educators: [], coaches: [], staff: [], program: [],
+        savedAt: Date.now()
+    };
+    document.querySelectorAll('#educatorsList .edu-name').forEach(e => draft.educators.push(e.value));
+    document.querySelectorAll('#coachesList > div').forEach(r => {
+        draft.coaches.push({ spec: r.querySelector('.coach-spec').value, name: r.querySelector('.coach-name').value });
+    });
+    document.querySelectorAll('#staffList > div').forEach(r => {
+        draft.staff.push({ role: r.querySelector('.staff-role').value, name: r.querySelector('.staff-name').value });
+    });
+    document.querySelectorAll('.prog-row').forEach(r => {
+        let type = r.querySelector('.prog-type').value;
+        draft.program.push({
+            type: type,
+            customType: type === 'أخرى' ? r.querySelector('.other-type').value : '',
+            details: r.querySelector('.prog-details').value,
+            completed: r.classList.contains('locked')
+        });
+    });
+    return draft;
+}
+
+function showAutoSaveIndicator() {
+    let ind = document.getElementById('autoSaveIndicator');
+    if(!ind) {
+        ind = document.createElement('div');
+        ind.id = 'autoSaveIndicator';
+        ind.style.cssText = 'position:fixed; bottom:15px; left:15px; background:#198754; color:white; padding:8px 16px; border-radius:20px; font-size:13px; font-weight:bold; z-index:9999; box-shadow:0 4px 10px rgba(0,0,0,0.2); font-family:Cairo; opacity:0; transition:opacity 0.3s; pointer-events:none;';
+        document.body.appendChild(ind);
+    }
+    ind.innerText = '💾 تم الحفظ التلقائي';
+    ind.style.opacity = '1';
+    clearTimeout(window._autoSaveIndTimer);
+    window._autoSaveIndTimer = setTimeout(() => { ind.style.opacity = '0'; }, 2000);
+}
+
+function performAutoSave() {
+    if(!currentUser || !currentUser.perms || !currentUser.perms.bs_edit) return;
+    if(document.getElementById('backstageSection').style.display === 'none') return;
+    try {
+        let draft = collectBackstageDraft();
+        if(draft.program.length === 0 && !draft.manager && !draft.teleprompter) return; // ما نحفظوش فارغ
+        localStorage.setItem(getDraftKey(), JSON.stringify(draft));
+        showAutoSaveIndicator();
+    } catch(e) { console.log('autosave error', e); }
+}
+
+function checkForDraft() {
+    if(draftAlreadyChecked) return;
+    if(!currentUser || !currentUser.perms || !currentUser.perms.bs_edit) return;
+    draftAlreadyChecked = true;
+    try {
+        let raw = localStorage.getItem(getDraftKey());
+        if(!raw) return;
+        let draft = JSON.parse(raw);
+        let serverTime = (currentEventData.lastEditInfo && currentEventData.lastEditInfo.time) || 0;
+        if(draft.savedAt <= serverTime) { localStorage.removeItem(getDraftKey()); return; } // المسودة قديمة
+        let d = new Date(draft.savedAt);
+        let timeStr = d.toLocaleTimeString('ar-TN', {hour:'2-digit', minute:'2-digit'}) + ' - ' + d.toLocaleDateString('ar-TN');
+        if(confirm(`📝 لقينا مسودة غير محفوظة من آخر مرة (${timeStr}).\n\nتحب ترجّعها؟\n\nOK = استرجاع المسودة\nCancel = مواصلة بالنسخة المحفوظة`)) {
+            restoreDraft(draft);
+        } else {
+            localStorage.removeItem(getDraftKey());
+        }
+    } catch(e) { console.log('draft check error', e); }
+}
+
+function restoreDraft(draft) {
+    document.getElementById('instManager').value = draft.manager || '';
+    document.getElementById('instFounder').value = draft.founder || '';
+    if(draft.occasion) { document.getElementById('eventOccasion').value = draft.occasion; handleOccasionChange(draft.occasion); }
+    document.getElementById('customOccasionInput').value = draft.customOccasion || '';
+    document.getElementById('customTeleprompterInput').value = draft.teleprompter || '';
+    ['educatorsList', 'coachesList', 'staffList', 'programList'].forEach(id => document.getElementById(id).innerHTML = '');
+    (draft.educators || []).forEach(n => addEducator(n));
+    (draft.coaches || []).forEach(c => addCoach(c.spec, c.name));
+    (draft.staff || []).forEach(s => addStaff(s.role, s.name));
+    (draft.program || []).forEach(p => addProgramItem(p.type, p.details, p.completed, p.customType));
+}
+
+// ⏱️ العسّاس: يحفظ أوتوماتيكياً كل 30 ثانية
+setInterval(performAutoSave, 30000);
     </script>
 </body>
 </html>
