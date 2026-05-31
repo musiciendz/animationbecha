@@ -798,7 +798,6 @@ function playBeep(type) { initAudioCtx(); const osc = audioCtx.createOscillator(
                 if(rfs && !document.fullscreenElement) rfs.call(docEl);
             } catch(e) {}
             let u = document.getElementById('loginUser').value.trim(); let p = document.getElementById('loginPass').value.trim();
-        }
             if(u === "حمادي" && p === "amouhfy2025") {
                 currentUser = { pseudo: "حمادي", role: "admin", perms: { stage: true, timeline: true, bs_view: true, bs_edit: true, radar: true, end_event: true } };
                 document.getElementById('mainAppHeader').style.display = 'block'; document.getElementById('headerUserBadge').innerText = `👑 الإدارة (${currentUser.pseudo})`; showScreen('adminHubScreen');
