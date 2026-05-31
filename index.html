@@ -3368,6 +3368,17 @@ window.renderJsfPicker = function() {
     });
     modal.innerHTML = `<div class="modal-box" style="background:#222; border:3px solid #ffc107; max-height:85vh; overflow-y:auto;">${head}${html}</div>`;
 };
+        window.jsfSelectLib = function(libId) {
+    window.jsfState.libId = libId;
+    // نسجّل اللعبة كمُستعملة باش تبان معلّمة المرة الجاية
+    if(window.usedEmergencyItems && !window.usedEmergencyItems.includes(libId)) {
+        window.usedEmergencyItems.push(libId);
+        db.ref(window.jsfPath() + '/usedEmergencyItems').set(window.usedEmergencyItems);
+    }
+    let picker = document.getElementById('jsfLibPicker');
+    if(picker) picker.style.display = 'none';
+    window.jsfRefresh();
+};
 window.jsfClearLib = function() { window.jsfState.libId = null; window.jsfRefresh(); };
 
 // 🎉 إعلان الفائز
