@@ -1644,10 +1644,33 @@ window.startDjSyncListener = function() {
             </div>`;
 
             if(items.length === 0) { html += '<p style="text-align:center; color:#888;">المجلد فارغ.</p>'; }
+
+            // نلموا الـ IDs متاع الفقرات اللي ديجا في البرنامج
+            let usedIds = new Set();
+            document.querySelectorAll('.prog-details').forEach(inp => {
+                let v = inp.value || '';
+                if(v.includes('LIB::')) {
+                    v.split('|||').forEach(part => {
+                        let mm = part.match(/LIB::([^:]+)::/);
+                        if(mm && mm[1]) usedIds.add(mm[1]);
+                    });
+                }
+            });
+
             items.forEach(item => {
                 let star = item.isFav ? '⭐ ' : '';
                 let safeName = item.name.replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/"/g, '&quot;').replace(/[\n\r]+/g, ' ');
-                html += `<div style="padding:15px; border:2px solid #eee; border-radius:10px; margin-bottom:10px; cursor:pointer; text-align:right;" onclick="selectLibItemForProg('${item.id}', '${safeName}')"><h4 style="margin:0; color:var(--primary-red);">${star}${item.name}</h4><span style="font-size:12px; color:#666;">${item.type}</span></div>`;
+                let isUsed = usedIds.has(item.id);
+
+                // الفقرة المختارة: خلفية خضراء + علامة ✔️
+                let cardStyle = isUsed
+                    ? 'padding:15px; border:2px solid #198754; background:#f0fdf4; border-radius:10px; margin-bottom:10px; cursor:pointer; text-align:right;'
+                    : 'padding:15px; border:2px solid #eee; border-radius:10px; margin-bottom:10px; cursor:pointer; text-align:right;';
+                let usedBadge = isUsed
+                    ? '<span style="background:#198754; color:white; padding:2px 10px; border-radius:12px; font-size:12px; font-weight:bold; float:left;">✔️ مختارة</span>'
+                    : '';
+
+                html += `<div style="${cardStyle}" onclick="selectLibItemForProg('${item.id}', '${safeName}')">${usedBadge}<h4 style="margin:0; color:${isUsed ? '#198754' : 'var(--primary-red)'};">${star}${item.name}</h4><span style="font-size:12px; color:#666;">${item.type}</span></div>`;
             });
             list.innerHTML = html;
         };
