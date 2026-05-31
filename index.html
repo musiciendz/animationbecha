@@ -667,6 +667,27 @@
         const firebaseConfig = { apiKey: "AIzaSyCTTjp34QhF6MPNemwKhoq7385xnJKK_Hg", authDomain: "becha-events-kids.firebaseapp.app", databaseURL: "https://becha-events-kids-default-rtdb.europe-west1.firebasedatabase.app", projectId: "becha-events-kids", storageBucket: "becha-events-kids.appspot.com", messagingSenderId: "763935242130", appId: "1:763935242130:web:490a99e38c53ba0240f34b" };
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
+        // 🔗 الدخول الأوتوماتيكي من تطبيقة Becha Pro (قراءة الكود من الرابط)
+        window.addEventListener('DOMContentLoaded', function() {
+            try {
+                let params = new URLSearchParams(window.location.search);
+                // نقرا الكود مهما كان اسمو: pin أو code أو c
+                let autoPin = params.get('pin') || params.get('code') || params.get('c');
+                // كان ما لقاش، نجرب من بعد الـ # (مثال: ...#1234)
+                if(!autoPin && window.location.hash) {
+                    let h = window.location.hash.replace('#', '').trim();
+                    if(/^\d{4}$/.test(h)) autoPin = h;
+                }
+                if(autoPin && /^\d{4}$/.test(autoPin.trim())) {
+                    let pinInput = document.getElementById('loginPin');
+                    if(pinInput) {
+                        pinInput.value = autoPin.trim();
+                        // ندخّل أوتوماتيكياً بعد ثانية (باش Firebase يكون جاهز)
+                        setTimeout(() => { if(typeof loginWithPin === 'function') loginWithPin(); }, 1200);
+                    }
+                }
+            } catch(e) { console.log('auto-login error', e); }
+        });
 
         let currentUser = null; let currentEventIndex = -1; let currentEventData = null; let isArchivedEvent = false;
         let liveProgRef = null; let backstageProgRef = null; let onlineRef = null; let presenceListeners = [];
