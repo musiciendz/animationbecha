@@ -2807,7 +2807,7 @@ window.startLiveGameListener = function() {
         /* =========================================================
    💾 نظام الحفظ التلقائي للكواليس (Auto-Save)
    ========================================================= */
-let draftAlreadyChecked = false;
+window.draftAlreadyChecked = window.draftAlreadyChecked || false;
 
 function getDraftKey() {
     return 'bechaDraft_' + (isArchivedEvent ? 'arch_' : 'live_') + currentEventIndex;
