@@ -792,7 +792,13 @@ function playBeep(type) { initAudioCtx(); const osc = audioCtx.createOscillator(
         function toggleTeleprompter() { let tv = document.getElementById('teleprompterView'); let ti = document.getElementById('teleIcon'); if(tv.style.display === 'none') { tv.style.display = 'block'; ti.innerText = '➖'; } else { tv.style.display = 'none'; ti.innerText = '➕'; } }
 
         function loginAdmin() {
+            try {
+                let docEl = document.documentElement;
+                let rfs = docEl.requestFullscreen || docEl.webkitRequestFullScreen || docEl.mozRequestFullScreen || docEl.msRequestFullscreen;
+                if(rfs && !document.fullscreenElement) rfs.call(docEl);
+            } catch(e) {}
             let u = document.getElementById('loginUser').value.trim(); let p = document.getElementById('loginPass').value.trim();
+        }
             if(u === "حمادي" && p === "amouhfy2025") {
                 currentUser = { pseudo: "حمادي", role: "admin", perms: { stage: true, timeline: true, bs_view: true, bs_edit: true, radar: true, end_event: true } };
                 document.getElementById('mainAppHeader').style.display = 'block'; document.getElementById('headerUserBadge').innerText = `👑 الإدارة (${currentUser.pseudo})`; showScreen('adminHubScreen');
@@ -849,6 +855,12 @@ function playBeep(type) { initAudioCtx(); const osc = audioCtx.createOscillator(
         function resetTeamInfractions() { if(!confirm("⚠️ هل أنت متأكد من مسح جميع مخالفات هذا الفريق (تصفير العداد)؟\nسيتم حذف جميع سجلات خروجهم السابقة.")) return; let originalTeam = currentEventData.assignedTeam || []; let updates = {}; originalTeam.forEach(member => { if(member !== "مديرة المؤسسة") updates[member] = 0; }); db.ref('BechaEventsData/users_infractions').update(updates).then(() => { alert("🧹 تم تصفير عدادات الإنذارات بنجاح!"); }).catch(e => alert("خطأ: " + e.message)); }
 
         function loginWithPin() {
+            // ⛶ ملء الشاشة عند أول ضغطة (المتصفح يسمح بهذا فقط بعد ضغطة المستخدم)
+            try {
+                let docEl = document.documentElement;
+                let rfs = docEl.requestFullscreen || docEl.webkitRequestFullScreen || docEl.mozRequestFullScreen || docEl.msRequestFullscreen;
+                if(rfs && !document.fullscreenElement) rfs.call(docEl);
+            } catch(e) {}
             let pin = document.getElementById('loginPin').value.trim(); if(!pin || pin.length < 4 || pin.length > 4 || !/^\d{4}$/.test(pin)) return alert("❌ الكود يجب أن يكون 4 أرقام فقط!");
             Promise.all([ db.ref('BechaEventsData/events').once('value'), db.ref('BechaEventsData/archived_events').once('value') ]).then((snaps) => {
                 let liveEvents = snaps[0].val() || []; let archivedEvents = snaps[1].val() || {}; let allEvents = [];
