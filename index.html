@@ -1597,23 +1597,60 @@ window.startDjSyncListener = function() {
         };
         function openLibSelectModal(inputId) { 
             targetLibInputId = inputId;
-            let list = document.getElementById('libSelectList'); list.innerHTML = ''; 
+            window.libSelectFolder = null; // نبداو من المجلدات
             db.ref('BechaEventsData/library').once('value', snap => { 
-                let libs = snap.val() || {}; let items = Object.keys(libs).map(k => ({id: k, ...libs[k]})); items.sort((a, b) => b.updatedAt - a.updatedAt); 
-                if(items.length === 0) { list.innerHTML = '<p style="text-align:center; color:#888;">المكتبة فارغة.</p>'; } 
-                else { 
-                    items.forEach(item => { 
-                        let star = item.isFav ? '⭐ ' : ''; 
-                        
-                        // الفيلتر الذكي: ينظف الإسم من أي (Entrée) أو (مزدوجين) تنجم تكسر الكود
-                        let safeName = item.name.replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/"/g, '&quot;').replace(/[\n\r]+/g, ' ');
-                        
-                        list.innerHTML += `<div style="padding:15px; border:2px solid #eee; border-radius:10px; margin-bottom:10px; cursor:pointer; text-align:right;" onclick="selectLibItemForProg('${item.id}', '${safeName}')"><h4 style="margin:0; color:var(--primary-red);">${star}${item.name}</h4><span style="font-size:12px; color:#666;">${item.type}</span></div>`; 
-                    }); 
-                } 
+                window._libSelectCache = snap.val() || {};
+                renderLibSelectUI();
                 document.getElementById('libSelectModal').style.display = 'flex'; 
             }); 
         }
+
+        // رسم واجهة النافذة (مجلدات أو فقرات داخل مجلد)
+        window.renderLibSelectUI = function() {
+            let libs = window._libSelectCache || {};
+            let list = document.getElementById('libSelectList');
+            let folder = window.libSelectFolder;
+
+            // الواجهة 1: المجلدات
+            if(!folder) {
+                let typesCount = {};
+                Object.keys(libs).forEach(k => {
+                    let t = libs[k].type === 'أخرى' ? (libs[k].customType || 'متنوع') : libs[k].type;
+                    if(t) typesCount[t] = (typesCount[t] || 0) + 1;
+                });
+                if(Object.keys(typesCount).length === 0) { list.innerHTML = '<p style="text-align:center; color:#888;">المكتبة فارغة.</p>'; return; }
+                let html = '<div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">';
+                for(let t in typesCount) {
+                    let icon = t.includes('لغز') ? '🤔' : t.includes('حركية') ? '🏃‍♂️' : t.includes('مسابقة') ? '🧠' : t.includes('أغنية') || t.includes('مترجمة') ? '🎵' : t.includes('عيد') ? '🎁' : t.includes('رقص') ? '💃' : t.includes('كاريوكي') || t.includes('فيديو') ? '🎬' : '📁';
+                    let safeT = t.replace(/'/g, "\\'");
+                    html += `<div class="dash-card" style="border-color:#ff9800; margin-bottom:0;" onclick="window.libSelectFolder='${safeT}'; renderLibSelectUI();"><div style="font-size:32px; margin-bottom:8px;">${icon}</div><h4 style="color:#ff9800; margin:0;">${t}</h4><span style="font-size:12px; color:#666; font-weight:bold;">${typesCount[t]} فقرة</span></div>`;
+                }
+                html += '</div>';
+                list.innerHTML = html;
+                return;
+            }
+
+            // الواجهة 2: الفقرات داخل المجلد + زر رجوع
+            let items = Object.keys(libs).map(k => ({id: k, ...libs[k]}))
+                .filter(i => {
+                    let t = i.type === 'أخرى' ? (i.customType || 'متنوع') : i.type;
+                    return t === folder;
+                });
+            items.sort((a, b) => b.updatedAt - a.updatedAt);
+
+            let html = `<div style="display:flex; justify-content:space-between; align-items:center; background:#fffdf5; border:2px dashed #ffc107; padding:12px; border-radius:10px; margin-bottom:15px;">
+                <h4 style="margin:0; color:#ff9800;">📁 ${folder}</h4>
+                <button class="btn btn-dark" style="padding:5px 12px; font-size:14px;" onclick="window.libSelectFolder=null; renderLibSelectUI();">🔙 المجلدات</button>
+            </div>`;
+
+            if(items.length === 0) { html += '<p style="text-align:center; color:#888;">المجلد فارغ.</p>'; }
+            items.forEach(item => {
+                let star = item.isFav ? '⭐ ' : '';
+                let safeName = item.name.replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/"/g, '&quot;').replace(/[\n\r]+/g, ' ');
+                html += `<div style="padding:15px; border:2px solid #eee; border-radius:10px; margin-bottom:10px; cursor:pointer; text-align:right;" onclick="selectLibItemForProg('${item.id}', '${safeName}')"><h4 style="margin:0; color:var(--primary-red);">${star}${item.name}</h4><span style="font-size:12px; color:#666;">${item.type}</span></div>`;
+            });
+            list.innerHTML = html;
+        };
 
         function selectLibItemForProg(libId, libName) {
             let currentRows = document.querySelectorAll('.prog-row'); let isDuplicated = false; let dupIndex = -1;
