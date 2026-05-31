@@ -2868,15 +2868,15 @@ function performAutoSave() {
 }
 
 function checkForDraft() {
-    if(draftAlreadyChecked) return;
+    if(window.draftAlreadyChecked) return;
     if(!currentUser || !currentUser.perms || !currentUser.perms.bs_edit) return;
-    draftAlreadyChecked = true;
+    window.draftAlreadyChecked = true;
     try {
         let raw = localStorage.getItem(getDraftKey());
         if(!raw) return;
         let draft = JSON.parse(raw);
         let serverTime = (currentEventData.lastEditInfo && currentEventData.lastEditInfo.time) || 0;
-        if(draft.savedAt <= serverTime) { localStorage.removeItem(getDraftKey()); return; } // المسودة قديمة
+        if(draft.savedAt <= serverTime) { localStorage.removeItem(getDraftKey()); return; }
         let d = new Date(draft.savedAt);
         let timeStr = d.toLocaleTimeString('ar-TN', {hour:'2-digit', minute:'2-digit'}) + ' - ' + d.toLocaleDateString('ar-TN');
         if(confirm(`📝 لقينا مسودة غير محفوظة من آخر مرة (${timeStr}).\n\nتحب ترجّعها؟\n\nOK = استرجاع المسودة\nCancel = مواصلة بالنسخة المحفوظة`)) {
