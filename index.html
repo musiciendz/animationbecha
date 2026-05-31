@@ -2336,21 +2336,39 @@ if(emergencyModal) emergencyModal.style.display = 'none';
         }, 1000);
 
         // 2. تحديث دوال الحفظ باش تقرا الأزرار الجدد
-        window.openLibForm = function() {
-            document.getElementById('libItemId').value = '';
-            document.getElementById('libItemName').value = '';
-            document.getElementById('libItemType').value = 'لغز / تشنشينة';
-            document.getElementById('libItemCustomType').value = '';
-            document.getElementById('libItemCustomType').style.display = 'none';
-            document.getElementById('libItemAnim').value = '';
-            document.getElementById('libItemDJ').value = '';
-            document.getElementById('libItemAssist').value = '';
-            document.getElementById('libItemFav').checked = false;
-            if(document.getElementById('libItemScore')) document.getElementById('libItemScore').checked = false;
-            if(document.getElementById('libItemChrono')) document.getElementById('libItemChrono').checked = false;
-            document.getElementById('libFormTitle').innerText = '➕ فقرة جديدة';
-            document.getElementById('libFormModal').style.display = 'flex';
-        };
+       window.openLibForm = function(prefilledType = '') {
+    document.getElementById('libItemId').value = '';
+    document.getElementById('libItemName').value = '';
+    let select = document.getElementById('libItemType');
+    let customTypeInput = document.getElementById('libItemCustomType');
+
+    if (prefilledType && typeof prefilledType === 'string' && prefilledType !== 'fav' && prefilledType !== 'all') {
+        let isStandard = Array.from(select.options).some(o => o.value === prefilledType);
+        if (isStandard) {
+            select.value = prefilledType;
+            customTypeInput.style.display = 'none';
+            customTypeInput.value = '';
+        } else {
+            select.value = 'أخرى';
+            customTypeInput.style.display = 'block';
+            customTypeInput.value = prefilledType;
+        }
+        document.getElementById('libFormTitle').innerText = `➕ إضافة في [${prefilledType}]`;
+    } else {
+        select.value = 'لغز / تشنشينة';
+        customTypeInput.style.display = 'none';
+        customTypeInput.value = '';
+        document.getElementById('libFormTitle').innerText = '➕ فقرة جديدة';
+    }
+
+    document.getElementById('libItemAnim').value = '';
+    document.getElementById('libItemDJ').value = '';
+    document.getElementById('libItemAssist').value = '';
+    document.getElementById('libItemFav').checked = false;
+    if(document.getElementById('libItemScore')) document.getElementById('libItemScore').checked = false;
+    if(document.getElementById('libItemChrono')) document.getElementById('libItemChrono').checked = false;
+    document.getElementById('libFormModal').style.display = 'flex';
+};
 
         window.editLibItem = function(id) {
             let item = libraryData[id];
