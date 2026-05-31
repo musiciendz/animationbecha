@@ -3226,7 +3226,7 @@ window.renderJSF = function() {
         let lib = libraryData[s.libId];
         html += `<div style="max-width:900px; margin:0 auto 25px auto; background:#1a1a2e; border:2px solid #ffc107; border-radius:14px; padding:20px; text-align:right; position:relative; max-height:30vh; overflow-y:auto;">
             ${!ro ? `<button onclick="window.jsfClearLib()" style="position:absolute; top:10px; left:10px; background:transparent; border:none; color:#dc3545; cursor:pointer; font-size:18px;">❌</button>` : ''}
-            <h3 style="color:#ffc107; margin:0 0 10px 0;">⭐ ${lib.name}</h3>
+            <h3 style="color:#ffc107; margin:0 0 10px 0; display:flex; justify-content:space-between; align-items:center;"><span>⭐ ${lib.name}</span><button onclick="window.jsfZoomText('${s.libId}')" style="background:#17a2b8; color:white; border:none; border-radius:8px; padding:5px 12px; font-size:14px; cursor:pointer; font-family:'Cairo';">🔍 تكبير</button></h3>
             ${lib.animText ? `<div style="color:#e3f2fd; margin-bottom:8px; line-height:1.6;">🎤 ${lib.animText.replace(/\n/g,'<br>')}</div>` : ''}
             ${lib.djText ? `<div style="color:#f3e5f5; font-size:0.9em; opacity:0.9;">🎧 DJ: ${lib.djText.replace(/\n/g,'<br>')}</div>` : ''}
         </div>`;
@@ -3378,6 +3378,40 @@ window.renderJsfPicker = function() {
     let picker = document.getElementById('jsfLibPicker');
     if(picker) picker.style.display = 'none';
     window.jsfRefresh();
+};
+        // 🔍 نافذة تكبير نص اللعبة (شاشة كاملة للمنشط)
+window.jsfZoomText = function(libId) {
+    let lib = libraryData[libId];
+    if(!lib) return;
+    let overlay = document.getElementById('jsfTextZoom');
+    if(!overlay) {
+        overlay = document.createElement('div');
+        overlay.id = 'jsfTextZoom';
+        overlay.style.cssText = 'position:fixed; top:0; left:0; width:100vw; height:100vh; background:#0d0d1a; z-index:99999999; display:flex; flex-direction:column; overflow-y:auto;';
+        document.body.appendChild(overlay);
+    }
+    let html = `<div style="display:flex; justify-content:space-between; align-items:center; padding:15px 25px; background:#1a1a2e; border-bottom:3px solid #ffc107; position:sticky; top:0;">
+        <h2 style="color:#ffc107; margin:0;">⭐ ${lib.name}</h2>
+        <div>
+            <button onclick="window.jsfZoomFont(-1)" style="background:#333; color:white; border:none; border-radius:8px; padding:8px 14px; font-size:20px; cursor:pointer; margin-left:5px;">🔍-</button>
+            <button onclick="window.jsfZoomFont(1)" style="background:#333; color:white; border:none; border-radius:8px; padding:8px 14px; font-size:20px; cursor:pointer; margin-left:5px;">🔍+</button>
+            <button onclick="document.getElementById('jsfTextZoom').style.display='none'" class="btn btn-red" style="font-size:16px;">❌ إغلاق</button>
+        </div>
+    </div>
+    <div id="jsfZoomContent" style="flex:1; padding:40px; color:white; font-size:38px; line-height:1.7; font-weight:800; text-align:right;">`;
+    if(lib.animText) html += `<div style="margin-bottom:30px;">🎤 ${lib.animText.replace(/\n/g,'<br>')}</div>`;
+    if(lib.djText) html += `<div style="color:#f3e5f5; font-size:0.7em; opacity:0.85; border-top:1px solid #444; padding-top:20px;">🎧 DJ: ${lib.djText.replace(/\n/g,'<br>')}</div>`;
+    html += `</div>`;
+    overlay.innerHTML = html;
+    overlay.style.display = 'flex';
+    window._jsfZoomFontSize = 38;
+};
+window.jsfZoomFont = function(dir) {
+    window._jsfZoomFontSize = (window._jsfZoomFontSize || 38) + (dir * 6);
+    if(window._jsfZoomFontSize < 18) window._jsfZoomFontSize = 18;
+    if(window._jsfZoomFontSize > 90) window._jsfZoomFontSize = 90;
+    let c = document.getElementById('jsfZoomContent');
+    if(c) c.style.fontSize = window._jsfZoomFontSize + 'px';
 };
 window.jsfClearLib = function() { window.jsfState.libId = null; window.jsfRefresh(); };
 
