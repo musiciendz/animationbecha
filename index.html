@@ -2296,6 +2296,8 @@ if(curtainAudio) {
                 if(libData) {
                     let counterText = parts.length > 1 ? `<span style="color:#aaa; font-size:0.7em;">(لعبة ${subIdx+1} من ${parts.length})</span>` : '';
                     contentHtml += `<div style="color:#ffc107; font-size:1.2em; margin-bottom:20px; border-bottom:2px solid #555; padding-bottom:10px;">⭐ ${libData.name} ${counterText}</div>`;
+                    if(libData.videoUrl && currentUser && ['animateur','admin','admin_assistant'].includes(currentUser.role)) contentHtml += `<button onclick="window.playSavedVideo('${libData.videoUrl}')" style="background:#25D366; color:white; border:none; border-radius:12px; padding:12px 25px; font-size:22px; font-weight:bold; cursor:pointer; margin-bottom:20px; box-shadow:0 4px 10px rgba(37,211,102,0.4);">🎬 تشغيل الكاريوكي</button><br>`;
+                    if(libData.videoUrl && currentUser && ['animateur','admin','admin_assistant'].includes(currentUser.role)) contentHtml += `<button onclick="window.playSavedVideo('${libData.videoUrl}')" style="background:#25D366; color:white; border:none; border-radius:12px; padding:12px 25px; font-size:22px; font-weight:bold; cursor:pointer; margin-bottom:20px; box-shadow:0 4px 10px rgba(37,211,102,0.4);">🎬 تشغيل الكاريوكي</button><br>`;
                     if(libData.animText) contentHtml += `<div style="color:#e3f2fd; margin-bottom:15px; line-height:1.6;">🎤 <b>نص المنشط:</b><br>${libData.animText}</div>`;
                     if(libData.djText) contentHtml += `<div style="color:#f3e5f5; font-size:0.8em; opacity:0.9; margin-top:30px;">🎧 <b>DJ:</b> ${libData.djText}</div>`;
                     if(libData.assistText) contentHtml += `<div style="color:#fff3e0; font-size:0.8em; opacity:0.9;">🏃‍♂️ <b>المساعد:</b> ${libData.assistText}</div>`;
@@ -2938,7 +2940,7 @@ window.startLiveGameListener = function() {
         setTimeout(() => { let libSelect = document.getElementById('libItemType'); if(libSelect && !Array.from(libSelect.options).some(o => o.value === 'كاريوكي / فيديو')) { libSelect.insertAdjacentHTML('afterbegin', '<option value="كاريوكي / فيديو">🎤 كاريوكي / فيديو</option>'); } }, 1500);
 
         window.loadLocalVideoGlobal = function(event) { let file = event.target.files[0]; if(!file) return; let videoUrl = URL.createObjectURL(file); let videoContainer = document.getElementById('globalVideoContainer'); let videoEl = document.getElementById('globalLocalVideoElement'); videoEl.src = videoUrl; videoContainer.style.display = 'flex'; videoEl.play(); if (currentUser && ['animateur', 'admin', 'admin_assistant'].includes(currentUser.role)) { let path = isArchivedEvent ? 'BechaEventsData/archived_events/'+currentEventIndex : 'BechaEventsData/events/'+currentEventIndex; db.ref(path + '/djForceSync/video').set({ active: true, name: file.name }); } event.target.value = ''; };
-        window.closeGlobalVideo = function() { let videoContainer = document.getElementById('globalVideoContainer'); let videoEl = document.getElementById('globalLocalVideoElement'); if(videoEl) { videoEl.pause(); videoEl.src = ""; } if(videoContainer) videoContainer.style.display = 'none'; if (currentUser && ['animateur', 'admin', 'admin_assistant'].includes(currentUser.role)) { let path = isArchivedEvent ? 'BechaEventsData/archived_events/'+currentEventIndex : 'BechaEventsData/events/'+currentEventIndex; db.ref(path + '/djForceSync/video').set({ active: false }); } };
+        window.closeGlobalVideo = function() { let videoContainer = document.getElementById('globalVideoContainer'); let videoEl = document.getElementById('globalLocalVideoElement'); if(videoEl) { videoEl.pause(); videoEl.src = ""; } let frame = document.getElementById('globalEmbedFrame'); if(frame) frame.src = ""; if(videoContainer) videoContainer.style.display = 'none'; if (currentUser && ['animateur', 'admin', 'admin_assistant'].includes(currentUser.role)) { let path = isArchivedEvent ? 'BechaEventsData/archived_events/'+currentEventIndex : 'BechaEventsData/events/'+currentEventIndex; db.ref(path + '/djForceSync/video').set({ active: false }); } };
         window.loadLocalMusicGlobal = function(event) {
             let file = event.target.files[0]; if(!file) return;
             let musicUrl = URL.createObjectURL(file);
@@ -3525,6 +3527,42 @@ window.startJsfListener = function() {
             window.closeJSF(true);
         }
     });
+};
+        /* =========================================================
+   🎬 تشغيل الكاريوكي/الفيديو المحفوظ مع الفقرة (روابط أونلاين)
+   ========================================================= */
+window.playSavedVideo = function(url) {
+    if(!url) return;
+    let fsContainer = document.getElementById('fullscreenTeleprompter');
+    let container = document.getElementById('globalVideoContainer');
+    if(!container) return;
+
+    // نحوّل رابط يوتيوب لصيغة embed
+    let ytId = null;
+    let ytMatch = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/|youtube\.com\/shorts\/)([A-Za-z0-9_-]{11})/);
+    if(ytMatch) ytId = ytMatch[1];
+
+    // نحوّل رابط Google Drive لصيغة preview
+    let driveMatch = url.match(/drive\.google\.com\/file\/d\/([^\/]+)/);
+
+    let innerHtml = `<button onclick="window.closeGlobalVideo()" style="position:absolute; top:15px; right:25px; background:#E10600; color:#fff; border:none; padding:10px 20px; font-size:18px; border-radius:10px; cursor:pointer; font-weight:bold; box-shadow:0 4px 10px rgba(0,0,0,0.5); z-index:9001;">❌ إغلاق الفيديو</button>`;
+
+    if(ytId) {
+        innerHtml += `<iframe id="globalEmbedFrame" src="https://www.youtube.com/embed/${ytId}?autoplay=1&rel=0" style="width:95%; height:85%; border:4px solid #ffc107; border-radius:15px; margin-top:40px;" allow="autoplay; encrypted-media" allowfullscreen></iframe>`;
+    } else if(driveMatch) {
+        innerHtml += `<iframe id="globalEmbedFrame" src="https://drive.google.com/file/d/${driveMatch[1]}/preview" style="width:95%; height:85%; border:4px solid #ffc107; border-radius:15px; margin-top:40px;" allow="autoplay" allowfullscreen></iframe>`;
+    } else {
+        innerHtml += `<video id="globalLocalVideoElement" src="${url}" controls autoplay style="max-width:95%; max-height:85%; border-radius:15px; border:4px solid #ffc107; box-shadow:0 10px 30px rgba(0,0,0,0.8); background:#111; margin-top:40px;"></video>`;
+    }
+
+    container.innerHTML = innerHtml;
+    container.style.display = 'flex';
+
+    // نعلم الـ DJ اللي فما فيديو يخدم (مزامنة)
+    if (currentUser && ['animateur', 'admin', 'admin_assistant'].includes(currentUser.role)) {
+        let path = isArchivedEvent ? 'BechaEventsData/archived_events/'+currentEventIndex : 'BechaEventsData/events/'+currentEventIndex;
+        db.ref(path + '/djForceSync/video').set({ active: true, name: 'كاريوكي', savedUrl: url });
+    }
 };
     </script>
 </body>
