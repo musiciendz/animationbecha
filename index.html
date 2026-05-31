@@ -2425,6 +2425,7 @@ if(emergencyModal) emergencyModal.style.display = 'none';
     if(!libData) return;
     
     let contentHtml = `<div style="color:#0dcaf0; font-size:1.2em; margin-bottom:20px; border-bottom:2px solid #555; padding-bottom:10px;">🚀 ارتجال مباشر: ${libData.name}</div>`;
+if(libData.videoUrl && currentUser && ['animateur','admin','admin_assistant'].includes(currentUser.role)) contentHtml += `<button onclick="window.playSavedVideo('${libData.videoUrl}')" style="background:#25D366; color:white; border:none; border-radius:12px; padding:12px 25px; font-size:22px; font-weight:bold; cursor:pointer; margin-bottom:20px; box-shadow:0 4px 10px rgba(37,211,102,0.4);">🎬 تشغيل الكاريوكي</button><br>`;            
     if(libData.animText) contentHtml += `<div style="color:#e3f2fd; margin-bottom:15px; line-height:1.6;">🎤 <b>نص المنشط:</b><br>${libData.animText.replace(/\n/g, '<br>')}</div>`;
     if(libData.djText) contentHtml += `<div style="color:#f3e5f5; font-size:0.8em; opacity:0.9; margin-top:30px;">🎧 <b>DJ:</b> ${libData.djText.replace(/\n/g, '<br>')}</div>`;
     if(libData.assistText) contentHtml += `<div style="color:#fff3e0; font-size:0.8em; opacity:0.9;">🏃‍♂️ <b>المساعد:</b> ${libData.assistText.replace(/\n/g, '<br>')}</div>`;
