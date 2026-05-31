@@ -506,7 +506,11 @@
         <div class="sticky-container">
             <button class="btn btn-dark" style="padding: 5px 15px; font-size: 14px; border-radius: 12px;" onclick="backToAdminHub()">⬅️ رجوع</button>
             <h3 style="margin:0; color:var(--primary-red);">📚 مكتبة باشا إيفنتس</h3>
-            <button class="btn btn-green" style="padding: 5px 10px; font-size: 14px; border-radius: 12px;" onclick="openLibForm()">➕ إضافة</button>
+            <div style="display:flex; gap:5px;">
+                <button class="btn btn-info" style="padding: 5px 8px; font-size: 13px; border-radius: 12px;" onclick="exportLibrary()" title="نسخة احتياطية">💾</button>
+                <label class="btn btn-outline" style="padding: 5px 8px; font-size: 13px; border-radius: 12px; border-color:#6f42c1; color:#6f42c1; cursor:pointer;" title="استيراد">📂<input type="file" accept=".json" style="display:none;" onchange="importLibrary(event)"></label>
+                <button class="btn btn-green" style="padding: 5px 8px; font-size: 13px; border-radius: 12px;" onclick="openLibForm()">➕</button>
+            </div>
         </div>
         <div id="libTabsContainer" style="display:flex; gap:8px; margin-bottom:15px; overflow-x:auto; padding-bottom:5px; justify-content: right;"></div>
         <div id="generalLibContainer"></div>
@@ -1448,7 +1452,7 @@ window.startDjSyncListener = function() {
                 
                 let html = '<div style="display:grid; grid-template-columns:1fr 1fr; gap:15px; margin-top:10px;">';
                 for(let t in typesCount) {
-                    let icon = t.includes('لغز') ? '🤔' : t.includes('حركية') ? '🏃‍♂️' : t.includes('مسابقة') ? '🧠' : '📁';
+                    let icon = t.includes('لغز') ? '🤔' : t.includes('حركية') ? '🏃‍♂️' : t.includes('مسابقة') ? '🧠' : t.includes('أغنية') || t.includes('مترجمة') ? '🎵' : t.includes('عيد') ? '🎁' : t.includes('رقص') ? '💃' : t.includes('كاريوكي') || t.includes('فيديو') ? '🎬' : '📁';
                     html += `<div class="dash-card" style="border-color:var(--primary-red);" onclick="activeLibFilter='${t}'; renderLibrary('${t}')"><div style="font-size:30px; margin-bottom:10px;">${icon}</div><h3 style="color:var(--primary-red); margin:0;">${t}</h3><span style="font-size:13px; color:#666; font-weight:bold;">${typesCount[t]} فقرة</span></div>`;
                 }
                 html += '</div>';
@@ -1487,7 +1491,7 @@ window.startDjSyncListener = function() {
                 let isFav = item.isFav ? 'active' : '';
                 let playCount = item.playCount || 0;
                 let countBadge = `<span style="background:${playCount > 0 ? '#e8f5e9' : '#f8f9fa'}; color:${playCount > 0 ? '#198754' : '#999'}; padding:3px 10px; border-radius:12px; font-size:12px; font-weight:bold; margin-right:8px;">🎯 لُعبت ${playCount} مرة</span>`;
-                let html = `<div class="lib-card"><div class="fav-heart ${isFav}" onclick="toggleFavorite('${item.id}', ${!item.isFav}); setTimeout(()=>renderLibrary('${filterType}'), 300);">❤️</div><div class="lib-title">${item.name} <span style="font-size:12px; color:#666;">(${item.type})</span></div><div class="lib-date">آخر تحيين: ${dateStr} ${countBadge}</div><div style="font-size:13px; color:#555; margin-top:10px; background:#f8f9fa; padding:10px; border-radius:8px;"><b>🎤 المنشط:</b> ${item.animText || '---'}<br><b>🎧 الـ DJ:</b> ${item.djText || '---'}<br><b>🏃‍♂️ المساعد:</b> ${item.assistText || '---'}</div><div class="lib-actions"><button class="btn btn-outline" style="border-color:#17a2b8; color:#17a2b8; flex:1; padding:5px;" onclick="editLibItem('${item.id}')">✏️ تعديل</button><button class="btn btn-outline" style="border-color:#dc3545; color:#dc3545; flex:1; padding:5px;" onclick="deleteLibItem('${item.id}')">🗑️ حذف</button></div></div>`;
+                let html = `<div class="lib-card"><div class="fav-heart ${isFav}" onclick="toggleFavorite('${item.id}', ${!item.isFav}); setTimeout(()=>renderLibrary('${filterType}'), 300);">❤️</div><div class="lib-title">${item.name} <span style="font-size:12px; color:#666;">(${item.type})</span></div><div class="lib-date">آخر تحيين: ${dateStr} ${countBadge}</div><div style="font-size:13px; color:#555; margin-top:10px; background:#f8f9fa; padding:10px; border-radius:8px;"><b>🎤 المنشط:</b> ${item.animText || '---'}<br><b>🎧 الـ DJ:</b> ${item.djText || '---'}<br><b>🏃‍♂️ المساعد:</b> ${item.assistText || '---'}</div><div class="lib-actions"><button class="btn btn-outline" style="border-color:#17a2b8; color:#17a2b8; flex:1; padding:5px;" onclick="editLibItem('${item.id}')">✏️ تعديل</button><button class="btn btn-outline" style="border-color:#6f42c1; color:#6f42c1; flex:1; padding:5px;" onclick="duplicateLibItem('${item.id}')">📑 نسخ</button><button class="btn btn-outline" style="border-color:#dc3545; color:#dc3545; flex:1; padding:5px;" onclick="deleteLibItem('${item.id}')">🗑️ حذف</button></div></div>`;
                 genContainer.innerHTML += html;
             });
         }
@@ -1537,9 +1541,39 @@ window.startDjSyncListener = function() {
         function editLibItem(id) { let item = libraryData[id]; if(!item) return; document.getElementById('libItemId').value = id; document.getElementById('libItemName').value = item.name; let standardTypes = ['لغز / تشنشينة', 'لعبة حركية', 'مسابقة فكرية', 'أخرى']; if(standardTypes.includes(item.type)) { document.getElementById('libItemType').value = item.type; document.getElementById('libItemCustomType').style.display = 'none'; document.getElementById('libItemCustomType').value = ''; } else { document.getElementById('libItemType').value = 'أخرى'; document.getElementById('libItemCustomType').style.display = 'block'; document.getElementById('libItemCustomType').value = item.type; } document.getElementById('libItemAnim').value = item.animText || ''; document.getElementById('libItemDJ').value = item.djText || ''; document.getElementById('libItemAssist').value = item.assistText || ''; document.getElementById('libItemFav').checked = item.isFav; document.getElementById('libFormTitle').innerText = '✏️ تعديل الفقرة'; document.getElementById('libFormModal').style.display = 'flex'; }
 
         function deleteLibItem(id) { if(confirm("⚠️ متأكد تحب تفسخ هالفقرة نهائياً من المكتبة؟")) { db.ref('BechaEventsData/library/' + id).remove(); } }
+        window.duplicateLibItem = function(id) {
+            let item = libraryData[id];
+            if(!item) return;
+            let newId = 'lib_' + Date.now();
+            let copy = { ...item, name: item.name + ' (نسخة)', isFav: false, playCount: 0, updatedAt: Date.now() };
+            db.ref('BechaEventsData/library/' + newId).set(copy).then(() => { alert("📑 تم تكرار الفقرة! يمكنك تعديلها الآن."); });
+        };
 
         let targetLibInputId = ''; // الذاكرة اللي تسجل بلاصة السطر
-
+        window.exportLibrary = function() {
+            let dataStr = JSON.stringify(libraryData, null, 2);
+            let blob = new Blob([dataStr], {type: 'application/json'});
+            let link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = 'becha_library_backup_' + new Date().toISOString().slice(0,10) + '.json';
+            link.click();
+            alert("💾 تم تحميل نسخة احتياطية من المكتبة!");
+        };
+        window.importLibrary = function(event) {
+            let file = event.target.files[0];
+            if(!file) return;
+            let reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    let imported = JSON.parse(e.target.result);
+                    if(typeof imported !== 'object' || imported === null) throw new Error("ملف غير صالح");
+                    if(!confirm("⚠️ سيتم دمج الفقرات المستوردة مع مكتبتك الحالية. متابعة؟")) return;
+                    db.ref('BechaEventsData/library').update(imported).then(() => { alert("📂 تم استيراد المكتبة بنجاح!"); });
+                } catch(err) { alert("❌ الملف غير صالح أو تالف: " + err.message); }
+            };
+            reader.readAsText(file);
+            event.target.value = '';
+        };
         function openLibSelectModal(inputId) { 
             targetLibInputId = inputId;
             let list = document.getElementById('libSelectList'); list.innerHTML = ''; 
