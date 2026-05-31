@@ -1380,8 +1380,43 @@ window.startDjSyncListener = function() {
             types.forEach(t => {
                 html += `<button class="btn btn-outline" style="white-space:nowrap; border-color:#17a2b8; color:#17a2b8;" onclick="activeLibFilter='${t}'; renderLibrary('${t}')">${t}</button>`;
             });
-            container.innerHTML = html;
+           container.innerHTML = html;
+
+            // 🔍 خانة البحث
+            let searchBox = document.getElementById('libSearchBox');
+            if(!searchBox) {
+                let searchHtml = `<input type="text" id="libSearchBox" placeholder="🔍 ابحث عن فقرة بالاسم..." style="width:100%; margin-bottom:12px; padding:12px; border-radius:10px; border:2px solid #ddd; font-size:15px; font-weight:bold;" oninput="filterLibBySearch(this.value)">`;
+                container.insertAdjacentHTML('beforebegin', searchHtml);
+            }
         }
+
+        // 🔍 محرك فلترة البحث
+        window.filterLibBySearch = function(query) {
+            query = query.trim().toLowerCase();
+            let genContainer = document.getElementById('generalLibContainer');
+
+            // كان الخانة فارغة، نرجعو للعرض العادي حسب التبويب المختار
+            if(query === '') { renderLibrary(activeLibFilter); return; }
+
+            // نلموا كل الفقرات اللي اسمها يطابق البحث (من المكتبة الكل)
+            let items = Object.keys(libraryData).map(k => ({id: k, ...libraryData[k]}));
+            let results = items.filter(i => i.name && i.name.toLowerCase().includes(query));
+            results.sort((a, b) => b.updatedAt - a.updatedAt);
+
+            genContainer.innerHTML = `<div style="background:#e3f2fd; color:#0275d8; padding:10px; border-radius:10px; margin-bottom:15px; font-weight:bold; font-size:14px;">🔍 نتائج البحث: ${results.length} فقرة</div>`;
+
+            if(results.length === 0) {
+                genContainer.innerHTML += '<p style="color:#888; text-align:center; font-weight:bold;">ما لقينا حتى فقرة بهالاسم.</p>';
+                return;
+            }
+
+            results.forEach(item => {
+                let d = new Date(item.updatedAt);
+                let dateStr = d.toLocaleDateString('ar-TN') + ' ' + d.toLocaleTimeString('ar-TN', {hour:'2-digit', minute:'2-digit'});
+                let isFav = item.isFav ? 'active' : '';
+                genContainer.innerHTML += `<div class="lib-card"><div class="fav-heart ${isFav}" onclick="toggleFavorite('${item.id}', ${!item.isFav}); setTimeout(()=>filterLibBySearch(document.getElementById('libSearchBox').value), 300);">❤️</div><div class="lib-title">${item.name} <span style="font-size:12px; color:#666;">(${item.type})</span></div><div class="lib-date">آخر تحيين: ${dateStr}</div><div style="font-size:13px; color:#555; margin-top:10px; background:#f8f9fa; padding:10px; border-radius:8px;"><b>🎤 المنشط:</b> ${item.animText || '---'}<br><b>🎧 الـ DJ:</b> ${item.djText || '---'}<br><b>🏃‍♂️ المساعد:</b> ${item.assistText || '---'}</div><div class="lib-actions"><button class="btn btn-outline" style="border-color:#17a2b8; color:#17a2b8; flex:1; padding:5px;" onclick="editLibItem('${item.id}')">✏️ تعديل</button><button class="btn btn-outline" style="border-color:#dc3545; color:#dc3545; flex:1; padding:5px;" onclick="deleteLibItem('${item.id}')">🗑️ حذف</button></div></div>`;
+            });
+        };
 
         // مفلتر المكتبة ونظام المجلدات (Dossiers)
         function renderLibrary(filterType = 'all') {
