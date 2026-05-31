@@ -1187,6 +1187,7 @@ function playBeep(type) { initAudioCtx(); const osc = audioCtx.createOscillator(
             window.monitorCurtainAlert();
             if(typeof window.startLiveGameListener === 'function') window.startLiveGameListener();
             if(typeof window.startDjSyncListener === 'function') window.startDjSyncListener();
+           if(typeof window.startJsfListener === 'function') window.startJsfListener();
             if(typeof window.startWheelSyncListener === 'function') window.startWheelSyncListener();
         };
         
@@ -1336,6 +1337,15 @@ window.startDjSyncListener = function() {
                 document.getElementById('fsContent').innerHTML = `<div style="display:flex; flex-direction:column; align-items:center; justify-content:center; height:100%; text-align:center;"><div style="font-size:100px; margin-bottom:10px; animation: pulse 1s infinite;">🎬</div><h2 style="color:#ffc107; font-size:35px; margin:0;">المنشط يشغّل الآن فيديو كاريوكي</h2><h3 style="color:#17a2b8; font-size:25px; margin-top:10px;">(${syncData.video.name})</h3><div style="background:#E10600; color:#fff; font-size:28px; font-weight:900; margin-top:30px; padding:20px; border-radius:15px; border:4px solid #fff; box-shadow:0 10px 30px rgba(225,6,0,0.5);">⚠️ الرجاء خفض الموسيقى الخلفية (Volume) من الميكساج!</div></div>`;
                 return; 
             }
+            // 2.5 معالجة أمر Jeux Sans Frontières
+            if (syncData.jsf && syncData.jsf.active) {
+                if(typeof window.openJSF === 'function') window.openJSF(true);
+                return;
+            } else if (window._jsfWasActive) {
+                window._jsfWasActive = false;
+                if(typeof window.closeJSF === 'function') window.closeJSF(true);
+            }
+            if (syncData.jsf && syncData.jsf.active) window._jsfWasActive = true;
             
             // 3. معالجة أمر الألعاب (الركح) والتنقل بين الفقرات
             if (syncData.game && syncData.game.active) {
@@ -3084,6 +3094,177 @@ function restoreDraft(draft) {
 
 // ⏱️ العسّاس: يحفظ أوتوماتيكياً كل 30 ثانية
 setInterval(performAutoSave, 30000);
+        /* =========================================================
+   🎮 Jeux Sans Frontières — واجهة مستقلة (لاعبين + نقاط + chrono)
+   ========================================================= */
+window.jsfState = { players: [], chrono: 0, running: false, timeUp: false, timer: null };
+window._jsfReturnIndex = 0;
+
+// زرع زر JSF في الشاشة العملاقة
+setInterval(() => {
+    let fsControls = document.querySelector('.fs-header div');
+    if(fsControls && !document.getElementById('fsJsfBtn')) {
+        let rocketBtn = fsControls.querySelector('button[title="ارتجال فقرة حية"]');
+        if(rocketBtn) {
+            rocketBtn.insertAdjacentHTML('beforebegin', `<button id="fsJsfBtn" class="fs-zoom-btn" onclick="window.openJSF()" title="Jeux Sans Frontières" style="color:#e83e8c; margin-right:15px; font-size:26px;">🏆</button>`);
+        }
+    }
+    // إخفاء الزر على المراقبة (DJ والمساعدين والعميل)
+    if (currentUser && ['dj', 'assistant', 'assistant_anim', 'client'].includes(currentUser.role)) {
+        let b = document.getElementById('fsJsfBtn'); if(b) b.style.display = 'none';
+    }
+}, 1500);
+
+window.jsfPath = function() {
+    return (isArchivedEvent ? 'BechaEventsData/archived_events/' : 'BechaEventsData/events/') + currentEventIndex;
+};
+window.isJsfReadOnly = function() {
+    return currentUser && ['dj', 'assistant', 'assistant_anim', 'client'].includes(currentUser.role);
+};
+
+// فتح الواجهة (fromSync = جاية من مزامنة الـ DJ)
+window.openJSF = function(fromSync) {
+    // نحفظ الفقرة اللي كنا فيها باش نرجعولها
+    if(!fromSync && typeof window.currentFsIndex !== 'undefined') window._jsfReturnIndex = window.currentFsIndex;
+
+    let modal = document.getElementById('jsfModal');
+    if(!modal) {
+        modal = document.createElement('div');
+        modal.id = 'jsfModal';
+        modal.style.cssText = 'display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:#0d0d1a; z-index:9999998; flex-direction:column; overflow-y:auto; padding:0;';
+        document.body.appendChild(modal);
+    }
+    modal.style.display = 'flex';
+    window.renderJSF();
+
+    // المنشط يرسل أمر الفتح للـ DJ
+    if(!window.isJsfReadOnly()) {
+        db.ref(window.jsfPath() + '/jsf').update({ active: true });
+        window.syncJSF();
+    }
+};
+
+window.closeJSF = function(fromSync) {
+    let modal = document.getElementById('jsfModal');
+    if(modal) modal.style.display = 'none';
+    if(window.jsfState.timer) clearInterval(window.jsfState.timer);
+    if(!fromSync && !window.isJsfReadOnly()) {
+        db.ref(window.jsfPath() + '/jsf').update({ active: false });
+        // نرجعو للفقرة اللي كنا فيها
+        if(typeof window.openFsStep === 'function' && currentEventData.eventProgram && currentEventData.eventProgram[window._jsfReturnIndex]) {
+            window.openFsStep(window._jsfReturnIndex);
+        }
+    }
+};
+
+window.syncJSF = function() {
+    if(window.isJsfReadOnly()) return;
+    db.ref(window.jsfPath() + '/jsf').update({
+        active: true,
+        players: window.jsfState.players,
+        chrono: window.jsfState.chrono,
+        running: window.jsfState.running,
+        timeUp: window.jsfState.timeUp
+    });
+};
+
+window.renderJSF = function() {
+    let modal = document.getElementById('jsfModal');
+    if(!modal) return;
+    let ro = window.isJsfReadOnly();
+    let s = window.jsfState;
+    let mins = Math.floor(s.chrono/60).toString().padStart(2,'0');
+    let secs = (s.chrono%60).toString().padStart(2,'0');
+    let chronoColor = s.timeUp ? '#E10600' : (s.chrono<=10 && s.chrono>0 ? '#ff9800' : '#20c997');
+
+    let html = `
+    <div style="display:flex; justify-content:space-between; align-items:center; padding:15px 25px; background:#1a1a2e; border-bottom:3px solid #e83e8c;">
+        <h2 style="color:#e83e8c; margin:0; font-size:24px;">🏆 Jeux Sans Frontières</h2>
+        ${!ro ? `<button class="btn btn-red" style="font-size:16px;" onclick="window.closeJSF()">✔️ إنهاء والرجوع للبرنامج</button>` : `<span style="color:#aaa; font-weight:bold;">👁️ وضع المراقبة</span>`}
+    </div>
+    <div style="flex:1; padding:30px; text-align:center;">`;
+
+    // الكرونو
+    html += `<div class="${s.timeUp?'flash-screen':''}" style="font-size:90px; font-weight:900; color:${chronoColor}; font-family:monospace; line-height:1; margin-bottom:20px; text-shadow:0 0 20px ${chronoColor};">${mins}:${secs}</div>`;
+    if(!ro) {
+        html += `<div style="display:flex; justify-content:center; gap:8px; flex-wrap:wrap; margin-bottom:12px;">
+            <button class="btn btn-outline" style="border-color:#aaa; color:#aaa;" onclick="window.jsfSetChrono(30)">30ث</button>
+            <button class="btn btn-outline" style="border-color:#aaa; color:#aaa;" onclick="window.jsfSetChrono(60)">1دق</button>
+            <button class="btn btn-outline" style="border-color:#aaa; color:#aaa;" onclick="window.jsfSetChrono(120)">2دق</button>
+            <button class="btn btn-dark" onclick="window.jsfAdjust(10)">+10ث</button>
+            <button class="btn btn-dark" onclick="window.jsfAdjust(-10)">-10ث</button>
+        </div>
+        <div style="display:flex; justify-content:center; gap:10px; margin-bottom:30px;">
+            ${!s.running ? `<button class="btn btn-green" style="font-size:18px; padding:10px 25px;" onclick="window.jsfStart()">▶️ إبدأ / مواصلة</button>` : `<button class="btn btn-outline" style="border-color:#ff9800; color:#ff9800; background:#222; font-size:18px; padding:10px 25px;" onclick="window.jsfPause()">⏸️ إيقاف</button>`}
+            <button class="btn btn-red" style="font-size:18px; padding:10px 20px;" onclick="window.jsfResetChrono()">🔄 تصفير الوقت</button>
+        </div>`;
+    } else { html += `<div style="color:#aaa; font-weight:bold; margin-bottom:30px;">المنشط يتحكم في الوقت</div>`; }
+
+    // اللاعبين
+    html += `<div style="display:flex; justify-content:space-between; align-items:center; max-width:900px; margin:0 auto 15px auto;">
+        <h3 style="color:#ffc107; margin:0;">🏆 اللاعبون</h3>
+        ${!ro ? `<div><button class="btn btn-green" onclick="window.jsfAddPlayer()">➕ لاعب</button> <button class="btn btn-outline" style="border-color:#dc3545; color:#dc3545;" onclick="window.jsfResetPlayers()">🔄 طرح جديد</button></div>` : ''}
+    </div>
+    <div style="display:flex; gap:15px; overflow-x:auto; padding:10px; justify-content:center; flex-wrap:wrap;">`;
+
+    if(s.players.length === 0) { html += `<div style="color:#777;">${!ro ? 'اضغط "لاعب" لإضافة المشاركين.' : 'في انتظار المنشط...'}</div>`; }
+    s.players.forEach((p, i) => {
+        html += `<div style="background:#1a1a2e; border:2px solid #e83e8c; border-radius:14px; padding:18px; min-width:150px; text-align:center; position:relative;">
+            ${!ro ? `<button onclick="window.jsfRemovePlayer(${i})" style="position:absolute; top:5px; left:5px; background:transparent; border:none; color:#dc3545; cursor:pointer; font-size:16px;">❌</button>` : ''}
+            <input type="text" value="${p.name}" onchange="window.jsfEditName(${i}, this.value)" style="background:transparent; border:none; border-bottom:1px solid #555; color:white; font-size:18px; font-weight:bold; text-align:center; width:90%; font-family:'Cairo'; margin-bottom:12px; padding-bottom:5px;" ${ro?'disabled':''}>
+            <div style="font-size:50px; font-weight:900; color:${p.score>0?'#198754':(p.score<0?'#dc3545':'white')}; margin-bottom:15px;">${p.score}</div>
+            ${!ro ? `<div style="display:flex; gap:5px;"><button class="btn btn-green" style="flex:1; font-size:26px; padding:0;" onclick="window.jsfScore(${i},1)">+</button><button class="btn btn-red" style="flex:1; font-size:26px; padding:0;" onclick="window.jsfScore(${i},-1)">-</button></div>` : ''}
+        </div>`;
+    });
+    html += `</div></div>`;
+    modal.innerHTML = html;
+};
+
+// دوال التحكم (المنشط برك)
+window.jsfRefresh = function() { window.renderJSF(); window.syncJSF(); };
+window.jsfAddPlayer = function() { window.jsfState.players.push({name:`مشارك ${window.jsfState.players.length+1}`, score:0}); window.jsfRefresh(); };
+window.jsfRemovePlayer = function(i) { window.jsfState.players.splice(i,1); window.jsfRefresh(); };
+window.jsfEditName = function(i,n) { window.jsfState.players[i].name = n; window.syncJSF(); };
+window.jsfScore = function(i,d) { window.jsfState.players[i].score += d; if(d>0) window.playBeepSound('success'); window.renderJSF(); if(window._jsfScoreTimer) clearTimeout(window._jsfScoreTimer); window._jsfScoreTimer = setTimeout(window.syncJSF, 400); };
+window.jsfResetPlayers = function() { if(confirm("تصفير النقاط فقط؟\n(Cancel = فسخ الأسماء زادة)")) { window.jsfState.players.forEach(p=>p.score=0); } else { window.jsfState.players = []; } window.jsfRefresh(); };
+window.jsfSetChrono = function(s) { window.jsfPause(); window.jsfState.chrono = s; window.jsfState.timeUp = false; window.jsfRefresh(); };
+window.jsfAdjust = function(s) { window.jsfState.chrono += s; if(window.jsfState.chrono<0) window.jsfState.chrono=0; window.jsfState.timeUp=false; window.jsfRefresh(); };
+window.jsfStart = function() {
+    if(window.jsfState.chrono<=0 || window.jsfState.running) return;
+    window.jsfState.running = true; window.jsfState.timeUp = false; window.jsfRefresh();
+    window.jsfState.timer = setInterval(() => {
+        window.jsfState.chrono--;
+        if(window.jsfState.chrono<=10 && window.jsfState.chrono>0) window.playBeepSound('tick');
+        if(window.jsfState.chrono<=0) { clearInterval(window.jsfState.timer); window.jsfState.chrono=0; window.jsfState.running=false; window.jsfState.timeUp=true; window.playBeepSound('buzzer'); window.jsfRefresh(); }
+        else { window.renderJSF(); window.syncJSF(); }
+    }, 1000);
+};
+window.jsfPause = function() { window.jsfState.running = false; clearInterval(window.jsfState.timer); window.jsfRefresh(); };
+window.jsfResetChrono = function() { window.jsfPause(); window.jsfState.chrono = 0; window.jsfState.timeUp = false; window.jsfRefresh(); };
+
+// مستمع المزامنة للـ DJ (يشوف نفس الشي)
+window.jsfListenerRef = null;
+window.startJsfListener = function() {
+    if(!window.isJsfReadOnly()) return;
+    let ref = db.ref(window.jsfPath() + '/jsf');
+    if(window.jsfListenerRef) ref.off('value', window.jsfListenerRef);
+    window.jsfListenerRef = ref.on('value', snap => {
+        let d = snap.val();
+        if(!d) return;
+        if(d.active) {
+            window.jsfState.players = d.players || [];
+            window.jsfState.chrono = d.chrono || 0;
+            window.jsfState.running = d.running || false;
+            window.jsfState.timeUp = d.timeUp || false;
+            let modal = document.getElementById('jsfModal');
+            if(!modal || modal.style.display !== 'flex') window.openJSF(true);
+            else window.renderJSF();
+            if(d.chrono<=10 && d.chrono>0 && d.running) window.playBeepSound('tick');
+        } else {
+            window.closeJSF(true);
+        }
+    });
+};
     </script>
 </body>
 </html>
